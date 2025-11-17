@@ -27,5 +27,6 @@
     <ProjectReference Include="..\AssemblyWithMultipleTypesToRegister\AssemblyWithMultipleTypesToRegister.csproj" />
     <ProjectReference Include="..\AssemblyWithNoTypesToRegister\AssemblyWithNoTypesToRegister.csproj" />
     <ProjectReference Include="..\AssemblyWithSingleTypeWithMultipleRegisterAttributes\AssemblyWithSingleTypeWithMultipleRegisterAttributes.csproj" />
+    <ProjectReference Include="..\AssemblyWithLifetimeAttributes\AssemblyWithLifetimeAttributes.csproj" />
   </ItemGroup>
 </Project>

@@ -86,10 +86,11 @@ namespace AttributedDI.SourceGenerator
             // ATDI002: RegisterAsAttribute with incompatible service type
             else if (attributeName == "RegisterAsAttribute")
             {
-                if (attribute.ConstructorArguments.Length > 0)
+                // Handle generic RegisterAsAttribute<TService>
+                if (attributeClass is { TypeArguments.Length: > 0 } namedAttr)
                 {
-                    var serviceTypeArg = attribute.ConstructorArguments[0];
-                    if (serviceTypeArg.Value is INamedTypeSymbol serviceType)
+                    var serviceType = namedAttr.TypeArguments[0] as INamedTypeSymbol;
+                    if (serviceType != null)
                     {
                         // Check if implementation type is assignable to service type
                         if (!IsAssignableTo(namedTypeSymbol, serviceType))
@@ -109,6 +110,7 @@ namespace AttributedDI.SourceGenerator
         private static void CheckForDuplicates(SymbolAnalysisContext context, INamedTypeSymbol namedTypeSymbol, System.Collections.Generic.List<AttributeData> registrationAttributes)
         {
             var registrations = new System.Collections.Generic.HashSet<(string ServiceType, string Lifetime)>();
+            var lifetime = GetLifetime(context, namedTypeSymbol);
 
             foreach (var attribute in registrationAttributes)
             {
@@ -117,7 +119,6 @@ namespace AttributedDI.SourceGenerator
                     continue;
 
                 var attributeName = attributeClass.Name;
-                var lifetime = GetLifetime(attribute);
 
                 if (attributeName == "RegisterAsSelfAttribute")
                 {
@@ -133,11 +134,12 @@ namespace AttributedDI.SourceGenerator
                         context.ReportDiagnostic(diagnostic);
                     }
                 }
-                else if (attributeName == "RegisterAsAttribute" && attribute.ConstructorArguments.Length > 0)
+                else if (attributeName == "RegisterAsAttribute")
                 {
-                    var serviceTypeArg = attribute.ConstructorArguments[0];
-                    if (serviceTypeArg.Value is INamedTypeSymbol serviceType)
+                    // Handle generic RegisterAsAttribute<TService>
+                    if (attributeClass is { TypeArguments.Length: > 0 } namedAttr)
                     {
+                        var serviceType = namedAttr.TypeArguments[0];
                         var key = (serviceType.ToDisplayString(), lifetime);
                         if (!registrations.Add(key))
                         {
@@ -171,24 +173,45 @@ namespace AttributedDI.SourceGenerator
             }
         }
 
-        private static string GetLifetime(AttributeData attribute)
+        private static string GetLifetime(SymbolAnalysisContext context, INamedTypeSymbol namedTypeSymbol)
         {
-            var lifetimeArg = attribute.NamedArguments.FirstOrDefault(a => a.Key == "Lifetime").Value;
-            if (lifetimeArg.Value != null)
-            {
-                return lifetimeArg.Value.ToString()!;
-            }
+            // Check for lifetime attributes on the type
+            var lifetimeAttributes = namedTypeSymbol.GetAttributes()
+                .Where(attr => attr.AttributeClass != null && 
+                              (attr.AttributeClass.ToDisplayString() == "AttributedDI.TransientAttribute" ||
+                               attr.AttributeClass.ToDisplayString() == "AttributedDI.SingletonAttribute" ||
+                               attr.AttributeClass.ToDisplayString() == "AttributedDI.ScopedAttribute"))
+                .ToList();
 
-            if (attribute.ConstructorArguments.Length > 0)
+            // Validate only one lifetime attribute
+            if (lifetimeAttributes.Count > 1)
             {
-                var lastArg = attribute.ConstructorArguments[attribute.ConstructorArguments.Length - 1];
-                if (lastArg.Type?.Name == "ServiceLifetime")
+                // Report diagnostic for multiple lifetime attributes
+                foreach (var attr in lifetimeAttributes.Skip(1))
                 {
-                    return lastArg.Value?.ToString() ?? "Transient";
+                    var diagnostic = Diagnostic.Create(
+                        DiagnosticDescriptors.DuplicateRegistration, // Reuse or create new descriptor
+                        attr.ApplicationSyntaxReference?.GetSyntax().GetLocation() ?? namedTypeSymbol.Locations[0],
+                        namedTypeSymbol.Name,
+                        "multiple lifetime attributes",
+                        "");
+                    context.ReportDiagnostic(diagnostic);
                 }
             }
 
-            return "Transient";
+            if (lifetimeAttributes.Count == 0)
+                return "Transient"; // Default
+
+            var lifetimeAttr = lifetimeAttributes[0];
+            var lifetimeTypeName = lifetimeAttr.AttributeClass!.ToDisplayString();
+
+            return lifetimeTypeName switch
+            {
+                "AttributedDI.TransientAttribute" => "Transient",
+                "AttributedDI.SingletonAttribute" => "Singleton",
+                "AttributedDI.ScopedAttribute" => "Scoped",
+                _ => "Transient"
+            };
         }
 
         private static bool IsRegistrationAttribute(INamedTypeSymbol? attributeClass)
@@ -196,15 +219,11 @@ namespace AttributedDI.SourceGenerator
             if (attributeClass == null)
                 return false;
 
-            while (attributeClass != null)
-            {
-                if (attributeClass.ToDisplayString() == "AttributedDI.RegisterBase")
-                    return true;
-
-                attributeClass = attributeClass.BaseType;
-            }
-
-            return false;
+            var fullName = attributeClass.ToDisplayString();
+            
+            return fullName == "AttributedDI.RegisterAsSelfAttribute" ||
+                   fullName == "AttributedDI.RegisterAsImplementedInterfacesAttribute" ||
+                   attributeClass.Name == "RegisterAsAttribute"; // Generic attribute
         }
 
         private static bool IsAssignableTo(INamedTypeSymbol implementationType, INamedTypeSymbol serviceType)

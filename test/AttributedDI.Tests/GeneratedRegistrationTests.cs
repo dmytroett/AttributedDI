@@ -2,7 +2,6 @@ using AssemblyWithMultipleTypesToRegister;
 using AssemblyWithSingleTypeWithMultipleRegisterAttributes;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using Xunit;
 
 namespace AttributedDI.Tests;

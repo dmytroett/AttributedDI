@@ -1,29 +1,18 @@
-using Microsoft.Extensions.DependencyInjection;
 using System;
+
 namespace AttributedDI
 {
     /// <summary>
-    /// Marks the type to be registered in <see cref="IServiceCollection"/> as implementation type for service specified in constructor.
+    /// Marks the type to be registered in <see cref="Microsoft.Extensions.DependencyInjection.IServiceCollection"/> 
+    /// as implementation type for the specified service type.
     /// </summary>
-    public sealed class RegisterAsAttribute : RegisterBase
+    /// <typeparam name="TService">The service type to register as.</typeparam>
+    /// <remarks>
+    /// Use <see cref="TransientAttribute"/>, <see cref="ScopedAttribute"/>, or <see cref="SingletonAttribute"/> 
+    /// to specify the lifetime. If no lifetime attribute is present, transient is used by default.
+    /// </remarks>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
+    public sealed class RegisterAsAttribute<TService> : Attribute
     {
-        /// <summary>
-        /// Creates an instance of attribute.
-        /// </summary>
-        /// <param name="serviceType">Service type.</param>
-        /// <param name="lifetime">Service instance lifetime.</param>
-        public RegisterAsAttribute(Type serviceType, ServiceLifetime lifetime = ServiceLifetime.Transient)
-        {
-            Lifetime = lifetime;
-            ServiceType = serviceType;
-        }
-        /// <summary>
-        /// Registration service type.
-        /// </summary>
-        public Type ServiceType { get; }
-        /// <summary>
-        /// Registration lifetime.
-        /// </summary>
-        public ServiceLifetime Lifetime { get; }
     }
 }
