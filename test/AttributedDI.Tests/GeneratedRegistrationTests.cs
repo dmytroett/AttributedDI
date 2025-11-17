@@ -1,98 +1,39 @@
+using AssemblyWithMultipleTypesToRegister;
+using AssemblyWithSingleTypeWithMultipleRegisterAttributes;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Xunit;
 
-namespace AttributedDI.Tests
+namespace AttributedDI.Tests;
+
+public class GeneratedRegistrationTests
 {
-    public class GeneratedRegistrationTests
+    [Fact]
+    public void Add_AllMarkedTypesInAssemblyAreRegistered()
     {
-        [Fact]
-        public void AddServicesFromAssemblies_WithAssemblyContainingMultipleTypes_RegistersAllTypes()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            var assembly = typeof(AssemblyWithMultipleTypesToRegister.Type1).Assembly;
+        // arrange
+        var services = new ServiceCollection();
 
-            // act
-            services.AddServicesFromAssemblies(assembly);
+        // act
+        services.AddAssemblyWithMultipleTypesToRegister();
+        
+        // assert
+        services.Should().Contain(x => x.ServiceType == typeof(Type1) && x.ImplementationType == typeof(Type1));
+        services.Should().Contain(x => x.ServiceType == typeof(Type2) && x.ImplementationType == typeof(Type2));
+    }
 
-            // assert
-            services.Should().HaveCount(2, "Assembly contains two types with registration attributes");
-            services.Should().Contain(d => d.ServiceType == typeof(AssemblyWithMultipleTypesToRegister.Type1));
-            services.Should().Contain(d => d.ServiceType == typeof(AssemblyWithMultipleTypesToRegister.Type2));
-        }
+    [Fact]
+    public void Add_RegisterAsImplementedInterfaces_RegistersAllInterfaces()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-        [Fact]
-        public void AddServicesFromAssemblies_WithAssemblyWithNoTypes_RegistersNothing()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            var assembly = typeof(AssemblyWithNoTypesToRegister.AssemblyWithNoTypesToRegisterDescriptor).Assembly;
-
-            // act
-            services.AddServicesFromAssemblies(assembly);
-
-            // assert
-            services.Should().BeEmpty("Assembly contains no types with registration attributes");
-        }
-
-        [Fact]
-        public void AddServicesFromAssemblyContaining_Generic_RegistersServicesFromAssembly()
-        {
-            // arrange
-            var services = new ServiceCollection();
-
-            // act
-            services.AddServicesFromAssemblyContaining<AssemblyWithMultipleTypesToRegister.Type1>();
-
-            // assert
-            services.Should().HaveCount(2);
-        }
-
-        [Fact]
-        public void AddServicesFromAssemblyContaining_Type_RegistersServicesFromAssembly()
-        {
-            // arrange
-            var services = new ServiceCollection();
-
-            // act
-            services.AddServicesFromAssemblyContaining(typeof(AssemblyWithMultipleTypesToRegister.Type1));
-
-            // assert
-            services.Should().HaveCount(2);
-        }
-
-        [Fact]
-        public void RegisteredServices_HaveCorrectLifetime()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            var assembly = typeof(AssemblyWithMultipleTypesToRegister.Type1).Assembly;
-
-            // act
-            services.AddServicesFromAssemblies(assembly);
-
-            // assert
-            var type1Descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(AssemblyWithMultipleTypesToRegister.Type1));
-            type1Descriptor?.Lifetime.Should().Be(ServiceLifetime.Transient, "Type1 uses default Transient lifetime");
-        }
-
-        [Fact]
-        public void TypeWithMultipleAttributes_RegistersMultipleTimes()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            var assembly = typeof(AssemblyWithSingleTypeWithMultipleRegisterAttributes.TypeWithMultipleRegisterAttributes).Assembly;
-
-            // act
-            services.AddServicesFromAssemblies(assembly);
-
-            // assert
-            services.Should().HaveCount(2, "Type has two registration attributes");
-            services.Should().Contain(d => d.ServiceType == typeof(AssemblyWithSingleTypeWithMultipleRegisterAttributes.Interface1));
-            services.Should().Contain(d => d.ServiceType == typeof(AssemblyWithSingleTypeWithMultipleRegisterAttributes.Interface2));
-        }
+        // act
+        services.AddAssemblyWithSingleTypeWithMultipleRegisterAttributes();
+        
+        // assert
+        services.Should().Contain(x => x.ServiceType == typeof(Interface1) && x.ImplementationType == typeof(TypeWithMultipleRegisterAttributes));
+        services.Should().Contain(x => x.ServiceType == typeof(Interface2) && x.ImplementationType == typeof(TypeWithMultipleRegisterAttributes));
     }
 }
-

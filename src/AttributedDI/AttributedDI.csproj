@@ -13,8 +13,6 @@
     <PackageTags>dependencyinjection;di;AoP;sourcegenerator;aot</PackageTags>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
-    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,11 +22,11 @@
   <ItemGroup>
     <ProjectReference Include="..\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj"
                       OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"/>
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(OutputPath)\AttributedDI.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\..\icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -39,9 +37,14 @@
     </None>
   </ItemGroup>
 
-  <Target Name="GetDependencyTargetPaths">
+  <!-- Pack the generator DLL into the NuGet package -->
+  <Target Name="GetAnalyzerPackFiles" DependsOnTargets="ResolveProjectReferences">
     <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="$(OutputPath)\AttributedDI.SourceGenerator.dll" IncludeRuntimeDependency="false" />
+      <None Include="@(ReferencePath)" Condition="'%(ReferencePath.ProjectReferenceOriginalItemSpec)' == '..\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj'">
+        <Pack>true</Pack>
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+        <Visible>false</Visible>
+      </None>
     </ItemGroup>
   </Target>
 

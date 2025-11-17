@@ -50,6 +50,7 @@ dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = true
 dotnet_style_namespace_match_folder = true
+csharp_style_namespace_declarations = file_scoped
 dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
