@@ -29,10 +29,25 @@ public void RegisterService(Type serviceType, Type implementationType)
 - Update docs when signatures change
 - Query Microsoft docs to fetch relevant up-to-date documentation
 
-### Code Style
+### Code Style & Formatting
 
-- After generating or modifying code, automatically run `dotnet format` to adhere to `.editorconfig` rules
-- Only format files that have been changed and contain relevant `.editorconfig` rules
+**MANDATORY**: When done with code generation or modification, you MUST:
+
+1. Use the `run_in_terminal` tool to execute: `dotnet format --include <list-of-changed-files>`
+2. Wait for the formatting command to ~~~~complete
+3. Use the `get_errors` tool to verify no formatting issues remain
+
+Example command format:
+```
+dotnet format --include src/AttributedDI/MyClass.cs
+```
+
+For multiple files:
+```
+dotnet format --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
+```
+
+**DO NOT** skip this step. Formatting is not optional and must be performed before completing your turn.
 
 ## Implementation Process
 
@@ -47,6 +62,8 @@ When implementing new features or significant changes:
 2. **Wait for Approval**: Proceed with implementation only after the user gives the green light
 
 3. **Implement**: Follow through with the approved plan
+
+4. **Format Code**: Run `dotnet format` on all changed files (see Code Style & Formatting section above)
 
 ### Example Plan Format
 
