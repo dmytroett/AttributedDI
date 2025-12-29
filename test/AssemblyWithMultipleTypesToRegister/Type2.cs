@@ -1,9 +1,8 @@
 using AttributedDI;
 
-namespace AssemblyWithMultipleTypesToRegister
+namespace AssemblyWithMultipleTypesToRegister;
+
+[RegisterAsSelf]
+public class Type2
 {
-    [RegisterAsSelf]
-    public class Type2
-    {
-    }
 }

@@ -1,4 +1,3 @@
-namespace AttributedDI.Tests.Stubs
-{
-    public interface Interface1 { }
-}
+namespace AttributedDI.Tests.Stubs;
+
+public interface Interface1 { }

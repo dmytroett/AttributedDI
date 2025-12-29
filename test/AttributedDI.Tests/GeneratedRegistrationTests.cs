@@ -16,7 +16,7 @@ public class GeneratedRegistrationTests
 
         // act
         services.AddAssemblyWithMultipleTypesToRegister();
-        
+
         // assert
         services.Should().Contain(x => x.ServiceType == typeof(Type1) && x.ImplementationType == typeof(Type1));
         services.Should().Contain(x => x.ServiceType == typeof(Type2) && x.ImplementationType == typeof(Type2));
@@ -30,7 +30,7 @@ public class GeneratedRegistrationTests
 
         // act
         services.AddAssemblyWithSingleTypeWithMultipleRegisterAttributes();
-        
+
         // assert
         services.Should().Contain(x => x.ServiceType == typeof(Interface1) && x.ImplementationType == typeof(TypeWithMultipleRegisterAttributes));
         services.Should().Contain(x => x.ServiceType == typeof(Interface2) && x.ImplementationType == typeof(TypeWithMultipleRegisterAttributes));

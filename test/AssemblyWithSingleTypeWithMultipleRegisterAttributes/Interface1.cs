@@ -1,6 +1,5 @@
-namespace AssemblyWithSingleTypeWithMultipleRegisterAttributes
+namespace AssemblyWithSingleTypeWithMultipleRegisterAttributes;
+
+public interface Interface1
 {
-    public interface Interface1
-    {
-    }
 }

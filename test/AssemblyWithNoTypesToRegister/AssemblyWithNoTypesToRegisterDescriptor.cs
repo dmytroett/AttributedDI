@@ -1,9 +1,8 @@
 ﻿using System.Reflection;
 
-namespace AssemblyWithNoTypesToRegister
+namespace AssemblyWithNoTypesToRegister;
+
+public class AssemblyWithNoTypesToRegisterDescriptor
 {
-    public class AssemblyWithNoTypesToRegisterDescriptor
-    {
-        public Assembly Assembly { get; } = typeof(AssemblyWithNoTypesToRegisterDescriptor).Assembly;
-    }
+    public Assembly Assembly { get; } = typeof(AssemblyWithNoTypesToRegisterDescriptor).Assembly;
 }

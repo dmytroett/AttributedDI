@@ -1,6 +1,5 @@
-namespace AttributedDI.Tests.Stubs
+namespace AttributedDI.Tests.Stubs;
+
+public class StubWithSingleImplementedInterface : Interface1
 {
-    public class StubWithSingleImplementedInterface : Interface1
-    {
-    }
 }

@@ -1,6 +1,5 @@
-namespace AttributedDI.Tests.Stubs
+namespace AttributedDI.Tests.Stubs;
+
+public class ImplementationStub : ServiceStub
 {
-    public class ImplementationStub : ServiceStub
-    {
-    }
 }
