@@ -1,9 +1,8 @@
+using AttributedDI.SourceGenerator.Strategies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace AttributedDI.SourceGenerator;
 
@@ -14,13 +13,6 @@ namespace AttributedDI.SourceGenerator;
 [Generator]
 public class ServiceRegistrationGenerator : IIncrementalGenerator
 {
-    private const string RegisterAsSelfAttributeName = "AttributedDI.RegisterAsSelfAttribute";
-    private const string RegisterAsImplementedInterfacesAttributeName = "AttributedDI.RegisterAsImplementedInterfacesAttribute";
-    private const string RegistrationAliasAttributeName = "AttributedDI.RegistrationAliasAttribute";
-    private const string TransientAttributeName = "AttributedDI.TransientAttribute";
-    private const string SingletonAttributeName = "AttributedDI.SingletonAttribute";
-    private const string ScopedAttributeName = "AttributedDI.ScopedAttribute";
-
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -28,152 +20,73 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         var typesWithAttributes = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax,
-                transform: GetTypeWithAttributes)
+                transform: ServiceRegistrationStrategy.CollectRegistrations)
             .Where(static info => info is not null)
             .Select(static (info, _) => info!);
 
-        // Detect RegistrationAlias attributes at assembly level
+        // Collect all modules with RegisterModule attribute
+        var modules = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: static (node, _) => node is ClassDeclarationSyntax,
+                transform: ModuleRegistrationStrategy.CollectModules)
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+
+        // Detect RegistrationMethodName attributes at assembly level
         var assemblyAliases = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                RegistrationAliasAttributeName,
+                KnownAttributes.RegistrationMethodNameAttribute,
                 static (_, _) => true,
                 static (ctx, _) => GetAssemblyAliasInfo(ctx))
             .Where(static info => info is not null);
 
-        // Combine with assembly aliases
-        var combinedData = typesWithAttributes.Collect().Combine(assemblyAliases.Collect());
+        // Combine all data sources
+        var combinedData = typesWithAttributes.Collect()
+            .Combine(modules.Collect())
+            .Combine(assemblyAliases.Collect());
 
         // Generate the registration extension methods
         context.RegisterSourceOutput(combinedData, static (spc, data) =>
         {
-            var typeInfos = data.Left;
+            var typeInfos = data.Left.Left;
+            var moduleInfos = data.Left.Right;
             var aliases = data.Right.Where(a => a is not null).Select(a => a!).ToImmutableArray();
 
             // Flatten all registrations
             var allRegistrations = typeInfos.SelectMany(t => t.Registrations).ToImmutableArray();
 
-            if (allRegistrations.Any())
+            if (allRegistrations.Any() || moduleInfos.Any())
             {
-                string source = GenerateRegistrationExtensions(allRegistrations, aliases);
+                string assemblyName = allRegistrations.Any()
+                    ? allRegistrations[0].TypeSymbol.ContainingAssembly.Name
+                    : moduleInfos[0].TypeSymbol.ContainingAssembly.Name;
+
+                var aliasInfo = aliases.FirstOrDefault(a => a.AssemblyName == assemblyName);
+                string methodName = RegistrationMethodNameResolver.Resolve(assemblyName, aliasInfo);
+
+                string source = CodeEmitter.EmitRegistrationExtension(
+                    methodName,
+                    assemblyName,
+                    allRegistrations,
+                    moduleInfos);
+
                 spc.AddSource("ServiceRegistrationExtensions.g.cs", source);
             }
         });
-    }
-
-    private static TypeWithAttributesInfo? GetTypeWithAttributes(GeneratorSyntaxContext context, CancellationToken cancellationToken)
-    {
-        if (context.Node is not TypeDeclarationSyntax typeDeclaration)
-            return null;
-
-        if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) is not INamedTypeSymbol symbol)
-            return null;
-
-        var allAttributes = symbol.GetAttributes();
-
-        // Find lifetime attributes
-        var lifetimeAttributes = allAttributes
-            .Where(attr => attr.AttributeClass != null &&
-                          (attr.AttributeClass.ToDisplayString() == TransientAttributeName ||
-                           attr.AttributeClass.ToDisplayString() == SingletonAttributeName ||
-                           attr.AttributeClass.ToDisplayString() == ScopedAttributeName))
-            .ToList();
-
-        // Validate only one lifetime attribute
-        if (lifetimeAttributes.Count > 1)
-        {
-            // Report diagnostic for multiple lifetime attributes
-            return null;
-        }
-
-        // Determine lifetime (default to Transient)
-        string lifetime = "Transient";
-        if (lifetimeAttributes.Count == 1)
-        {
-            var lifetimeAttr = lifetimeAttributes[0];
-            var lifetimeTypeName = lifetimeAttr.AttributeClass!.ToDisplayString();
-
-            if (lifetimeTypeName == TransientAttributeName)
-                lifetime = "Transient";
-            else if (lifetimeTypeName == SingletonAttributeName)
-                lifetime = "Singleton";
-            else if (lifetimeTypeName == ScopedAttributeName)
-                lifetime = "Scoped";
-        }
-
-        // Find registration attributes
-        var registrationAttributes = allAttributes
-            .Where(attr => attr.AttributeClass != null &&
-                          (attr.AttributeClass.ToDisplayString() == RegisterAsSelfAttributeName ||
-                           attr.AttributeClass.Name == "RegisterAsAttribute" || // Generic attribute
-                           attr.AttributeClass.ToDisplayString() == RegisterAsImplementedInterfacesAttributeName))
-            .ToList();
-
-        var registrations = ImmutableArray.CreateBuilder<RegistrationInfo>();
-
-        // If lifetime attribute is present without any registration attributes, register as self
-        if (lifetimeAttributes.Count > 0 && registrationAttributes.Count == 0)
-        {
-            registrations.Add(new RegistrationInfo(
-                symbol,
-                RegistrationType.RegisterAsSelf,
-                null,
-                lifetime));
-        }
-
-        // Process registration attributes
-        foreach (var attr in registrationAttributes)
-        {
-            var attrTypeName = attr.AttributeClass!.ToDisplayString();
-
-            if (attrTypeName == RegisterAsSelfAttributeName)
-            {
-                registrations.Add(new RegistrationInfo(
-                    symbol,
-                    RegistrationType.RegisterAsSelf,
-                    null,
-                    lifetime));
-            }
-            else if (attr.AttributeClass.Name == "RegisterAsAttribute")
-            {
-                // Handle generic RegisterAsAttribute<TService>
-                if (attr.AttributeClass is { TypeArguments.Length: > 0 } namedAttr)
-                {
-                    var serviceType = namedAttr.TypeArguments[0];
-                    registrations.Add(new RegistrationInfo(
-                        symbol,
-                        RegistrationType.RegisterAs,
-                        serviceType,
-                        lifetime));
-                }
-            }
-            else if (attrTypeName == RegisterAsImplementedInterfacesAttributeName)
-            {
-                registrations.Add(new RegistrationInfo(
-                    symbol,
-                    RegistrationType.RegisterAsImplementedInterfaces,
-                    null,
-                    lifetime));
-            }
-        }
-
-        if (registrations.Count == 0)
-            return null;
-
-        return new TypeWithAttributesInfo(symbol, registrations.ToImmutable());
     }
 
     private static AssemblyAliasInfo? GetAssemblyAliasInfo(GeneratorAttributeSyntaxContext context)
     {
         var attribute = context.Attributes[0];
 
-        // Get alias name (first constructor argument)
+        // Get method name (first constructor argument)
         if (attribute.ConstructorArguments.Length < 1)
         {
             return null;
         }
 
         var aliasArg = attribute.ConstructorArguments[0];
-        if (aliasArg.Value is not string alias || string.IsNullOrWhiteSpace(alias))
+        if (aliasArg.Value is not string methodName || string.IsNullOrWhiteSpace(methodName))
         {
             return null;
         }
@@ -186,128 +99,6 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
             return null;
         }
 
-        return new AssemblyAliasInfo(alias, assemblySymbol.Name);
+        return new AssemblyAliasInfo(methodName, assemblySymbol.Name);
     }
-
-    private static string GenerateRegistrationExtensions(ImmutableArray<RegistrationInfo> registrations,
-        ImmutableArray<AssemblyAliasInfo> aliases)
-    {
-        var sb = new StringBuilder();
-
-        _ = sb.AppendLine("// <auto-generated/>");
-        _ = sb.AppendLine("#nullable enable");
-        _ = sb.AppendLine();
-        _ = sb.AppendLine("using System;");
-        _ = sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-        _ = sb.AppendLine();
-        _ = sb.AppendLine("namespace AttributedDI");
-        _ = sb.AppendLine("{");
-        _ = sb.AppendLine("    /// <summary>");
-        _ = sb.AppendLine("    /// Extension methods for registering services marked with AttributedDI attributes.");
-        _ = sb.AppendLine("    /// </summary>");
-        _ = sb.AppendLine("    public static partial class RegistrationServiceCollectionExtensions");
-        _ = sb.AppendLine("    {");
-
-        // Generate a single registration method for this assembly
-        if (registrations.Any())
-        {
-            string assemblyName = registrations[0].TypeSymbol.ContainingAssembly.Name;
-
-            // Check if there's an alias for this assembly
-            var aliasInfo = aliases.FirstOrDefault(a => a.AssemblyName == assemblyName);
-            string methodName = aliasInfo != null
-                ? $"Add{SanitizeIdentifier(aliasInfo.Alias)}"
-                : $"Add{SanitizeIdentifier(assemblyName)}";
-
-            _ = sb.AppendLine("        /// <summary>");
-            _ = sb.AppendLine(
-                $"        /// Registers all services from the {assemblyName} assembly that are marked with registration attributes.");
-            _ = sb.AppendLine("        /// </summary>");
-            _ = sb.AppendLine("        /// <param name=\"services\">The service collection to add services to.</param>");
-            _ = sb.AppendLine("        /// <returns>The service collection for chaining.</returns>");
-            _ = sb.AppendLine($"        public static IServiceCollection {methodName}(this IServiceCollection services)");
-            _ = sb.AppendLine("        {");
-
-            foreach (var registration in registrations)
-            {
-                GenerateRegistrationCode(sb, registration);
-            }
-
-            _ = sb.AppendLine("            return services;");
-            _ = sb.AppendLine("        }");
-        }
-
-        _ = sb.AppendLine("    }");
-        _ = sb.AppendLine("}");
-
-        return sb.ToString();
-    }
-
-    private static string SanitizeIdentifier(string name)
-    {
-        // Remove invalid characters from name to create a valid C# identifier
-        string sanitized = new([.. name.Where(c => char.IsLetterOrDigit(c) || c == '_')]);
-
-        // Ensure it doesn't start with a digit
-        if (sanitized.Length > 0 && char.IsDigit(sanitized[0]))
-        {
-            sanitized = "_" + sanitized;
-        }
-
-        return sanitized;
-    }
-
-    private static void GenerateRegistrationCode(StringBuilder sb, RegistrationInfo registration)
-    {
-        var typeSymbol = registration.TypeSymbol;
-        string fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        string lifetime = registration.Lifetime;
-
-        switch (registration.RegistrationType)
-        {
-            case RegistrationType.RegisterAsSelf:
-                _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
-                break;
-
-            case RegistrationType.RegisterAs:
-                if (registration.ServiceType != null)
-                {
-                    string serviceFullName = registration.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    _ = sb.AppendLine($"            services.Add{lifetime}<{serviceFullName}, {fullTypeName}>();");
-                }
-
-                break;
-
-            case RegistrationType.RegisterAsImplementedInterfaces:
-                var interfaces = typeSymbol.AllInterfaces;
-                foreach (var iface in interfaces)
-                {
-                    string ifaceFullName = iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    _ = sb.AppendLine($"            services.Add{lifetime}<{ifaceFullName}, {fullTypeName}>();");
-                }
-
-                break;
-        }
-    }
-
-    private enum RegistrationType
-    {
-        RegisterAsSelf,
-        RegisterAs,
-        RegisterAsImplementedInterfaces
-    }
-
-    private sealed record RegistrationInfo(
-        INamedTypeSymbol TypeSymbol,
-        RegistrationType RegistrationType,
-        ITypeSymbol? ServiceType,
-        string Lifetime);
-
-    private sealed record TypeWithAttributesInfo(
-        INamedTypeSymbol TypeSymbol,
-        ImmutableArray<RegistrationInfo> Registrations);
-
-    private sealed record AssemblyAliasInfo(
-        string Alias,
-        string AssemblyName);
 }

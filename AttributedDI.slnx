@@ -15,11 +15,4 @@
     <Project Path="src/AttributedDI.SourceGenerator/AttributedDI.SourceGenerator.csproj" />
     <Project Path="src/AttributedDI/AttributedDI.csproj" />
   </Folder>
-  <Folder Name="/test/">
-    <Project Path="test/AssemblyWithLifetimeAttributes/AssemblyWithLifetimeAttributes.csproj" />
-    <Project Path="test/AssemblyWithMultipleTypesToRegister/AssemblyWithMultipleTypesToRegister.csproj" />
-    <Project Path="test/AssemblyWithNoTypesToRegister/AssemblyWithNoTypesToRegister.csproj" />
-    <Project Path="test/AssemblyWithSingleTypeWithMultipleRegisterAttributes/AssemblyWithSingleTypeWithMultipleRegisterAttributes.csproj" />
-    <Project Path="test/AttributedDI.Tests/AttributedDI.Tests.csproj" />
-  </Folder>
 </Solution>
