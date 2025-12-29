@@ -27,7 +27,7 @@ public void RegisterService(Type serviceType, Type implementationType)
 
 - Internal methods: document only if complex
 - Update docs when signatures change
-- Use Context 7 to fetch relevant up-to-date documentation
+- Query Microsoft docs to fetch relevant up-to-date documentation
 
 ### Code Style
 

@@ -7,6 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
+    <IsPackable>true</IsPackable>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/dmytroett/AttributedDI</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dmytroett/AttributedDI</RepositoryUrl>
@@ -27,25 +28,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Pack the generator into the NuGet package as an analyzer -->
+    <None Include="..\AttributedDI.SourceGenerator\bin\$(Configuration)\netstandard2.0\AttributedDI.SourceGenerator.dll"
+          Pack="true" 
+          PackagePath="analyzers/dotnet/cs" 
+          Visible="false"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\icon.png">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>\</PackagePath>
     </None>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-
-  <!-- Pack the generator DLL into the NuGet package -->
-  <Target Name="GetAnalyzerPackFiles" DependsOnTargets="ResolveProjectReferences">
-    <ItemGroup>
-      <None Include="@(ReferencePath)" Condition="'%(ReferencePath.ProjectReferenceOriginalItemSpec)' == '..\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj'">
-        <Pack>true</Pack>
-        <PackagePath>analyzers/dotnet/cs</PackagePath>
-        <Visible>false</Visible>
-      </None>
-    </ItemGroup>
-  </Target>
 
 </Project>
