@@ -37,7 +37,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
             .ForAttributeWithMetadataName(
                 KnownAttributes.RegistrationMethodNameAttribute,
                 static (_, _) => true,
-                static (ctx, _) => GetAssemblyAliasInfo(ctx))
+                static (ctx, _) => RegistrationMethodNameResolver.GetAssemblyAliasInfo(ctx))
             .Where(static info => info is not null);
 
         // Combine all data sources
@@ -73,32 +73,5 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
                 spc.AddSource("ServiceRegistrationExtensions.g.cs", source);
             }
         });
-    }
-
-    private static AssemblyAliasInfo? GetAssemblyAliasInfo(GeneratorAttributeSyntaxContext context)
-    {
-        var attribute = context.Attributes[0];
-
-        // Get method name (first constructor argument)
-        if (attribute.ConstructorArguments.Length < 1)
-        {
-            return null;
-        }
-
-        var aliasArg = attribute.ConstructorArguments[0];
-        if (aliasArg.Value is not string methodName || string.IsNullOrWhiteSpace(methodName))
-        {
-            return null;
-        }
-
-        // For assembly-level attributes, the TargetSymbol is the assembly itself
-        var assemblySymbol = context.TargetSymbol as IAssemblySymbol ?? context.TargetSymbol.ContainingAssembly;
-
-        if (assemblySymbol is null)
-        {
-            return null;
-        }
-
-        return new AssemblyAliasInfo(methodName, assemblySymbol.Name);
     }
 }
