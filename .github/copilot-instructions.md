@@ -25,7 +25,9 @@ public void RegisterService(Type serviceType, Type implementationType)
 
 ### Guidelines
 
-- Internal methods: document only if complex
+- Document ONLY public code. 
+- Make sure the code is maintainable and easy to understand. Suggest refactoring the code for that purpose.
+- If the refactoring is challenging, complicated or user deliberately asked to not refactor - add comments and document such code instead even if it is private/internal. Do not overuse comments, place comments strategically to improve maintainability.
 - Update docs when signatures change
 - Query Microsoft docs to fetch relevant up-to-date documentation
 
