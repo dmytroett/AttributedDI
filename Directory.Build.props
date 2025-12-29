@@ -1,5 +1,13 @@
 <Project>
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    
+    <!-- Enable latest code analysis with all rules at error severity -->
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    
+    <!-- Treat all code analysis warnings as errors -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>

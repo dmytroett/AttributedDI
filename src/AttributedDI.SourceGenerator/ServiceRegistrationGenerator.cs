@@ -65,7 +65,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         if (context.Node is not TypeDeclarationSyntax typeDeclaration)
             return null;
 
-        if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration) is not INamedTypeSymbol symbol)
+        if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) is not INamedTypeSymbol symbol)
             return null;
 
         var allAttributes = symbol.GetAttributes();

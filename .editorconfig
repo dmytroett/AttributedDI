@@ -52,8 +52,6 @@ dotnet_style_explicit_tuple_names = true
 dotnet_style_namespace_match_folder = true
 # File scoped namespace declarations and corresponding rules
 csharp_style_namespace_declarations = file_scoped
-dotnet_diagnostic.IDE0160.severity = suggestion
-dotnet_diagnostic.IDE0161.severity = suggestion
 dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
@@ -181,9 +179,6 @@ csharp_space_between_square_brackets = false
 # Wrapping preferences
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = false
-
-# Reliability
-dotnet_diagnostic.CA2007.severity = warning
 
 #### Naming styles ####
 
