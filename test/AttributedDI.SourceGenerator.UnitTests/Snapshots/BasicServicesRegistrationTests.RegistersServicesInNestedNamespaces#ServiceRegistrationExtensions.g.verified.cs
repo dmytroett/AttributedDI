@@ -5,7 +5,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Tests.Generated
+namespace Tests
 {
     /// <summary>
     /// Extension methods for registering services marked with AttributedDI attributes.
