@@ -121,9 +121,6 @@ public class BasicServicesRegistrationTests
     [Fact]
     public async Task GeneratesCustomMethodName()
     {
-        // Tests: Custom registration method name via assembly attribute
-        // Note: Should pass "MyCustomServices" (not "AddMyCustomServices") 
-        // because the resolver automatically adds "Add" prefix
         var code = """
                    using AttributedDI;
 

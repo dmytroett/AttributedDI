@@ -11,11 +11,17 @@ public static class TestHelper
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
 
         // Get all necessary assembly references
-        // Note: We only need AttributedDI reference since it's a minimal test
-        // The compilation will still work for basic syntax analysis
+        // The compilation needs basic runtime references to properly resolve assembly-level attributes.
+        // Without these, the source generator cannot read attributes like [assembly: RegistrationMethodName("...")]
+        // because the compilation lacks the metadata for System.Attribute and related types.
+        // See: https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.attributedata
+        // See: https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md
         List<MetadataReference> references =
         [
-            MetadataReference.CreateFromFile(typeof(RegisterAsSelfAttribute).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location), // System.Private.CoreLib - provides System.Attribute
+            MetadataReference.CreateFromFile(typeof(RegisterAsSelfAttribute).Assembly.Location), // AttributedDI assembly
+            MetadataReference.CreateFromFile(AppDomain.CurrentDomain.GetAssemblies()
+                .First(a => a.GetName().Name == "System.Runtime").Location) // System.Runtime - required for attribute metadata resolution
         ];
 
         // Create a Roslyn compilation for the syntax tree with references

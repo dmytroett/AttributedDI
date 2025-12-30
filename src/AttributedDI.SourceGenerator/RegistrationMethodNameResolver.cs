@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using System;
 using System.Linq;
 
 namespace AttributedDI.SourceGenerator;
@@ -8,8 +9,6 @@ namespace AttributedDI.SourceGenerator;
 /// </summary>
 internal static class RegistrationMethodNameResolver
 {
-    private const string UnknownAssemblyName = "UnknownAssembly";
-
     /// <summary>
     /// Scans the assembly for registration method name information.
     /// Always emits one AssemblyInfo per compilation; if no attribute is present, MethodName is null.
@@ -19,44 +18,11 @@ internal static class RegistrationMethodNameResolver
     public static IncrementalValueProvider<AssemblyInfo> ScanAssembly(
         IncrementalGeneratorInitializationContext context)
     {
-        var aliases = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                KnownAttributes.RegistrationMethodNameAttribute,
-                static (_, _) => true,
-                static (ctx, _) => GetAssemblyAliasInfo(ctx))
-            .Where(static info => info is not null)
-            .Select(static (info, _) => info!);
-
-        // Create default AssemblyInfo from compilation, preferring alias if present
-        return context.CompilationProvider.Combine(aliases.Collect())
-            .Select(static (pair, _) =>
-            {
-                var compilation = pair.Left;
-                var aliasesList = pair.Right;
-
-                // Prefer attribute-derived alias; otherwise use assembly name from compilation
-                return aliasesList.FirstOrDefault()
-                    ?? new AssemblyInfo(null, compilation.AssemblyName ?? UnknownAssemblyName);
-            });
-    }
-
-    /// <summary>
-    /// Extracts assembly alias information from the attribute context.
-    /// </summary>
-    /// <param name="context">The generator attribute syntax context.</param>
-    /// <returns>Assembly information with alias, or null if extraction fails.</returns>
-    private static AssemblyInfo? GetAssemblyAliasInfo(GeneratorAttributeSyntaxContext context)
-    {
-        var attribute = context.Attributes[0];
-        if (attribute.ConstructorArguments.Length < 1)
-            return null;
-
-        var aliasArg = attribute.ConstructorArguments[0];
-        if (aliasArg.Value is not string methodName || string.IsNullOrWhiteSpace(methodName))
-            return null;
-
-        var assemblySymbol = context.TargetSymbol as IAssemblySymbol ?? context.TargetSymbol.ContainingAssembly;
-        return assemblySymbol is null ? null : new AssemblyInfo(methodName, assemblySymbol.Name);
+        return context.CompilationProvider.Select(static (compilation, _) =>
+        {
+            string? methodName = TryGetMethodNameFromAssemblyAttributes(compilation);
+            return new AssemblyInfo(methodName, compilation.Assembly.Name);
+        });
     }
 
     /// <summary>
@@ -84,5 +50,34 @@ internal static class RegistrationMethodNameResolver
         }
 
         return sanitized;
+    }
+
+    private static string? TryGetMethodNameFromAssemblyAttributes(Compilation compilation)
+    {
+        var attributeSymbol = compilation.GetTypeByMetadataName(KnownAttributes.RegistrationMethodNameAttribute);
+        foreach (var attribute in compilation.Assembly.GetAttributes())
+        {
+            var attributeClass = attribute.AttributeClass;
+            if (attributeClass is null)
+            {
+                continue;
+            }
+
+            bool matchesSymbol = attributeSymbol is not null && SymbolEqualityComparer.Default.Equals(attributeClass, attributeSymbol);
+            bool matchesFullName = string.Equals(attributeClass.ToDisplayString(), KnownAttributes.RegistrationMethodNameAttribute, StringComparison.Ordinal);
+            bool matchesShortName = string.Equals(attributeClass.Name, "RegistrationMethodNameAttribute", StringComparison.Ordinal) ||
+                                   string.Equals(attributeClass.Name, "RegistrationMethodName", StringComparison.Ordinal);
+            if (!matchesSymbol && !matchesFullName && !matchesShortName)
+            {
+                continue;
+            }
+
+            if (attribute.ConstructorArguments is [{ Value: string methodName }] && !string.IsNullOrWhiteSpace(methodName))
+            {
+                return methodName;
+            }
+        }
+
+        return null;
     }
 }
