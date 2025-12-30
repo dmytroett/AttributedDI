@@ -34,7 +34,7 @@ internal static class ModuleRegistrationStrategy
     /// <param name="context">The generator syntax context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Module information, or null if the type should be skipped.</returns>
-    public static ModuleInfo? CollectModules(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+    private static ModuleInfo? CollectModules(GeneratorSyntaxContext context, CancellationToken cancellationToken)
     {
         if (context.Node is not ClassDeclarationSyntax classDeclaration)
             return null;

@@ -154,7 +154,7 @@ public class BasicServicesRegistrationTests
         var code = """
                    using AttributedDI;
 
-                   [assembly: RegistrationMethodName("MyCustomServices")]
+                   [assembly: RegistrationMethodName("AddMyCustomServices")]
 
                    namespace MyApp
                    {

@@ -1,5 +1,7 @@
 using Company.TeamName.Project.API;
 using Company.TeamName.Project.API.Generated;
+using CustomRegistrationMethodName;
+using CustomRegistrationMethodName.Generated;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AttributedDI.IntegrationTests;
@@ -7,7 +9,7 @@ namespace AttributedDI.IntegrationTests;
 public class RegistrationsTestsWithStandardAssemblyName
 {
     [Fact]
-    public void ServicesRegisteredCorrectly()
+    public void ServiceRegistrationTests()
     {
         var services = new ServiceCollection();
 
@@ -41,6 +43,16 @@ public class RegistrationsTestsWithStandardAssemblyName
         // Keyed services - RegisterAsSelf with key
         AssertContainsKeyedService<RegisterAsSelfKeyedTransientService, RegisterAsSelfKeyedTransientService>(services, "transientKey", ServiceLifetime.Transient);
         AssertContainsKeyedService<RegisterAsSelfKeyedSingletonService, RegisterAsSelfKeyedSingletonService>(services, "singletonKey", ServiceLifetime.Singleton);
+    }
+
+    [Fact]
+    public void ProjectAliasTests()
+    {
+        var services = new ServiceCollection();
+
+        services.AddMyAmazingCustomServices();
+        
+        AssertContainsService<AliasedAssemblyService, AliasedAssemblyService>(services, ServiceLifetime.Scoped);
     }
 
     private static void AssertContainsService<TService, TImplementation>(IServiceCollection services, ServiceLifetime expectedLifetime)
