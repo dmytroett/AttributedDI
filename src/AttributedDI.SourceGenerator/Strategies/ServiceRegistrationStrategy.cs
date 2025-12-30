@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -34,45 +35,66 @@ internal static class ServiceRegistrationStrategy
     /// <param name="context">The generator syntax context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Array of registration information, or null if the type should be skipped.</returns>
-    public static TypeWithAttributesInfo? CollectRegistrations(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+    private static TypeWithAttributesInfo? CollectRegistrations(GeneratorSyntaxContext context,
+        CancellationToken cancellationToken)
     {
         if (context.Node is not TypeDeclarationSyntax typeDeclaration)
             return null;
 
-        if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) is not INamedTypeSymbol symbol)
+        if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) is not
+            INamedTypeSymbol symbol)
             return null;
 
         var allAttributes = symbol.GetAttributes();
 
-        // Determine lifetime
-        var lifetime = LifetimeResolver.ResolveLifetime(allAttributes);
+        var registrations = ImmutableArray.CreateBuilder<RegistrationInfo>();
 
+        // Find registration attributes
+        var registrationAttributes = allAttributes
+            .Where(attr =>
+            {
+                if (attr.AttributeClass == null)
+                {
+                    return false;
+                }
+
+                var attributeName = attr.AttributeClass.ToDisplayString();
+                return
+                    attributeName == KnownAttributes.RegisterAsSelfAttribute ||
+                    attr.AttributeClass.Name == KnownAttributes.RegisterAsAttribute ||
+                    attributeName ==
+                    KnownAttributes.RegisterAsImplementedInterfacesAttribute;
+            })
+            .ToList();
+
+        // Check if type has any lifetime attributes
+        var lifetimeAttributes = allAttributes
+            .Where(attr =>
+            {
+                if (attr.AttributeClass == null)
+                {
+                    return false;
+                }
+
+                var displayString = attr.AttributeClass.ToDisplayString();
+                return
+                    displayString == KnownAttributes.TransientAttribute ||
+                    displayString == KnownAttributes.SingletonAttribute ||
+                    displayString == KnownAttributes.ScopedAttribute;
+            })
+            .ToList();
+        
         // TODO: Add diagnostic reporting for invalid registrations
-        if (lifetime == null)
+        if (lifetimeAttributes.Count > 1)
         {
             // Multiple lifetime attributes found - skip this type
             return null;
         }
 
-        // Find registration attributes
-        var registrationAttributes = allAttributes
-            .Where(attr => attr.AttributeClass != null &&
-                          (attr.AttributeClass.ToDisplayString() == KnownAttributes.RegisterAsSelfAttribute ||
-                           attr.AttributeClass.Name == KnownAttributes.RegisterAsAttribute ||
-                           attr.AttributeClass.ToDisplayString() == KnownAttributes.RegisterAsImplementedInterfacesAttribute))
-            .ToList();
-
-        var registrations = ImmutableArray.CreateBuilder<RegistrationInfo>();
-
-        // Check if type has any lifetime attributes
-        var hasLifetimeAttribute = allAttributes.Any(attr =>
-            attr.AttributeClass != null &&
-            (attr.AttributeClass.ToDisplayString() == KnownAttributes.TransientAttribute ||
-             attr.AttributeClass.ToDisplayString() == KnownAttributes.SingletonAttribute ||
-             attr.AttributeClass.ToDisplayString() == KnownAttributes.ScopedAttribute));
+        var lifetime = ResolveLifetime(lifetimeAttributes);
 
         // If lifetime attribute is present without any registration attributes, register as self
-        if (hasLifetimeAttribute && registrationAttributes.Count == 0)
+        if (lifetimeAttributes.Count == 1 && registrationAttributes.Count == 0)
         {
             registrations.Add(new RegistrationInfo(
                 symbol,
@@ -123,6 +145,28 @@ internal static class ServiceRegistrationStrategy
         return new TypeWithAttributesInfo(symbol, registrations.ToImmutable());
     }
 
+    private static string ResolveLifetime(List<AttributeData> lifetimeAttributes)
+    {
+        // No lifetime attribute - default to Transient
+        if (lifetimeAttributes.Count == 0)
+        {
+            return "Transient";
+        }
+
+        // Single lifetime attribute found
+        var lifetimeAttr = lifetimeAttributes[0];
+        var lifetimeTypeName = lifetimeAttr.AttributeClass!.ToDisplayString();
+
+        if (lifetimeTypeName == KnownAttributes.TransientAttribute)
+            return "Transient";
+        if (lifetimeTypeName == KnownAttributes.SingletonAttribute)
+            return "Singleton";
+        if (lifetimeTypeName == KnownAttributes.ScopedAttribute)
+            return "Scoped";
+
+        return "Transient";
+    }
+
     /// <summary>
     /// Generates service registration code.
     /// </summary>
@@ -151,7 +195,8 @@ internal static class ServiceRegistrationStrategy
             case RegistrationType.RegisterAs:
                 if (registration.ServiceType != null)
                 {
-                    string serviceFullName = registration.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    string serviceFullName =
+                        registration.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                     _ = sb.AppendLine($"            services.Add{lifetime}<{serviceFullName}, {fullTypeName}>();");
                 }
 
