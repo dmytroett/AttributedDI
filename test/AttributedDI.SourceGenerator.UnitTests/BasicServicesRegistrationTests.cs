@@ -189,6 +189,35 @@ public class BasicServicesRegistrationTests
     }
 
     [Fact]
+    public async Task HandlesDisposable()
+    {
+        // Tests: Service implementing IDisposable and IAsyncDisposable
+        var code = """
+                   using AttributedDI;
+                   using System;
+                   using System.Threading.Tasks;
+
+                   namespace MyApp
+                   {
+                       public interface IService { }
+
+                       [RegisterAsImplementedInterfaces]
+                       public class DisposableService : IService, IDisposable, IAsyncDisposable
+                       {
+                           public void Dispose() { }
+
+                           public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+                       }
+                   }
+                   """;
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
+    }
+
+    [Fact]
     public async Task RegistersServicesInNestedNamespaces()
     {
         // Tests: Services across different nested namespaces

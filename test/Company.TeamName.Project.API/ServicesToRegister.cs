@@ -39,7 +39,7 @@ public class RegisterAsInterfaceScopedService : IRegisterAsInterfaceService
 
 [RegisterAsImplementedInterfaces]
 [Singleton]
-public sealed class MultiInterfaceSingletonService : IFirstService, ISecondService, IAsyncDisposable, IDisposable
+public sealed class MultiInterfaceSingletonService : IFirstService, ISecondService, IDisposable, IAsyncDisposable
 {
     public void Dispose()
     {
@@ -53,5 +53,33 @@ public sealed class MultiInterfaceSingletonService : IFirstService, ISecondServi
 
 [Transient]
 public class LifetimeOnlyTransientService
+{
+}
+
+// Keyed services
+public interface IKeyedService
+{
+}
+
+[RegisterAs<IKeyedService>("key1")]
+[Singleton]
+public class KeyedServiceOne : IKeyedService
+{
+}
+
+[RegisterAs<IKeyedService>("key2")]
+[Singleton]
+public class KeyedServiceTwo : IKeyedService
+{
+}
+
+[RegisterAsSelf("transientKey")]
+public class RegisterAsSelfKeyedTransientService
+{
+}
+
+[RegisterAsSelf("singletonKey")]
+[Singleton]
+public class RegisterAsSelfKeyedSingletonService
 {
 }

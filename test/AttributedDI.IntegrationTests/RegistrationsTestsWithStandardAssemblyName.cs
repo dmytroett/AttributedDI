@@ -33,6 +33,14 @@ public class RegistrationsTestsWithStandardAssemblyName
 
         // Lifetime-only attribute registers as self
         AssertContainsService<LifetimeOnlyTransientService, LifetimeOnlyTransientService>(services, ServiceLifetime.Transient);
+
+        // Keyed services - RegisterAs<T> with key
+        AssertContainsKeyedService<IKeyedService, KeyedServiceOne>(services, "key1", ServiceLifetime.Singleton);
+        AssertContainsKeyedService<IKeyedService, KeyedServiceTwo>(services, "key2", ServiceLifetime.Singleton);
+
+        // Keyed services - RegisterAsSelf with key
+        AssertContainsKeyedService<RegisterAsSelfKeyedTransientService, RegisterAsSelfKeyedTransientService>(services, "transientKey", ServiceLifetime.Transient);
+        AssertContainsKeyedService<RegisterAsSelfKeyedSingletonService, RegisterAsSelfKeyedSingletonService>(services, "singletonKey", ServiceLifetime.Singleton);
     }
 
     private static void AssertContainsService<TService, TImplementation>(IServiceCollection services, ServiceLifetime expectedLifetime)
@@ -46,5 +54,15 @@ public class RegistrationsTestsWithStandardAssemblyName
     {
         var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TService) && d.ImplementationType == typeof(TImplementation));
         Assert.Null(descriptor);
+    }
+
+    private static void AssertContainsKeyedService<TService, TImplementation>(IServiceCollection services, object key, ServiceLifetime expectedLifetime)
+    {
+        var descriptor = services.SingleOrDefault(d => 
+            d.ServiceType == typeof(TService) && 
+            d.KeyedImplementationType == typeof(TImplementation) && 
+            d.ServiceKey?.Equals(key) == true);
+        Assert.NotNull(descriptor);
+        Assert.Equal(expectedLifetime, descriptor.Lifetime);
     }
 }
