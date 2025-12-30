@@ -18,5 +18,7 @@
   <Folder Name="/test/">
     <Project Path="test/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
     <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
+    <Project Path="test/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
+    <Project Path="test/Company.TeamName.Project.APIWithCustomName/Company.TeamName.Project.APIWithCustomName.csproj" />
   </Folder>
 </Solution>

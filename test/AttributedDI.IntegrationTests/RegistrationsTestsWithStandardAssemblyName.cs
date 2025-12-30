@@ -1,6 +1,6 @@
 namespace AttributedDI.IntegrationTests;
 
-public class UnitTest1
+public class RegistrationsTestsWithStandardAssemblyName
 {
     [Fact]
     public void Test1()
