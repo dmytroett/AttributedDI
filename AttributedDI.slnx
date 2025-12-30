@@ -16,6 +16,7 @@
     <Project Path="src/AttributedDI/AttributedDI.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
     <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
   </Folder>
 </Solution>
