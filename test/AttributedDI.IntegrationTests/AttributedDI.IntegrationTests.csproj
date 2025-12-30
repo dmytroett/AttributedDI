@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Company.TeamName.Project.APIWithCustomName\Company.TeamName.Project.APIWithCustomName.csproj" />
+    <ProjectReference Include="..\CustomRegistrationMethodName\CustomRegistrationMethodName.csproj" />
     <ProjectReference Include="..\Company.TeamName.Project.API\Company.TeamName.Project.API.csproj" />
   </ItemGroup>
 

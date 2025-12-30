@@ -58,12 +58,3 @@ public void RegisterService(Type serviceType, Type implementationType)
 
 - Document **only** public APIs in library projects
 - Update documentation when signatures change
-
-## Implementation Process
-
-For new features or significant changes:
-
-1. **Present a Plan**: Short, high-level plan with classes/interfaces, their responsibilities, and key decisions
-2. **Wait for Approval**: Proceed only after user confirmation
-3. **Implement**: Follow the approved plan
-4. **Format**: Run `dotnet format` on changed files

@@ -258,10 +258,17 @@ internal static class ServiceRegistrationStrategy
                 break;
 
             case RegistrationType.RegisterAsImplementedInterfaces:
-                var interfaces = typeSymbol.AllInterfaces;
+                var interfaces = typeSymbol.AllInterfaces
+                    .Where(static iface => !ImplementsDisposableContract(iface))
+                    .Distinct(SymbolEqualityComparer.Default);
                 foreach (var @interface in interfaces)
                 {
-                    string interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    if (@interface is null)
+                    {
+                        continue;
+                    }
+
+                    var interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                     if (isKeyed)
                     {
                         string keyLiteral = FormatKeyLiteral(registration.Key);
@@ -275,6 +282,21 @@ internal static class ServiceRegistrationStrategy
 
                 break;
         }
+    }
+
+    private static bool ImplementsDisposableContract(ITypeSymbol interfaceSymbol)
+    {
+        return IsDisposableInterface(interfaceSymbol) || interfaceSymbol.AllInterfaces.Any(IsDisposableInterface);
+    }
+
+    private static bool IsDisposableInterface(ITypeSymbol interfaceSymbol)
+    {
+        if (interfaceSymbol.SpecialType == SpecialType.System_IDisposable)
+        {
+            return true;
+        }
+
+        return interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IAsyncDisposable";
     }
 
     /// <summary>

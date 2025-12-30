@@ -2,60 +2,47 @@
 
 namespace Company.TeamName.Project.API;
 
-public interface IEmailService
+public interface IRegisterAsInterfaceService
 {
-    void SendEmail(string receiver, string subject, string body);
 }
 
-[RegisterAs<IEmailService>]
-public class EmailService : IEmailService
+public interface IFirstService
 {
-    public void SendEmail(string receiver, string subject, string body)
-    {
-        throw new NotImplementedException();
-    }
 }
 
-public interface ICold
+public interface ISecondService
 {
-    Task WarmUpAsync(CancellationToken token = default);
 }
 
-public interface IComplicatedSystemFacade
+[RegisterAsSelf]
+public class RegisterAsSelfTransientImplicitService
 {
-    Task InitializeAsync(CancellationToken token = default);
+}
 
-    Task TriggerPaymentAsync(decimal amount, string currency, CancellationToken token = default);
+[RegisterAsSelf]
+[Singleton]
+public class RegisterAsSelfSingletonService
+{
+}
 
-    Task NotifyUserAsync(string userId, string message, CancellationToken token = default);
+[RegisterAsSelf]
+[Scoped]
+public class RegisterAsSelfScopedService
+{
+}
+
+[RegisterAs<IRegisterAsInterfaceService>]
+[Scoped]
+public class RegisterAsInterfaceScopedService : IRegisterAsInterfaceService
+{
 }
 
 [RegisterAsImplementedInterfaces]
-public sealed class ComplicatedSystemFacade : IComplicatedSystemFacade, ICold, IAsyncDisposable, IDisposable
+[Singleton]
+public sealed class MultiInterfaceSingletonService : IFirstService, ISecondService, IAsyncDisposable, IDisposable
 {
-    public Task InitializeAsync(CancellationToken token = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task TriggerPaymentAsync(decimal amount, string currency, CancellationToken token = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task NotifyUserAsync(string userId, string message, CancellationToken token = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task WarmUpAsync(CancellationToken token = default)
-    {
-        throw new NotImplementedException();
-    }
-
     public void Dispose()
     {
-        // TODO release managed resources here
     }
 
     public ValueTask DisposeAsync()
@@ -64,11 +51,7 @@ public sealed class ComplicatedSystemFacade : IComplicatedSystemFacade, ICold, I
     }
 }
 
-[RegisterAsSelf]
-public class SimpleService
+[Transient]
+public class LifetimeOnlyTransientService
 {
-    public void DoWork()
-    {
-        throw new NotImplementedException();
-    }
 }

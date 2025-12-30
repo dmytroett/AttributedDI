@@ -10,17 +10,41 @@ public class RegistrationsTestsWithStandardAssemblyName
     public void ServicesRegisteredCorrectly()
     {
         var services = new ServiceCollection();
-        
+
         services.AddCompanyTeamNameProjectAPI();
 
-        var serviceProvider = services.BuildServiceProvider();
+        // RegisterAsSelf implicit transient
+        AssertContainsService<RegisterAsSelfTransientImplicitService, RegisterAsSelfTransientImplicitService>(services, ServiceLifetime.Transient);
 
-        Assert.NotNull(serviceProvider.GetService<IEmailService>());
-        Assert.NotNull(serviceProvider.GetService<ComplicatedSystemFacade>());
-        Assert.NotNull(serviceProvider.GetService<IComplicatedSystemFacade>());
-        Assert.NotNull(serviceProvider.GetService<ICold>());
-        Assert.NotNull(serviceProvider.GetService<IAsyncDisposable>());
-        Assert.NotNull(serviceProvider.GetService<IDisposable>());
-        Assert.NotNull(serviceProvider.GetService<SimpleService>());
+        // RegisterAsSelf singleton
+        AssertContainsService<RegisterAsSelfSingletonService, RegisterAsSelfSingletonService>(services, ServiceLifetime.Singleton);
+
+        // RegisterAsSelf scoped
+        AssertContainsService<RegisterAsSelfScopedService, RegisterAsSelfScopedService>(services, ServiceLifetime.Scoped);
+
+        // RegisterAs interface
+        AssertContainsService<IRegisterAsInterfaceService, RegisterAsInterfaceScopedService>(services, ServiceLifetime.Scoped);
+
+        // RegisterAsImplementedInterfaces should register concrete but not IDisposable/IAsyncDisposable
+        AssertContainsService<IFirstService, MultiInterfaceSingletonService>(services, ServiceLifetime.Singleton);
+        AssertContainsService<ISecondService, MultiInterfaceSingletonService>(services, ServiceLifetime.Singleton);
+        AssertDoesNotContainService<IDisposable, MultiInterfaceSingletonService>(services);
+        AssertDoesNotContainService<IAsyncDisposable, MultiInterfaceSingletonService>(services);
+
+        // Lifetime-only attribute registers as self
+        AssertContainsService<LifetimeOnlyTransientService, LifetimeOnlyTransientService>(services, ServiceLifetime.Transient);
+    }
+
+    private static void AssertContainsService<TService, TImplementation>(IServiceCollection services, ServiceLifetime expectedLifetime)
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TService) && d.ImplementationType == typeof(TImplementation));
+        Assert.NotNull(descriptor);
+        Assert.Equal(expectedLifetime, descriptor.Lifetime);
+    }
+
+    private static void AssertDoesNotContainService<TService, TImplementation>(IServiceCollection services)
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TService) && d.ImplementationType == typeof(TImplementation));
+        Assert.Null(descriptor);
     }
 }
