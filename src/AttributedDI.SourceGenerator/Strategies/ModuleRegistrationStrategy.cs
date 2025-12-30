@@ -13,6 +13,22 @@ namespace AttributedDI.SourceGenerator.Strategies;
 internal static class ModuleRegistrationStrategy
 {
     /// <summary>
+    /// Scans the assembly for modules.
+    /// </summary>
+    /// <param name="context">The incremental generator initialization context.</param>
+    /// <returns>An incremental values provider of module information.</returns>
+    public static IncrementalValuesProvider<ModuleInfo> ScanAssembly(
+        IncrementalGeneratorInitializationContext context)
+    {
+        return context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: static (node, _) => node is ClassDeclarationSyntax,
+                transform: CollectModules)
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+    }
+
+    /// <summary>
     /// Collects all modules from types with RegisterModule attribute.
     /// </summary>
     /// <param name="context">The generator syntax context.</param>

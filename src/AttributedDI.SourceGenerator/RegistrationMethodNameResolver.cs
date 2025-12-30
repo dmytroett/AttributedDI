@@ -9,15 +9,38 @@ namespace AttributedDI.SourceGenerator;
 internal static class RegistrationMethodNameResolver
 {
     /// <summary>
+    /// Scans the assembly for registration method name information.
+    /// Always emits one AssemblyInfo per compilation; if no attribute is present, MethodName is null.
+    /// </summary>
+    /// <param name="context">The incremental generator initialization context.</param>
+    /// <returns>An incremental value provider of assembly information.</returns>
+    public static IncrementalValueProvider<AssemblyInfo> ScanAssembly(
+        IncrementalGeneratorInitializationContext context)
+    {
+        var aliases = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                KnownAttributes.RegistrationMethodNameAttribute,
+                static (_, _) => true,
+                static (ctx, _) => GetAssemblyAliasInfo(ctx))
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+
+        var defaults = context.CompilationProvider.Select(
+            static (c, _) => new AssemblyInfo(null, c.AssemblyName ?? "UnknownAssembly"));
+
+        // Prefer attribute-derived info if present; otherwise use default assembly info
+        return aliases.Collect().Combine(defaults)
+            .Select(static (pair, _) => pair.Left.FirstOrDefault() ?? pair.Right);
+    }
+
+    /// <summary>
     /// Extracts assembly alias information from the attribute context.
     /// </summary>
     /// <param name="context">The generator attribute syntax context.</param>
-    /// <returns>Assembly alias info, or null if extraction fails.</returns>
-    public static AssemblyAliasInfo? GetAssemblyAliasInfo(GeneratorAttributeSyntaxContext context)
+    /// <returns>Assembly information with alias, or null if extraction fails.</returns>
+    public static AssemblyInfo? GetAssemblyAliasInfo(GeneratorAttributeSyntaxContext context)
     {
         var attribute = context.Attributes[0];
-
-        // Get method name (first constructor argument)
         if (attribute.ConstructorArguments.Length < 1)
         {
             return null;
@@ -29,26 +52,24 @@ internal static class RegistrationMethodNameResolver
             return null;
         }
 
-        // For assembly-level attributes, the TargetSymbol is the assembly itself
         var assemblySymbol = context.TargetSymbol as IAssemblySymbol ?? context.TargetSymbol.ContainingAssembly;
-
         if (assemblySymbol is null)
         {
             return null;
         }
 
-        return new AssemblyAliasInfo(methodName, assemblySymbol.Name);
+        return new AssemblyInfo(methodName, assemblySymbol.Name);
     }
 
     /// <summary>
     /// Resolves the registration method name for an assembly.
     /// </summary>
     /// <param name="assemblyName">The name of the assembly (e.g., "CompanyName.TeamName.ProjectName.API").</param>
-    /// <param name="alias">Optional alias information from RegistrationMethodNameAttribute.</param>
+    /// <param name="assemblyInfo">Optional assembly information from RegistrationMethodNameAttribute.</param>
     /// <returns>The method name (e.g., "AddCompanyNameTeamNameProjectNameAPI" or "AddMyFeature").</returns>
-    public static string Resolve(string assemblyName, AssemblyAliasInfo? alias)
+    public static string Resolve(string assemblyName, AssemblyInfo assemblyInfo)
     {
-        string baseName = alias?.MethodName ?? assemblyName;
+        string baseName = assemblyInfo.MethodName ?? assemblyName;
         string sanitized = SanitizeIdentifier(baseName);
         return $"Add{sanitized}";
     }

@@ -1,8 +1,8 @@
 namespace AttributedDI.SourceGenerator;
 
 /// <summary>
-/// Represents assembly-level alias information for registration method naming.
+/// Represents assembly information including name and optional method name alias.
 /// </summary>
-internal sealed record AssemblyAliasInfo(
-    string MethodName,
+internal sealed record AssemblyInfo(
+    string? MethodName,
     string AssemblyName);

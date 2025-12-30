@@ -13,6 +13,22 @@ namespace AttributedDI.SourceGenerator.Strategies;
 internal static class ServiceRegistrationStrategy
 {
     /// <summary>
+    /// Scans the assembly for service registrations.
+    /// </summary>
+    /// <param name="context">The incremental generator initialization context.</param>
+    /// <returns>An incremental values provider of registration information.</returns>
+    public static IncrementalValuesProvider<TypeWithAttributesInfo> ScanAssembly(
+        IncrementalGeneratorInitializationContext context)
+    {
+        return context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: static (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax,
+                transform: CollectRegistrations)
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+    }
+
+    /// <summary>
     /// Collects all service registrations from types with registration or lifetime attributes.
     /// </summary>
     /// <param name="context">The generator syntax context.</param>
@@ -143,10 +159,10 @@ internal static class ServiceRegistrationStrategy
 
             case RegistrationType.RegisterAsImplementedInterfaces:
                 var interfaces = typeSymbol.AllInterfaces;
-                foreach (var iface in interfaces)
+                foreach (var @interface in interfaces)
                 {
-                    string ifaceFullName = iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    _ = sb.AppendLine($"            services.Add{lifetime}<{ifaceFullName}, {fullTypeName}>();");
+                    string interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    _ = sb.AppendLine($"            services.Add{lifetime}<{interfaceFullName}, {fullTypeName}>();");
                 }
 
                 break;
