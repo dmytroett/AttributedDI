@@ -67,15 +67,3 @@ For new features or significant changes:
 2. **Wait for Approval**: Proceed only after user confirmation
 3. **Implement**: Follow the approved plan
 4. **Format**: Run `dotnet format` on changed files
-
-### Example Plan Format
-
-```
-Plan:
-- Create `IServiceRegistry` interface - manages service registration lifecycle
-- Create `ServiceRegistrar` class - implements registration logic
-- Modify `RegistrationExtensions` - add new extension methods for the feature
-
-Proceed with implementation?
-```
-
