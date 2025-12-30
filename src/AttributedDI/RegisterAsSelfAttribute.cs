@@ -1,33 +1,15 @@
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace AttributedDI
+namespace AttributedDI;
+
+/// <summary>
+/// Marks the type to be registered in <see cref="Microsoft.Extensions.DependencyInjection.IServiceCollection"/> as itself.
+/// </summary>
+/// <remarks>
+/// Use <see cref="TransientAttribute"/>, <see cref="ScopedAttribute"/>, or <see cref="SingletonAttribute"/> 
+/// to specify the lifetime. If no lifetime attribute is present, transient is used by default.
+/// </remarks>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
+public sealed class RegisterAsSelfAttribute : Attribute
 {
-    /// <summary>
-    /// Marks the type to to be registered in <see cref="IServiceCollection"/>.
-    /// </summary>
-    public class RegisterAsSelfAttribute : RegisterBase
-    {
-        /// <summary>
-        /// Creates an instance of the attribute.
-        /// </summary>
-        /// <param name="lifetime">Service instance lifetime.</param>
-        public RegisterAsSelfAttribute(ServiceLifetime lifetime = ServiceLifetime.Transient)
-        {
-            Lifetime = lifetime;
-        }
-
-        /// <summary>
-        /// Registration lifetime.
-        /// </summary>
-        public ServiceLifetime Lifetime { get; }
-
-        /// <inheritdoc/>
-        public override void PerformRegistration(IServiceCollection services, Type target)
-        {
-            var descriptor = ServiceDescriptor.Describe(target, target, Lifetime);
-
-            services.Add(descriptor);
-        }
-    }
 }

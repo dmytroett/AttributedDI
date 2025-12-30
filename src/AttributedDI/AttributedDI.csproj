@@ -1,31 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <IsPackable>true</IsPackable>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/dmitriyett/AttributedDI</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/dmitriyett/AttributedDI</RepositoryUrl>
-    <PackageTags>dependencyinjection;di;AoP</PackageTags>
+    <PackageProjectUrl>https://github.com/dmytroett/AttributedDI</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dmytroett/AttributedDI</RepositoryUrl>
+    <PackageTags>dependencyinjection;di;AoP;sourcegenerator;aot</PackageTags>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
+    <!-- Reference version range [8.0.0, 11.0.0) - allows v8, v9, v10 but prevents v11+ if breaking changes introduced
+         Developers can use any version in this range without forced upgrades or downgrades -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[8.0.0,11.0.0)"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pack the generator into the NuGet package as an analyzer -->
+    <None Include="..\AttributedDI.SourceGenerator\bin\$(Configuration)\netstandard2.0\AttributedDI.SourceGenerator.dll"
+          Pack="true" 
+          PackagePath="analyzers/dotnet/cs" 
+          Visible="false"/>
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\icon.png">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>\</PackagePath>
     </None>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 
