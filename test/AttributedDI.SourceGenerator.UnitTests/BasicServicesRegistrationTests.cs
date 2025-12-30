@@ -107,12 +107,20 @@ public class BasicServicesRegistrationTests
 
                    namespace MyApp
                    {
+                       public interface ILogger { }
+                       public interface IRepository { }
+
+                       public class Logger : ILogger { }
+
+                       public class UserRepository : IRepository { }
+
                        [RegisterModule]
                        public class MyModule : IServiceModule
                        {
                            public void ConfigureServices(IServiceCollection services)
                            {
-                               // Module implementation
+                               services.AddSingleton<ILogger, Logger>();
+                               services.AddTransient<IRepository, UserRepository>();
                            }
                        }
                    }
