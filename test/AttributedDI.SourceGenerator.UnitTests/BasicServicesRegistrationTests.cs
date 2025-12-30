@@ -24,8 +24,11 @@ public class BasicServicesRegistrationTests
                        public class ScopedService { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -47,8 +50,11 @@ public class BasicServicesRegistrationTests
                        public class OtherServiceImpl : IOtherService { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -70,8 +76,11 @@ public class BasicServicesRegistrationTests
                        public class MultiImpl : IService, IRepository { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -93,8 +102,11 @@ public class BasicServicesRegistrationTests
                        public class MultiRegistration : IService, IRepository { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -125,8 +137,15 @@ public class BasicServicesRegistrationTests
                        }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture()
+            .WithSourceCode(code)
+            .WithExtraReferences(typeof(Microsoft.Extensions.DependencyInjection.ServiceCollection))
+            .Build();
+
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -143,8 +162,11 @@ public class BasicServicesRegistrationTests
                        public class MyService { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -159,8 +181,11 @@ public class BasicServicesRegistrationTests
                        public class RegularClass { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 
     [Fact]
@@ -182,7 +207,10 @@ public class BasicServicesRegistrationTests
                        public class InnerService { }
                    }
                    """;
-        
-        await TestHelper.CompileAndVerify(code);
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        await Verify(driver);
     }
 }

@@ -1,0 +1,1 @@
+global using static AttributedDI.SourceGenerator.UnitTests.SourceGeneratorRunner;
