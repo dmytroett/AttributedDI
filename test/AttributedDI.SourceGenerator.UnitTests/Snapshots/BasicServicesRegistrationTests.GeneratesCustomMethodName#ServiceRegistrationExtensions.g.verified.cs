@@ -17,12 +17,9 @@ namespace Tests.Generated
         /// </summary>
         /// <param name="services">The service collection to add services to.</param>
         /// <returns>The service collection for chaining.</returns>
-        public static IServiceCollection AddTests(this IServiceCollection services)
+        public static IServiceCollection AddMyCustomServices(this IServiceCollection services)
         {
-            services.AddTransient<global::MyApp.ShouldBeRegisteredAsTransient>();
-            services.AddTransient<global::MyApp.TransientService>();
-            services.AddSingleton<global::MyApp.SingletonService>();
-            services.AddScoped<global::MyApp.ScopedService>();
+            services.AddTransient<global::MyApp.MyService>();
             return services;
         }
     }

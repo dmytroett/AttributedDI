@@ -63,11 +63,7 @@ internal static class RegistrationMethodNameResolver
                 continue;
             }
 
-            bool matchesSymbol = attributeSymbol is not null && SymbolEqualityComparer.Default.Equals(attributeClass, attributeSymbol);
-            bool matchesFullName = string.Equals(attributeClass.ToDisplayString(), KnownAttributes.RegistrationMethodNameAttribute, StringComparison.Ordinal);
-            bool matchesShortName = string.Equals(attributeClass.Name, "RegistrationMethodNameAttribute", StringComparison.Ordinal) ||
-                                   string.Equals(attributeClass.Name, "RegistrationMethodName", StringComparison.Ordinal);
-            if (!matchesSymbol && !matchesFullName && !matchesShortName)
+            if (!IsRegistrationMethodNameAttribute(attributeClass, attributeSymbol))
             {
                 continue;
             }
@@ -79,5 +75,36 @@ internal static class RegistrationMethodNameResolver
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Determines whether the given attribute class is a RegistrationMethodNameAttribute.
+    /// Uses multiple matching strategies: symbol equality, full name, and short name.
+    /// </summary>
+    /// <param name="attributeClass">The attribute class to check.</param>
+    /// <param name="attributeSymbol">The resolved symbol for RegistrationMethodNameAttribute, if available.</param>
+    /// <returns>True if the attribute is a RegistrationMethodNameAttribute; otherwise, false.</returns>
+    private static bool IsRegistrationMethodNameAttribute(INamedTypeSymbol attributeClass, INamedTypeSymbol? attributeSymbol)
+    {
+        // Strategy 1: Symbol equality (most reliable when symbol resolution succeeds)
+        if (attributeSymbol is not null && SymbolEqualityComparer.Default.Equals(attributeClass, attributeSymbol))
+        {
+            return true;
+        }
+
+        // Strategy 2: Full name match (works across assembly boundaries)
+        if (string.Equals(attributeClass.ToDisplayString(), KnownAttributes.RegistrationMethodNameAttribute, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        // Strategy 3: Short name match (handles aliased attributes)
+        if (string.Equals(attributeClass.Name, "RegistrationMethodNameAttribute", StringComparison.Ordinal) ||
+            string.Equals(attributeClass.Name, "RegistrationMethodName", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

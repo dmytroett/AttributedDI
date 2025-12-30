@@ -11,6 +11,9 @@ public class BasicServicesRegistrationTests
 
                    namespace MyApp
                    {
+                       [Transient]
+                       public class ShouldBeRegisteredAsTransient { } 
+                   
                        [RegisterAsSelf]
                        public class TransientService { }
 
