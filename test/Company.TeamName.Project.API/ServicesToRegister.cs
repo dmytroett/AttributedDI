@@ -8,7 +8,7 @@ public interface IEmailService
 }
 
 [RegisterAs<IEmailService>]
-public class EmailService: IEmailService
+public class EmailService : IEmailService
 {
     public void SendEmail(string receiver, string subject, string body)
     {
@@ -24,9 +24,9 @@ public interface ICold
 public interface IComplicatedSystemFacade
 {
     Task InitializeAsync(CancellationToken token = default);
-    
+
     Task TriggerPaymentAsync(decimal amount, string currency, CancellationToken token = default);
-    
+
     Task NotifyUserAsync(string userId, string message, CancellationToken token = default);
 }
 
