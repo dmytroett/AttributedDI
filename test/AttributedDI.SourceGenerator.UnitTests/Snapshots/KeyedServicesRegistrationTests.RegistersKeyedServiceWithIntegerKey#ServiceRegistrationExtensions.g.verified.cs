@@ -19,9 +19,8 @@ namespace Tests
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddTests(this IServiceCollection services)
         {
-            services.AddTransient<global::MyApp.IService, global::MyApp.ServiceImpl>();
-            services.AddScoped<global::MyApp.IService, global::MyApp.MultiImpl>();
-            services.AddScoped<global::MyApp.IRepository, global::MyApp.MultiImpl>();
+            services.AddKeyedTransient<global::MyApp.IMyService, global::MyApp.Service1>(1);
+            services.AddKeyedScoped<global::MyApp.IMyService, global::MyApp.Service2>(2);
             return services;
         }
     }

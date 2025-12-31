@@ -33,9 +33,9 @@ internal static class RegistrationMethodNameResolver
     /// <returns>The method name (e.g., "AddCompanyNameTeamNameProjectNameAPI" or "AddMyFeature").</returns>
     public static string Resolve(string assemblyName, AssemblyInfo assemblyInfo)
     {
-        string baseName = assemblyInfo.MethodName ?? assemblyName;
+        string baseName = assemblyInfo.MethodName ?? $"Add{assemblyName}";
         string sanitized = SanitizeIdentifier(baseName);
-        return $"Add{sanitized}";
+        return sanitized;
     }
 
     private static string SanitizeIdentifier(string name)

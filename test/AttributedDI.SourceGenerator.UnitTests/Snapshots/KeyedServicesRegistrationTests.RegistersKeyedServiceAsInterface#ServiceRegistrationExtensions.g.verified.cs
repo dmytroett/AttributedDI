@@ -5,7 +5,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Tests.Generated
+namespace Tests
 {
     /// <summary>
     /// Extension methods for registering services marked with AttributedDI attributes.
@@ -19,7 +19,8 @@ namespace Tests.Generated
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddTests(this IServiceCollection services)
         {
-            services.AddTransient<global::MyNamespace.MyService>();
+            services.AddKeyedTransient<global::MyApp.IMyService, global::MyApp.PrimaryServiceImpl>("primary");
+            services.AddKeyedScoped<global::MyApp.IOtherService, global::MyApp.SecondaryServiceImpl>("secondary");
             return services;
         }
     }

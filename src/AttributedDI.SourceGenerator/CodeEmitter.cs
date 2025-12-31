@@ -34,7 +34,6 @@ internal static class CodeEmitter
         _ = sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         _ = sb.AppendLine();
 
-        // TODO: Derive namespace from assembly name to prevent collisions
         // Generate namespace from assembly name
         string namespaceName = DeriveNamespace(assemblyName);
         _ = sb.AppendLine($"namespace {namespaceName}");
@@ -89,9 +88,9 @@ internal static class CodeEmitter
         // If empty or just dots/underscores, use a default
         if (string.IsNullOrWhiteSpace(sanitized.Replace(".", "").Replace("_", "")))
         {
-            return "AttributedDI.Generated";
+            return "AttributedDI";
         }
 
-        return $"{sanitized}.Generated";
+        return sanitized;
     }
 }

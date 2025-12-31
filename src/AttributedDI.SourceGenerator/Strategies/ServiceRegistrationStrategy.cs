@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -83,7 +84,7 @@ internal static class ServiceRegistrationStrategy
                     displayString == KnownAttributes.ScopedAttribute;
             })
             .ToList();
-        
+
         // TODO: Add diagnostic reporting for invalid registrations
         if (lifetimeAttributes.Count > 1)
         {
@@ -100,7 +101,8 @@ internal static class ServiceRegistrationStrategy
                 symbol,
                 RegistrationType.RegisterAsSelf,
                 null,
-                lifetime));
+                lifetime,
+                null));
         }
 
         // Process registration attributes
@@ -110,11 +112,13 @@ internal static class ServiceRegistrationStrategy
 
             if (attrTypeName == KnownAttributes.RegisterAsSelfAttribute)
             {
+                var key = ExtractKeyFromAttribute(attr);
                 registrations.Add(new RegistrationInfo(
                     symbol,
                     RegistrationType.RegisterAsSelf,
                     null,
-                    lifetime));
+                    lifetime,
+                    key));
             }
             else if (attr.AttributeClass.Name == KnownAttributes.RegisterAsAttribute)
             {
@@ -122,20 +126,24 @@ internal static class ServiceRegistrationStrategy
                 if (attr.AttributeClass is { TypeArguments.Length: > 0 } namedAttr)
                 {
                     var serviceType = namedAttr.TypeArguments[0];
+                    var key = ExtractKeyFromAttribute(attr);
                     registrations.Add(new RegistrationInfo(
                         symbol,
                         RegistrationType.RegisterAs,
                         serviceType,
-                        lifetime));
+                        lifetime,
+                        key));
                 }
             }
             else if (attrTypeName == KnownAttributes.RegisterAsImplementedInterfacesAttribute)
             {
+                var key = ExtractKeyFromAttribute(attr);
                 registrations.Add(new RegistrationInfo(
                     symbol,
                     RegistrationType.RegisterAsImplementedInterfaces,
                     null,
-                    lifetime));
+                    lifetime,
+                    key));
             }
         }
 
@@ -168,6 +176,35 @@ internal static class ServiceRegistrationStrategy
     }
 
     /// <summary>
+    /// Extracts the service key from an attribute's constructor arguments or named properties.
+    /// </summary>
+    /// <param name="attr">The attribute data to extract the key from.</param>
+    /// <returns>The key value, or null if no key is specified.</returns>
+    private static object? ExtractKeyFromAttribute(AttributeData attr)
+    {
+        // Check constructor arguments first (positional parameter)
+        if (attr.ConstructorArguments.Length > 0)
+        {
+            var keyArg = attr.ConstructorArguments[0];
+            if (!keyArg.IsNull)
+            {
+                return keyArg.Value;
+            }
+        }
+
+        // Check named arguments (property assignment)
+        foreach (var namedArg in attr.NamedArguments)
+        {
+            if (namedArg.Key == "Key" && !namedArg.Value.IsNull)
+            {
+                return namedArg.Value.Value;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Generates service registration code.
     /// </summary>
     /// <param name="sb">The string builder to append code to.</param>
@@ -185,11 +222,21 @@ internal static class ServiceRegistrationStrategy
         var typeSymbol = registration.TypeSymbol;
         string fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         string lifetime = registration.Lifetime;
+        bool isKeyed = registration.Key != null;
 
         switch (registration.RegistrationType)
         {
             case RegistrationType.RegisterAsSelf:
-                _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
+                if (isKeyed)
+                {
+                    string keyLiteral = FormatKeyLiteral(registration.Key);
+                    _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
+                }
+                else
+                {
+                    _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
+                }
+
                 break;
 
             case RegistrationType.RegisterAs:
@@ -197,21 +244,77 @@ internal static class ServiceRegistrationStrategy
                 {
                     string serviceFullName =
                         registration.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    _ = sb.AppendLine($"            services.Add{lifetime}<{serviceFullName}, {fullTypeName}>();");
+                    if (isKeyed)
+                    {
+                        string keyLiteral = FormatKeyLiteral(registration.Key);
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceFullName}, {fullTypeName}>({keyLiteral});");
+                    }
+                    else
+                    {
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{serviceFullName}, {fullTypeName}>();");
+                    }
                 }
 
                 break;
 
             case RegistrationType.RegisterAsImplementedInterfaces:
-                var interfaces = typeSymbol.AllInterfaces;
+                var interfaces = typeSymbol.AllInterfaces
+                    .Where(static iface => !ImplementsDisposableContract(iface))
+                    .Distinct(SymbolEqualityComparer.Default);
                 foreach (var @interface in interfaces)
                 {
-                    string interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    _ = sb.AppendLine($"            services.Add{lifetime}<{interfaceFullName}, {fullTypeName}>();");
+                    if (@interface is null)
+                    {
+                        continue;
+                    }
+
+                    var interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    if (isKeyed)
+                    {
+                        string keyLiteral = FormatKeyLiteral(registration.Key);
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{interfaceFullName}, {fullTypeName}>({keyLiteral});");
+                    }
+                    else
+                    {
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{interfaceFullName}, {fullTypeName}>();");
+                    }
                 }
 
                 break;
         }
+    }
+
+    private static bool ImplementsDisposableContract(ITypeSymbol interfaceSymbol)
+    {
+        return IsDisposableInterface(interfaceSymbol) || interfaceSymbol.AllInterfaces.Any(IsDisposableInterface);
+    }
+
+    private static bool IsDisposableInterface(ITypeSymbol interfaceSymbol)
+    {
+        if (interfaceSymbol.SpecialType == SpecialType.System_IDisposable)
+        {
+            return true;
+        }
+
+        return interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IAsyncDisposable";
+    }
+
+    /// <summary>
+    /// Formats a key value as a C# literal for code generation.
+    /// </summary>
+    /// <param name="key">The key value to format.</param>
+    /// <returns>A string representation of the key suitable for code generation.</returns>
+    private static string FormatKeyLiteral(object? key)
+    {
+        return key switch
+        {
+            null => "null",
+            string s => $"\"{s.Replace("\"", "\\\"")}\"",
+            int i => i.ToString(CultureInfo.InvariantCulture),
+            long l => $"{l}L",
+            bool b => b ? "true" : "false",
+            _ => $"\"{key}\""
+        };
     }
 }
 
@@ -226,7 +329,8 @@ internal sealed record RegistrationInfo(
     INamedTypeSymbol TypeSymbol,
     RegistrationType RegistrationType,
     ITypeSymbol? ServiceType,
-    string Lifetime);
+    string Lifetime,
+    object? Key);
 
 internal sealed record TypeWithAttributesInfo(
     INamedTypeSymbol TypeSymbol,
