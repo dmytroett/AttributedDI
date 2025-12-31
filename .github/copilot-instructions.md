@@ -10,6 +10,7 @@
 - Make sure code is maintainable and easy to understand. Suggest refactoring when beneficial.
 - If refactoring is challenging, complicated, or user explicitly declined - add strategic comments to improve maintainability instead (even for private/internal code)
 - Do not overuse comments - place them strategically where they add the most value
+- Minimize public surface area: Use `private` or `internal` access modifiers by default unless the API is intentionally designed to be public. A smaller public API is easier to maintain and reduces breaking change concerns in future versions.
 
 ## Code Style & Formatting
 

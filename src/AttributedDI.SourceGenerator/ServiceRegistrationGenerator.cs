@@ -7,7 +7,7 @@ namespace AttributedDI.SourceGenerator;
 
 /// <summary>
 ///     Incremental source generator that discovers types with registration attributes and generates service registration
-///     methods.
+///     modules.
 /// </summary>
 [Generator]
 public class ServiceRegistrationGenerator : IIncrementalGenerator
@@ -17,34 +17,32 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
     {
         // Phase 1: Strategies discover and collect what they observe
         var typesWithAttributes = ServiceRegistrationStrategy.ScanAssembly(context);
-        var modules = ModuleRegistrationStrategy.ScanAssembly(context);
-        var assemblyInfo = RegistrationMethodNameResolver.ScanAssembly(context);
+        var assemblyInfo = GeneratedModuleNameResolver.ScanAssembly(context);
 
         // Combine all collected data
         var combinedData = typesWithAttributes.Collect()
-            .Combine(modules.Collect())
             .Combine(assemblyInfo);
 
         // Phase 2: Generate code based on collected data
         context.RegisterSourceOutput(combinedData, static (spc, data) =>
         {
-            var typeInfos = data.Left.Left;
-            var moduleInfos = data.Left.Right;
+            var typeInfos = data.Left;
             var assemblyInfo = data.Right;
 
             var allRegistrations = typeInfos.SelectMany(t => t.Registrations).ToImmutableArray();
 
-            if (allRegistrations.Any() || moduleInfos.Any())
+            if (allRegistrations.Any())
             {
-                string methodName = RegistrationMethodNameResolver.Resolve(assemblyInfo.AssemblyName, assemblyInfo);
+                string moduleName = GeneratedModuleNameResolver.ResolveModuleName(assemblyInfo.AssemblyName, assemblyInfo);
+                string methodName = GeneratedModuleNameResolver.ResolveMethodName(assemblyInfo.AssemblyName, assemblyInfo);
 
-                string source = CodeEmitter.EmitRegistrationExtension(
+                string source = CodeEmitter.EmitRegistrationModule(
+                    moduleName,
                     methodName,
                     assemblyInfo.AssemblyName,
-                    allRegistrations,
-                    moduleInfos);
+                    allRegistrations);
 
-                spc.AddSource("ServiceRegistrationExtensions.g.cs", source);
+                spc.AddSource("ServiceRegistrationModule.g.cs", source);
             }
         });
     }

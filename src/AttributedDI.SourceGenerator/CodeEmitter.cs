@@ -6,23 +6,23 @@ using System.Text;
 namespace AttributedDI.SourceGenerator;
 
 /// <summary>
-/// Emits the final generated registration extension method code.
+/// Emits the final generated registration module and extension method code.
 /// </summary>
 internal static class CodeEmitter
 {
     /// <summary>
-    /// Generates a complete registration extension method file.
+    /// Generates a complete registration module file with IServiceModule implementation and extension method.
     /// </summary>
+    /// <param name="moduleName">The name of the module class (e.g., "MyAssemblyModule").</param>
     /// <param name="methodName">The name of the registration method (e.g., "AddMyAssembly").</param>
     /// <param name="assemblyName">The name of the assembly being registered.</param>
     /// <param name="registrations">Service registrations to include.</param>
-    /// <param name="modules">Module registrations to include.</param>
     /// <returns>The complete generated source code.</returns>
-    public static string EmitRegistrationExtension(
+    public static string EmitRegistrationModule(
+        string moduleName,
         string methodName,
         string assemblyName,
-        ImmutableArray<RegistrationInfo> registrations,
-        ImmutableArray<ModuleInfo> modules)
+        ImmutableArray<RegistrationInfo> registrations)
     {
         var sb = new StringBuilder();
 
@@ -32,6 +32,7 @@ internal static class CodeEmitter
         _ = sb.AppendLine();
         _ = sb.AppendLine("using System;");
         _ = sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        _ = sb.AppendLine("using AttributedDI;");
         _ = sb.AppendLine();
 
         // Generate namespace from assembly name
@@ -39,14 +40,49 @@ internal static class CodeEmitter
         _ = sb.AppendLine($"namespace {namespaceName}");
         _ = sb.AppendLine("{");
 
-        // Class declaration
+        // Generate the module class
+        EmitModuleClass(sb, moduleName, assemblyName, registrations);
+
+        _ = sb.AppendLine();
+
+        // Generate the extension method
+        EmitExtensionMethod(sb, moduleName, methodName, assemblyName);
+
+        // Namespace closing
+        _ = sb.AppendLine("}");
+
+        return sb.ToString();
+    }
+
+    private static void EmitModuleClass(StringBuilder sb, string moduleName, string assemblyName, ImmutableArray<RegistrationInfo> registrations)
+    {
         _ = sb.AppendLine("    /// <summary>");
-        _ = sb.AppendLine("    /// Extension methods for registering services marked with AttributedDI attributes.");
+        _ = sb.AppendLine($"    /// Service registration module for the {assemblyName} assembly.");
+        _ = sb.AppendLine("    /// This module registers all services marked with AttributedDI attributes.");
+        _ = sb.AppendLine("    /// </summary>");
+        _ = sb.AppendLine($"    public partial class {moduleName} : IServiceModule");
+        _ = sb.AppendLine("    {");
+        _ = sb.AppendLine("        /// <summary>");
+        _ = sb.AppendLine("        /// Configures services in the dependency injection container.");
+        _ = sb.AppendLine("        /// </summary>");
+        _ = sb.AppendLine("        /// <param name=\"services\">The service collection to configure.</param>");
+        _ = sb.AppendLine("        public virtual void ConfigureServices(IServiceCollection services)");
+        _ = sb.AppendLine("        {");
+
+        // Generate service registrations
+        ServiceRegistrationStrategy.GenerateCode(sb, registrations);
+
+        _ = sb.AppendLine("        }");
+        _ = sb.AppendLine("    }");
+    }
+
+    private static void EmitExtensionMethod(StringBuilder sb, string moduleName, string methodName, string assemblyName)
+    {
+        _ = sb.AppendLine("    /// <summary>");
+        _ = sb.AppendLine("    /// Extension methods for registering services from the module.");
         _ = sb.AppendLine("    /// </summary>");
         _ = sb.AppendLine("    public static partial class ServiceCollectionExtensions");
         _ = sb.AppendLine("    {");
-
-        // Method declaration
         _ = sb.AppendLine("        /// <summary>");
         _ = sb.AppendLine($"        /// Registers all services from the {assemblyName} assembly that are marked with registration attributes.");
         _ = sb.AppendLine("        /// </summary>");
@@ -54,24 +90,9 @@ internal static class CodeEmitter
         _ = sb.AppendLine("        /// <returns>The service collection for chaining.</returns>");
         _ = sb.AppendLine($"        public static IServiceCollection {methodName}(this IServiceCollection services)");
         _ = sb.AppendLine("        {");
-
-        // Generate service registrations first
-        ServiceRegistrationStrategy.GenerateCode(sb, registrations);
-
-        // Generate module registrations after
-        ModuleRegistrationStrategy.GenerateCode(sb, modules);
-
-        // Method closing
-        _ = sb.AppendLine("            return services;");
+        _ = sb.AppendLine($"            return services.AddModule<{moduleName}>();");
         _ = sb.AppendLine("        }");
-
-        // Class closing
         _ = sb.AppendLine("    }");
-
-        // Namespace closing
-        _ = sb.AppendLine("}");
-
-        return sb.ToString();
     }
 
     private static string DeriveNamespace(string assemblyName)
