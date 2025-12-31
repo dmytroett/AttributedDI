@@ -1,10 +1,9 @@
 using Company.TeamName.Project.API;
-using CustomRegistrationMethodName;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AttributedDI.IntegrationTests;
 
-public class RegistrationsTestsWithStandardAssemblyName
+public class CoreScenariosTests
 {
     [Fact]
     public void ServiceRegistrationTests()
@@ -41,40 +40,5 @@ public class RegistrationsTestsWithStandardAssemblyName
         // Keyed services - RegisterAsSelf with key
         AssertContainsKeyedService<RegisterAsSelfKeyedTransientService, RegisterAsSelfKeyedTransientService>(services, "transientKey", ServiceLifetime.Transient);
         AssertContainsKeyedService<RegisterAsSelfKeyedSingletonService, RegisterAsSelfKeyedSingletonService>(services, "singletonKey", ServiceLifetime.Singleton);
-    }
-
-    [Fact]
-    public void ProjectAliasTests()
-    {
-        var services = new ServiceCollection();
-
-        services.AddMyAmazingCustomServices();
-
-        AssertContainsService<AliasedAssemblyService, AliasedAssemblyService>(services, ServiceLifetime.Scoped);
-    }
-
-    // TODO: module tests. Verify that options could be added for example.
-
-    private static void AssertContainsService<TService, TImplementation>(IServiceCollection services, ServiceLifetime expectedLifetime)
-    {
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TService) && d.ImplementationType == typeof(TImplementation));
-        Assert.NotNull(descriptor);
-        Assert.Equal(expectedLifetime, descriptor.Lifetime);
-    }
-
-    private static void AssertDoesNotContainService<TService, TImplementation>(IServiceCollection services)
-    {
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TService) && d.ImplementationType == typeof(TImplementation));
-        Assert.Null(descriptor);
-    }
-
-    private static void AssertContainsKeyedService<TService, TImplementation>(IServiceCollection services, object key, ServiceLifetime expectedLifetime)
-    {
-        var descriptor = services.SingleOrDefault(d =>
-            d.ServiceType == typeof(TService) &&
-            d.KeyedImplementationType == typeof(TImplementation) &&
-            d.ServiceKey?.Equals(key) == true);
-        Assert.NotNull(descriptor);
-        Assert.Equal(expectedLifetime, descriptor.Lifetime);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using AttributedDI;
 
-[assembly: RegistrationMethodName("AddMyAmazingCustomServices")]
+[assembly: GeneratedModuleName(methodName:"AddMyAmazingCustomServices", moduleName: "MyIncredibleCustomModule")]
 
 namespace CustomRegistrationMethodName;
 
