@@ -36,13 +36,12 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
                 string moduleName = GeneratedModuleNameResolver.ResolveModuleName(assemblyInfo.AssemblyName, assemblyInfo);
                 string methodName = GeneratedModuleNameResolver.ResolveMethodName(assemblyInfo.AssemblyName, assemblyInfo);
 
-                string source = CodeEmitter.EmitRegistrationModule(
+                CodeEmitter.EmitRegistrationModule(
+                    spc,
                     moduleName,
                     methodName,
                     assemblyInfo.AssemblyName,
                     allRegistrations);
-
-                spc.AddSource("ServiceRegistrationModule.g.cs", source);
             }
         });
     }

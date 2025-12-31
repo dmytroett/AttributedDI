@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using CustomRegistrationMethodName;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AttributedDI.IntegrationTests;
 

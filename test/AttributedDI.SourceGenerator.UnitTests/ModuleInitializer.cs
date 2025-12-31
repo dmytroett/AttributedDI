@@ -14,7 +14,7 @@ public static class ModuleInitializer
     public static void Init()
     {
         VerifySourceGenerators.Initialize();
-        
+
         // Configure all snapshots to be stored in the "Snapshots" directory by default
         DerivePathInfo((_, projectDirectory, type, method) =>
             new PathInfo(

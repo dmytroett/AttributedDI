@@ -32,7 +32,7 @@ public class CompilationFixture
     public CSharpCompilation Build()
     {
         Debug.Assert(_sourceCode != null, $"{nameof(WithSourceCode)} has to be called to set source code");
-        
+
         // Parse the provided string into a C# syntax tree
         var syntaxTree = CSharpSyntaxTree.ParseText(_sourceCode);
 
@@ -63,7 +63,7 @@ public class CompilationFixture
         // Check for compilation errors before running the generator
         var diagnostics = compilation.GetDiagnostics();
         var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
-        
+
         if (errors.Count > 0)
         {
             string errorMessages = string.Join(Environment.NewLine,

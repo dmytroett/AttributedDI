@@ -1,6 +1,6 @@
 ﻿using AttributedDI;
 
-[assembly: GeneratedModuleName(methodName:"AddMyAmazingCustomServices", moduleName: "MyIncredibleCustomModule")]
+[assembly: GeneratedModuleName(methodName: "AddMyAmazingCustomServices", moduleName: "MyIncredibleCustomModule")]
 
 namespace CustomRegistrationMethodName;
 
@@ -9,4 +9,3 @@ namespace CustomRegistrationMethodName;
 public class AliasedAssemblyService
 {
 }
-

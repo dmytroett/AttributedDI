@@ -56,7 +56,7 @@ public static class AttributedDiServiceCollectionExtensions
 
         foreach (var module in modules)
         {
-            services.AddModule(module);
+            _ = services.AddModule(module);
         }
 
         return services;
@@ -76,7 +76,7 @@ public static class AttributedDiServiceCollectionExtensions
 
         foreach (var module in modules)
         {
-            services.AddModule(module);
+            _ = services.AddModule(module);
         }
 
         return services;
