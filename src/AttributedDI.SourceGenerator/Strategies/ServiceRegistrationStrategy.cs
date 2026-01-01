@@ -150,7 +150,7 @@ internal static class ServiceRegistrationStrategy
         if (registrations.Count == 0)
             return null;
 
-        return new TypeWithAttributesInfo(symbol, registrations.MoveToImmutable());
+        return new TypeWithAttributesInfo(symbol, registrations.ToImmutable());
     }
 
     private static string ResolveLifetime(List<AttributeData> lifetimeAttributes)
