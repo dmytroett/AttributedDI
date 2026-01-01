@@ -1,6 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -20,186 +18,323 @@ internal static class ServicesRegistrationsCollector
     public static IncrementalValuesProvider<TypeWithAttributesInfo> Collect(
         IncrementalGeneratorInitializationContext context)
     {
-        return context.SyntaxProvider
-            .CreateSyntaxProvider(
-                predicate: static (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax,
-                transform: CollectRegistrations)
+        // Collect RegisterAsSelf attributes
+        var registerAsSelfTypes = context.SyntaxProvider
+            .ForAttributeWithMetadataName<TypeWithAttributesInfo?>(
+                fullyQualifiedMetadataName: KnownAttributes.RegisterAsSelfAttribute,
+                predicate: static (_, _) => true,
+                transform: ExtractTypeInfo)
             .Where(static info => info is not null)
             .Select(static (info, _) => info!);
+
+        // Collect RegisterAsImplementedInterfaces attributes
+        var registerAsImplementedInterfacesTypes = context.SyntaxProvider
+            .ForAttributeWithMetadataName<TypeWithAttributesInfo?>(
+                fullyQualifiedMetadataName: KnownAttributes.RegisterAsImplementedInterfacesAttribute,
+                predicate: static (_, _) => true,
+                transform: ExtractTypeInfo)
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+
+        // Collect RegisterAsAttribute - need to handle generic name differently
+        var registerAsTypes = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: static (node, _) =>
+                {
+                    if (node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
+                        return false;
+
+                    return typeDecl.AttributeLists
+                        .SelectMany(al => al.Attributes)
+                        .Any(attr =>
+                        {
+                            var name = attr.Name;
+                            return name switch
+                            {
+                                Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax gns => gns.Identifier.Text == "RegisterAs",
+                                Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax ins => ins.Identifier.Text == "RegisterAs",
+                                _ => false
+                            };
+                        });
+                },
+                transform: ExtractRegisterAsInfo)
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+
+        // Collect types with lifetime attributes but no registration attributes
+        // These should be registered as self
+        var lifetimeOnlyTypes = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: static (node, _) =>
+                {
+                    if (node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
+                        return false;
+
+                    // Check if it has a lifetime attribute
+                    var hasLifetimeAttr = typeDecl.AttributeLists
+                        .SelectMany(al => al.Attributes)
+                        .Any(attr =>
+                        {
+                            var name = attr.Name;
+                            var nameStr = name switch
+                            {
+                                Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax ins => ins.Identifier.Text,
+                                _ => null
+                            };
+                            return nameStr == "Transient" || nameStr == "Singleton" || nameStr == "Scoped";
+                        });
+
+                    if (!hasLifetimeAttr)
+                        return false;
+
+                    // Check if it has NO registration attributes
+                    var hasRegistrationAttr = typeDecl.AttributeLists
+                        .SelectMany(al => al.Attributes)
+                        .Any(attr =>
+                        {
+                            var name = attr.Name;
+                            return name switch
+                            {
+                                Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax ins =>
+                                    ins.Identifier.Text == "RegisterAsSelf" ||
+                                    ins.Identifier.Text == "RegisterAsImplementedInterfaces",
+                                Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax gns => gns.Identifier.Text == "RegisterAs",
+                                _ => false
+                            };
+                        });
+
+                    return !hasRegistrationAttr;
+                },
+                transform: ExtractLifetimeOnlyInfo)
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+
+        // Return all collected types from the four providers using Combine and SelectMany
+        return registerAsSelfTypes
+            .Collect()
+            .Combine(registerAsImplementedInterfacesTypes.Collect())
+            .Combine(registerAsTypes.Collect())
+            .Combine(lifetimeOnlyTypes.Collect())
+            .SelectMany(static (data, _) =>
+            {
+                var builder = ImmutableArray.CreateBuilder<TypeWithAttributesInfo>();
+                builder.AddRange(data.Left.Left.Left);
+                builder.AddRange(data.Left.Left.Right);
+                builder.AddRange(data.Left.Right);
+                builder.AddRange(data.Right);
+                return builder.ToImmutable();
+            });
     }
 
     /// <summary>
-    /// Collects all service registrations from types with registration or lifetime attributes.
+    /// Extracts type information from an attribute context.
     /// </summary>
-    /// <param name="context">The generator syntax context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Array of registration information, or null if the type should be skipped.</returns>
-    private static TypeWithAttributesInfo? CollectRegistrations(GeneratorSyntaxContext context,
-        CancellationToken cancellationToken)
+    private static TypeWithAttributesInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context, CancellationToken ct)
     {
-        if (context.Node is not TypeDeclarationSyntax typeDeclaration)
+        var symbol = (INamedTypeSymbol?)context.TargetSymbol;
+        if (symbol is null)
             return null;
 
-        if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) is not
-            INamedTypeSymbol symbol)
-            return null;
+        var attribute = context.Attributes[0];
+        var lifetime = ResolveLifetime(symbol);
+        var attributeName = attribute.AttributeClass?.ToDisplayString();
 
-        var allAttributes = symbol.GetAttributes();
+        // Determine registration type based on attribute
+        var registrationType = attributeName switch
+        {
+            var n when n == KnownAttributes.RegisterAsSelfAttribute => RegistrationType.RegisterAsSelf,
+            var n when n == KnownAttributes.RegisterAsImplementedInterfacesAttribute => RegistrationType.RegisterAsImplementedInterfaces,
+            _ => RegistrationType.RegisterAsSelf
+        };
 
         var registrations = ImmutableArray.CreateBuilder<RegistrationInfo>();
 
-        // Find registration attributes
-        var registrationAttributes = allAttributes
-            .Where(attr =>
-            {
-                if (attr.AttributeClass == null)
-                {
-                    return false;
-                }
-
-                var attributeName = attr.AttributeClass.ToDisplayString();
-                return
-                    attributeName == KnownAttributes.RegisterAsSelfAttribute ||
-                    attr.AttributeClass.Name == KnownAttributes.RegisterAsAttribute ||
-                    attributeName ==
-                    KnownAttributes.RegisterAsImplementedInterfacesAttribute;
-            })
-            .ToList();
-
-        // Check if type has any lifetime attributes
-        var lifetimeAttributes = allAttributes
-            .Where(attr =>
-            {
-                if (attr.AttributeClass == null)
-                {
-                    return false;
-                }
-
-                var displayString = attr.AttributeClass.ToDisplayString();
-                return
-                    displayString == KnownAttributes.TransientAttribute ||
-                    displayString == KnownAttributes.SingletonAttribute ||
-                    displayString == KnownAttributes.ScopedAttribute;
-            })
-            .ToList();
-
-        // TODO: Add diagnostic reporting for invalid registrations
-        if (lifetimeAttributes.Count > 1)
+        switch (registrationType)
         {
-            // Multiple lifetime attributes found - skip this type
-            return null;
-        }
-
-        var lifetime = ResolveLifetime(lifetimeAttributes);
-
-        // If lifetime attribute is present without any registration attributes, register as self
-        if (lifetimeAttributes.Count == 1 && registrationAttributes.Count == 0)
-        {
-            registrations.Add(new RegistrationInfo(
-                symbol,
-                RegistrationType.RegisterAsSelf,
-                null,
-                lifetime,
-                null));
-        }
-
-        // Process registration attributes
-        foreach (var attr in registrationAttributes)
-        {
-            var attrTypeName = attr.AttributeClass!.ToDisplayString();
-
-            if (attrTypeName == KnownAttributes.RegisterAsSelfAttribute)
-            {
-                var key = ExtractKeyFromAttribute(attr);
+            case RegistrationType.RegisterAsSelf:
                 registrations.Add(new RegistrationInfo(
-                    symbol,
-                    RegistrationType.RegisterAsSelf,
-                    null,
-                    lifetime,
-                    key));
-            }
-            else if (attr.AttributeClass.Name == KnownAttributes.RegisterAsAttribute)
-            {
-                // Handle generic RegisterAsAttribute<TService>
-                if (attr.AttributeClass is { TypeArguments.Length: > 0 } namedAttr)
+                    FullyQualifiedTypeName: symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    Namespace: symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+                    TypeName: symbol.Name,
+                    RegistrationType: RegistrationType.RegisterAsSelf,
+                    ServiceTypeFullName: null,
+                    Lifetime: lifetime,
+                    Key: ExtractKey(attribute)));
+                break;
+
+            case RegistrationType.RegisterAsImplementedInterfaces:
+                // Extract all interfaces except IDisposable
+                var interfaces = symbol.AllInterfaces
+                    .Where(static iface => !ImplementsDisposableContract(iface))
+                    .Distinct(SymbolEqualityComparer.Default)
+                    .ToList();
+
+                foreach (var iface in interfaces)
                 {
-                    var serviceType = namedAttr.TypeArguments[0];
-                    var key = ExtractKeyFromAttribute(attr);
                     registrations.Add(new RegistrationInfo(
-                        symbol,
-                        RegistrationType.RegisterAs,
-                        serviceType,
-                        lifetime,
-                        key));
+                        FullyQualifiedTypeName: symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        Namespace: symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+                        TypeName: symbol.Name,
+                        RegistrationType: RegistrationType.RegisterAsImplementedInterfaces,
+                        ServiceTypeFullName: iface?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? string.Empty,
+                        Lifetime: lifetime,
+                        Key: ExtractKey(attribute)));
                 }
-            }
-            else if (attrTypeName == KnownAttributes.RegisterAsImplementedInterfacesAttribute)
-            {
-                var key = ExtractKeyFromAttribute(attr);
-                registrations.Add(new RegistrationInfo(
-                    symbol,
-                    RegistrationType.RegisterAsImplementedInterfaces,
-                    null,
-                    lifetime,
-                    key));
-            }
+
+                // If type implements no interfaces (besides IDisposable), still register it as self
+                if (registrations.Count == 0)
+                {
+                    registrations.Add(new RegistrationInfo(
+                        FullyQualifiedTypeName: symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        Namespace: symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+                        TypeName: symbol.Name,
+                        RegistrationType: RegistrationType.RegisterAsImplementedInterfaces,
+                        ServiceTypeFullName: null,
+                        Lifetime: lifetime,
+                        Key: ExtractKey(attribute)));
+                }
+
+                break;
         }
 
-        if (registrations.Count == 0)
-            return null;
-
-        return new TypeWithAttributesInfo(symbol, registrations.ToImmutable());
-    }
-
-    private static string ResolveLifetime(List<AttributeData> lifetimeAttributes)
-    {
-        // No lifetime attribute - default to Transient
-        if (lifetimeAttributes.Count == 0)
-        {
-            return "Transient";
-        }
-
-        // Single lifetime attribute found
-        var lifetimeAttr = lifetimeAttributes[0];
-        var lifetimeTypeName = lifetimeAttr.AttributeClass!.ToDisplayString();
-
-        if (lifetimeTypeName == KnownAttributes.TransientAttribute)
-            return "Transient";
-        if (lifetimeTypeName == KnownAttributes.SingletonAttribute)
-            return "Singleton";
-        if (lifetimeTypeName == KnownAttributes.ScopedAttribute)
-            return "Scoped";
-
-        return "Transient";
+        return registrations.Count > 0
+            ? new TypeWithAttributesInfo(registrations.ToImmutable())
+            : null;
     }
 
     /// <summary>
-    /// Extracts the service key from an attribute's constructor arguments or named properties.
+    /// Checks if a type symbol implements IDisposable or IAsyncDisposable.
     /// </summary>
-    /// <param name="attr">The attribute data to extract the key from.</param>
-    /// <returns>The key value, or null if no key is specified.</returns>
-    private static object? ExtractKeyFromAttribute(AttributeData attr)
+    private static bool ImplementsDisposableContract(ITypeSymbol interfaceSymbol)
     {
-        // Check constructor arguments first (positional parameter)
-        if (attr.ConstructorArguments.Length > 0)
+        return IsDisposableInterface(interfaceSymbol) || interfaceSymbol.AllInterfaces.Any(IsDisposableInterface);
+    }
+
+    /// <summary>
+    /// Checks if a type symbol is IDisposable or IAsyncDisposable.
+    /// </summary>
+    private static bool IsDisposableInterface(ITypeSymbol interfaceSymbol)
+    {
+        if (interfaceSymbol.SpecialType == SpecialType.System_IDisposable)
         {
-            var keyArg = attr.ConstructorArguments[0];
-            if (!keyArg.IsNull)
-            {
-                return keyArg.Value;
-            }
+            return true;
         }
 
-        // Check named arguments (property assignment)
-        foreach (var namedArg in attr.NamedArguments)
+        return interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IAsyncDisposable";
+    }
+
+    /// <summary>
+    /// Extracts RegisterAs attribute information from syntax context.
+    /// </summary>
+    private static TypeWithAttributesInfo? ExtractRegisterAsInfo(GeneratorSyntaxContext context, CancellationToken ct)
+    {
+        if (context.Node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
+            return null;
+
+        if (context.SemanticModel.GetDeclaredSymbol(typeDecl, cancellationToken: ct) is not INamedTypeSymbol symbol)
+            return null;
+
+        var registerAsAttributes = symbol.GetAttributes()
+            .Where(attr => attr.AttributeClass?.Name == "RegisterAsAttribute")
+            .ToList();
+
+        if (registerAsAttributes.Count == 0)
+            return null;
+
+        var registrations = ImmutableArray.CreateBuilder<RegistrationInfo>();
+        var lifetime = ResolveLifetime(symbol);
+
+        foreach (var registerAsAttribute in registerAsAttributes)
         {
-            if (namedArg.Key == "Key" && !namedArg.Value.IsNull)
-            {
-                return namedArg.Value.Value;
-            }
+            if (registerAsAttribute.AttributeClass is not { TypeArguments.Length: > 0 } attrClass)
+                continue;
+
+            var serviceType = attrClass.TypeArguments[0];
+
+            registrations.Add(new RegistrationInfo(
+                FullyQualifiedTypeName: symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                Namespace: symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+                TypeName: symbol.Name,
+                RegistrationType: RegistrationType.RegisterAs,
+                ServiceTypeFullName: serviceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                Lifetime: lifetime,
+                Key: ExtractKey(registerAsAttribute)));
         }
 
-        return null;
+        return registrations.Count > 0
+            ? new TypeWithAttributesInfo(registrations.ToImmutable())
+            : null;
+    }
+
+    /// <summary>
+    /// Extracts type information for types with only lifetime attributes.
+    /// These are registered as self.
+    /// </summary>
+    private static TypeWithAttributesInfo? ExtractLifetimeOnlyInfo(GeneratorSyntaxContext context, CancellationToken ct)
+    {
+        if (context.Node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
+            return null;
+
+        if (context.SemanticModel.GetDeclaredSymbol(typeDecl, cancellationToken: ct) is not INamedTypeSymbol symbol)
+            return null;
+
+        var lifetime = ResolveLifetime(symbol);
+
+        var registration = new RegistrationInfo(
+            FullyQualifiedTypeName: symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            Namespace: symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+            TypeName: symbol.Name,
+            RegistrationType: RegistrationType.RegisterAsSelf,
+            ServiceTypeFullName: null,
+            Lifetime: lifetime,
+            Key: null);
+
+        return new TypeWithAttributesInfo(
+            ImmutableArray.Create(registration));
+    }
+
+    /// <summary>
+    /// Resolves the lifetime from lifetime attributes on a type.
+    /// </summary>
+    private static string ResolveLifetime(INamedTypeSymbol symbol)
+    {
+        var lifetimeAttr = symbol.GetAttributes()
+            .FirstOrDefault(attr =>
+            {
+                var displayString = attr.AttributeClass?.ToDisplayString();
+                return displayString == KnownAttributes.TransientAttribute ||
+                       displayString == KnownAttributes.SingletonAttribute ||
+                       displayString == KnownAttributes.ScopedAttribute;
+            });
+
+        if (lifetimeAttr is null)
+            return "Transient";
+
+        var attrName = lifetimeAttr.AttributeClass!.ToDisplayString();
+        return attrName switch
+        {
+            var n when n == KnownAttributes.TransientAttribute => "Transient",
+            var n when n == KnownAttributes.SingletonAttribute => "Singleton",
+            var n when n == KnownAttributes.ScopedAttribute => "Scoped",
+            _ => "Transient"
+        };
+    }
+
+    /// <summary>
+    /// Extracts the service key from an attribute's constructor or named arguments.
+    /// </summary>
+    private static object? ExtractKey(AttributeData attribute)
+    {
+        // Check constructor arguments first
+        if (attribute.ConstructorArguments.Length > 0)
+        {
+            var keyArg = attribute.ConstructorArguments[0];
+            return !keyArg.IsNull ? keyArg.Value : null;
+        }
+
+        // Check named arguments
+        var keyNamedArg = attribute.NamedArguments.FirstOrDefault(na => na.Key == "Key");
+        return !keyNamedArg.Value.IsNull ? keyNamedArg.Value.Value : null;
     }
 }
 
@@ -210,13 +345,28 @@ internal enum RegistrationType
     RegisterAsImplementedInterfaces
 }
 
+/// <summary>
+/// Information about a single service registration extracted from attributes.
+/// </summary>
+/// <param name="FullyQualifiedTypeName">The fully qualified name of the implementation type.</param>
+/// <param name="Namespace">The namespace of the implementation type.</param>
+/// <param name="TypeName">The simple name of the implementation type.</param>
+/// <param name="RegistrationType">The type of registration (self, as interface, etc.).</param>
+/// <param name="ServiceTypeFullName">The fully qualified name of the service type (for RegisterAs), or null.</param>
+/// <param name="Lifetime">The service lifetime (Transient, Scoped, or Singleton).</param>
+/// <param name="Key">The service key, if this is a keyed registration.</param>
 internal sealed record RegistrationInfo(
-    INamedTypeSymbol TypeSymbol,
+    string FullyQualifiedTypeName,
+    string Namespace,
+    string TypeName,
     RegistrationType RegistrationType,
-    ITypeSymbol? ServiceType,
+    string? ServiceTypeFullName,
     string Lifetime,
     object? Key);
 
+/// <summary>
+/// Information about a type with service registration attributes.
+/// </summary>
+/// <param name="Registrations">The registrations declared on this type.</param>
 internal sealed record TypeWithAttributesInfo(
-    INamedTypeSymbol TypeSymbol,
     ImmutableArray<RegistrationInfo> Registrations);

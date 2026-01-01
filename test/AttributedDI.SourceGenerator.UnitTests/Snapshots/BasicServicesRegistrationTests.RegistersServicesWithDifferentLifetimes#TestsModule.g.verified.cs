@@ -20,10 +20,10 @@ namespace Tests
         /// <param name="services">The service collection to configure.</param>
         public virtual void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<global::MyApp.ShouldBeRegisteredAsTransient>();
             services.AddTransient<global::MyApp.TransientService>();
             services.AddSingleton<global::MyApp.SingletonService>();
             services.AddScoped<global::MyApp.ScopedService>();
+            services.AddTransient<global::MyApp.ShouldBeRegisteredAsTransient>();
         }
     }
 }

@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace AttributedDI.SourceGenerator;
@@ -124,8 +123,7 @@ internal static class GeneratedModuleCodeEmitter
 
     private static void GenerateRegistrationCode(StringBuilder sb, RegistrationInfo registration)
     {
-        var typeSymbol = registration.TypeSymbol;
-        string fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        string fullTypeName = registration.FullyQualifiedTypeName;
         string lifetime = registration.Lifetime;
         bool isKeyed = registration.Key != null;
 
@@ -145,63 +143,51 @@ internal static class GeneratedModuleCodeEmitter
                 break;
 
             case RegistrationType.RegisterAs:
-                if (registration.ServiceType != null)
+                if (registration.ServiceTypeFullName != null)
                 {
-                    string serviceFullName =
-                        registration.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                     if (isKeyed)
                     {
                         string keyLiteral = FormatKeyLiteral(registration.Key);
-                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceFullName}, {fullTypeName}>({keyLiteral});");
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>({keyLiteral});");
                     }
                     else
                     {
-                        _ = sb.AppendLine($"            services.Add{lifetime}<{serviceFullName}, {fullTypeName}>();");
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>();");
                     }
                 }
 
                 break;
 
             case RegistrationType.RegisterAsImplementedInterfaces:
-                var interfaces = typeSymbol.AllInterfaces
-                    .Where(static iface => !ImplementsDisposableContract(iface))
-                    .Distinct(SymbolEqualityComparer.Default);
-                foreach (var @interface in interfaces)
+                // Interface information is pre-extracted during collection
+                if (registration.ServiceTypeFullName != null)
                 {
-                    if (@interface is null)
-                    {
-                        continue;
-                    }
-
-                    var interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                     if (isKeyed)
                     {
                         string keyLiteral = FormatKeyLiteral(registration.Key);
-                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{interfaceFullName}, {fullTypeName}>({keyLiteral});");
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>({keyLiteral});");
                     }
                     else
                     {
-                        _ = sb.AppendLine($"            services.Add{lifetime}<{interfaceFullName}, {fullTypeName}>();");
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>();");
+                    }
+                }
+                else
+                {
+                    // Fallback: register as self if no interfaces found
+                    if (isKeyed)
+                    {
+                        string keyLiteral = FormatKeyLiteral(registration.Key);
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
+                    }
+                    else
+                    {
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
                     }
                 }
 
                 break;
         }
-    }
-
-    private static bool ImplementsDisposableContract(ITypeSymbol interfaceSymbol)
-    {
-        return IsDisposableInterface(interfaceSymbol) || interfaceSymbol.AllInterfaces.Any(IsDisposableInterface);
-    }
-
-    private static bool IsDisposableInterface(ITypeSymbol interfaceSymbol)
-    {
-        if (interfaceSymbol.SpecialType == SpecialType.System_IDisposable)
-        {
-            return true;
-        }
-
-        return interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IAsyncDisposable";
     }
 
     /// <summary>
