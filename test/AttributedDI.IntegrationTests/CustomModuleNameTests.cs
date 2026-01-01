@@ -1,5 +1,6 @@
 using CustomRegistrationMethodName;
 using Microsoft.Extensions.DependencyInjection;
+using MyUnbelievableNamespace;
 
 namespace AttributedDI.IntegrationTests;
 

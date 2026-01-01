@@ -21,6 +21,6 @@
   </Folder>
   <Folder Name="/test/assets/">
     <Project Path="test/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
-    <Project Path="test/assets/CustomRegistrationMethodName/CustomRegistrationMethodName.csproj" />
+    <Project Path="test/assets/CustomModuleName/CustomModuleName.csproj" />
   </Folder>
 </Solution>
