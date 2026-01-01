@@ -84,6 +84,7 @@ internal static class CodeEmitter
         _ = sb.AppendLine();
         _ = sb.AppendLine("using System;");
         _ = sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        _ = sb.AppendLine("using AttributedDI;");
         _ = sb.AppendLine();
 
         _ = sb.AppendLine($"namespace {namespaceName}");
