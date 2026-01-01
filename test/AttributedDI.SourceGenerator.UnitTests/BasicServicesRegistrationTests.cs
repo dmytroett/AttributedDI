@@ -110,51 +110,12 @@ public class BasicServicesRegistrationTests
     }
 
     [Fact]
-    public async Task RegistersServiceModule()
-    {
-        // Tests: IServiceModule with RegisterModule attribute
-        var code = """
-                   using AttributedDI;
-                   using Microsoft.Extensions.DependencyInjection;
-
-                   namespace MyApp
-                   {
-                       public interface ILogger { }
-                       public interface IRepository { }
-
-                       public class Logger : ILogger { }
-
-                       public class UserRepository : IRepository { }
-
-                       [RegisterModule]
-                       public class MyModule : IServiceModule
-                       {
-                           public void ConfigureServices(IServiceCollection services)
-                           {
-                               services.AddSingleton<ILogger, Logger>();
-                               services.AddTransient<IRepository, UserRepository>();
-                           }
-                       }
-                   }
-                   """;
-
-        var compilation = new CompilationFixture()
-            .WithSourceCode(code)
-            .WithExtraReferences(typeof(Microsoft.Extensions.DependencyInjection.ServiceCollection))
-            .Build();
-
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
-
-        await Verify(driver);
-    }
-
-    [Fact]
-    public async Task GeneratesCustomMethodName()
+    public void UsesUserSuppliedNamesWhenProvided()
     {
         var code = """
                    using AttributedDI;
 
-                   [assembly: RegistrationMethodName("AddMyCustomServices")]
+                   [assembly: GeneratedModule(moduleName: "MyModule", methodName: "AddTheModule", moduleNamespace: "Custom.Namespace")]
 
                    namespace MyApp
                    {
@@ -166,7 +127,14 @@ public class BasicServicesRegistrationTests
         var compilation = new CompilationFixture().WithSourceCode(code).Build();
         var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
 
-        await Verify(driver);
+        var runResult = driver.GetRunResult();
+        var generatedSources = runResult.Results.Single().GeneratedSources;
+
+        var moduleFile = generatedSources.Single(source => source.HintName == "MyModule.g.cs").SourceText.ToString();
+        var extensionsFile = generatedSources.Single(source => source.HintName == "MyModuleServiceCollectionExtensions.g.cs").SourceText.ToString();
+
+        Assert.Contains("namespace Custom.Namespace", moduleFile);
+        Assert.Contains("namespace Custom.Namespace", extensionsFile);
     }
 
     [Fact]

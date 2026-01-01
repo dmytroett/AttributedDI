@@ -4,9 +4,14 @@ namespace AttributedDI;
 
 /// <summary>
 /// Interface for service modules that configure dependency injection registrations.
-/// Types implementing this interface and marked with <see cref="RegisterModuleAttribute"/> 
-/// will have their <see cref="ConfigureServices"/> method called during service registration.
+/// The source generator automatically implements this interface for assemblies with registered types.
+/// You can also manually implement this interface to create custom service modules.
 /// </summary>
+/// <remarks>
+/// Generated modules have a virtual <see cref="ConfigureServices"/> method that can be overridden
+/// in partial class definitions to add custom registration logic.
+/// Use the extension methods in <see cref="AttributedDiServiceCollectionExtensions"/> to register modules.
+/// </remarks>
 public interface IServiceModule
 {
     /// <summary>

@@ -12,12 +12,9 @@ internal static class KnownAttributes
 
     // Registration attributes
     public const string RegisterAsSelfAttribute = "AttributedDI.RegisterAsSelfAttribute";
-    public const string RegisterAsAttribute = "RegisterAsAttribute"; // Generic attribute, use Name property
+    public const string RegisterAsAttribute = "AttributedDI.RegisterAsAttribute`1"; // Generic attribute, includes arity
     public const string RegisterAsImplementedInterfacesAttribute = "AttributedDI.RegisterAsImplementedInterfacesAttribute";
 
     // Assembly-level attributes
-    public const string RegistrationMethodNameAttribute = "AttributedDI.RegistrationMethodNameAttribute";
-
-    // Module attributes
-    public const string RegisterModuleAttribute = "AttributedDI.RegisterModuleAttribute";
+    public const string GeneratedModuleAttribute = "AttributedDI.GeneratedModuleAttribute";
 }
