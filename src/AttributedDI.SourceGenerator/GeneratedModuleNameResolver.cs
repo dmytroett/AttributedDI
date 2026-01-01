@@ -46,6 +46,19 @@ internal static class GeneratedModuleNameResolver
         return sanitized;
     }
 
+    /// <summary>
+    /// Resolves the namespace for generated module and extension types.
+    /// </summary>
+    /// <param name="assemblyName">The name of the assembly (e.g., "CompanyName.TeamName.ProjectName.API").</param>
+    /// <param name="customNameInfo">Custom module name information from attributes, or null to use defaults.</param>
+    /// <returns>The namespace to emit for generated types.</returns>
+    public static string ResolveNamespace(string assemblyName, CustomModuleNameInfo? customNameInfo)
+    {
+        string baseNamespace = customNameInfo?.Namespace ?? assemblyName;
+        string sanitized = SanitizeNamespace(baseNamespace);
+        return sanitized;
+    }
+
     private static string SanitizeIdentifier(string name)
     {
         // Remove invalid characters to create a valid C# identifier
@@ -55,6 +68,23 @@ internal static class GeneratedModuleNameResolver
         if (sanitized.Length > 0 && char.IsDigit(sanitized[0]))
         {
             sanitized = "_" + sanitized;
+        }
+
+        return sanitized;
+    }
+
+    private static string SanitizeNamespace(string namespaceValue)
+    {
+        string sanitized = new([.. namespaceValue.Where(c => char.IsLetterOrDigit(c) || c == '.' || c == '_')]);
+
+        if (sanitized.Length > 0 && char.IsDigit(sanitized[0]))
+        {
+            sanitized = "_" + sanitized;
+        }
+
+        if (string.IsNullOrWhiteSpace(sanitized.Replace(".", string.Empty).Replace("_", string.Empty)))
+        {
+            return "AttributedDI";
         }
 
         return sanitized;

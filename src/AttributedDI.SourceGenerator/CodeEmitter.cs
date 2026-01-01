@@ -23,11 +23,10 @@ internal static class CodeEmitter
         SourceProductionContext context,
         string moduleName,
         string methodName,
+        string namespaceName,
         string assemblyName,
         ImmutableArray<RegistrationInfo> registrations)
     {
-        string namespaceName = DeriveNamespace(assemblyName);
-
         // Emit module class
         string moduleSource = EmitModuleClass(moduleName, namespaceName, assemblyName, registrations);
         context.AddSource($"{moduleName}.g.cs", moduleSource);
@@ -107,25 +106,5 @@ internal static class CodeEmitter
         _ = sb.AppendLine("}");
 
         return sb.ToString();
-    }
-
-    private static string DeriveNamespace(string assemblyName)
-    {
-        // Sanitize assembly name to create valid namespace identifier
-        string sanitized = new([.. assemblyName.Where(c => char.IsLetterOrDigit(c) || c == '.' || c == '_')]);
-
-        // Ensure namespace doesn't start with a digit
-        if (sanitized.Length > 0 && char.IsDigit(sanitized[0]))
-        {
-            sanitized = "_" + sanitized;
-        }
-
-        // If empty or just dots/underscores, use a default
-        if (string.IsNullOrWhiteSpace(sanitized.Replace(".", "").Replace("_", "")))
-        {
-            return "AttributedDI";
-        }
-
-        return sanitized;
     }
 }

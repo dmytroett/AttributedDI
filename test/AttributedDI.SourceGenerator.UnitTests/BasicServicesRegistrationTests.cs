@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis;
+using System.Linq;
+
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class BasicServicesRegistrationTests
@@ -167,6 +170,34 @@ public class BasicServicesRegistrationTests
         var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
 
         await Verify(driver);
+    }
+
+    [Fact]
+    public void UsesCustomNamespaceWhenProvided()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   [assembly: GeneratedModule(moduleName: "MyModule", moduleNamespace: "Custom.Namespace")]
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf]
+                       public class MyService { }
+                   }
+                   """;
+
+        var compilation = new CompilationFixture().WithSourceCode(code).Build();
+        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+
+        var runResult = driver.GetRunResult();
+        var generatedSources = runResult.Results.Single().GeneratedSources;
+
+        var moduleFile = generatedSources.Single(source => source.HintName == "MyModule.g.cs").SourceText.ToString();
+        var extensionsFile = generatedSources.Single(source => source.HintName == "MyModuleServiceCollectionExtensions.g.cs").SourceText.ToString();
+
+        Assert.Contains("namespace Custom.Namespace", moduleFile);
+        Assert.Contains("namespace Custom.Namespace", extensionsFile);
     }
 
     [Fact]

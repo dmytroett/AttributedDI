@@ -16,5 +16,5 @@ internal static class KnownAttributes
     public const string RegisterAsImplementedInterfacesAttribute = "AttributedDI.RegisterAsImplementedInterfacesAttribute";
 
     // Assembly-level attributes
-    public const string GeneratedModuleNameAttribute = "AttributedDI.GeneratedModuleNameAttribute";
+    public const string GeneratedModuleAttribute = "AttributedDI.GeneratedModuleAttribute";
 }
