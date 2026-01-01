@@ -1,6 +1,6 @@
-using AttributedDI.SourceGenerator.Strategies;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -9,7 +9,7 @@ namespace AttributedDI.SourceGenerator;
 /// <summary>
 /// Emits the final generated registration module and extension method code.
 /// </summary>
-internal static class CodeEmitter
+internal static class GeneratedModuleCodeEmitter
 {
     /// <summary>
     /// Generates a complete registration module file with IServiceModule implementation and extension method in separate files.
@@ -65,7 +65,7 @@ internal static class CodeEmitter
         _ = sb.AppendLine("        {");
 
         // Generate service registrations
-        ServiceRegistrationStrategy.GenerateCode(sb, registrations);
+        GenerateCode(sb, registrations);
 
         _ = sb.AppendLine("        }");
         _ = sb.AppendLine("    }");
@@ -107,5 +107,118 @@ internal static class CodeEmitter
         _ = sb.AppendLine("}");
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Generates service registration code.
+    /// </summary>
+    /// <param name="sb">The string builder to append code to.</param>
+    /// <param name="registrations">The registrations to generate code for.</param>
+    private static void GenerateCode(StringBuilder sb, ImmutableArray<RegistrationInfo> registrations)
+    {
+        foreach (var registration in registrations)
+        {
+            GenerateRegistrationCode(sb, registration);
+        }
+    }
+
+    private static void GenerateRegistrationCode(StringBuilder sb, RegistrationInfo registration)
+    {
+        var typeSymbol = registration.TypeSymbol;
+        string fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        string lifetime = registration.Lifetime;
+        bool isKeyed = registration.Key != null;
+
+        switch (registration.RegistrationType)
+        {
+            case RegistrationType.RegisterAsSelf:
+                if (isKeyed)
+                {
+                    string keyLiteral = FormatKeyLiteral(registration.Key);
+                    _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
+                }
+                else
+                {
+                    _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
+                }
+
+                break;
+
+            case RegistrationType.RegisterAs:
+                if (registration.ServiceType != null)
+                {
+                    string serviceFullName =
+                        registration.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    if (isKeyed)
+                    {
+                        string keyLiteral = FormatKeyLiteral(registration.Key);
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceFullName}, {fullTypeName}>({keyLiteral});");
+                    }
+                    else
+                    {
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{serviceFullName}, {fullTypeName}>();");
+                    }
+                }
+
+                break;
+
+            case RegistrationType.RegisterAsImplementedInterfaces:
+                var interfaces = typeSymbol.AllInterfaces
+                    .Where(static iface => !ImplementsDisposableContract(iface))
+                    .Distinct(SymbolEqualityComparer.Default);
+                foreach (var @interface in interfaces)
+                {
+                    if (@interface is null)
+                    {
+                        continue;
+                    }
+
+                    var interfaceFullName = @interface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    if (isKeyed)
+                    {
+                        string keyLiteral = FormatKeyLiteral(registration.Key);
+                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{interfaceFullName}, {fullTypeName}>({keyLiteral});");
+                    }
+                    else
+                    {
+                        _ = sb.AppendLine($"            services.Add{lifetime}<{interfaceFullName}, {fullTypeName}>();");
+                    }
+                }
+
+                break;
+        }
+    }
+
+    private static bool ImplementsDisposableContract(ITypeSymbol interfaceSymbol)
+    {
+        return IsDisposableInterface(interfaceSymbol) || interfaceSymbol.AllInterfaces.Any(IsDisposableInterface);
+    }
+
+    private static bool IsDisposableInterface(ITypeSymbol interfaceSymbol)
+    {
+        if (interfaceSymbol.SpecialType == SpecialType.System_IDisposable)
+        {
+            return true;
+        }
+
+        return interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IAsyncDisposable";
+    }
+
+    /// <summary>
+    /// Formats a key value as a C# literal for code generation.
+    /// </summary>
+    /// <param name="key">The key value to format.</param>
+    /// <returns>A string representation of the key suitable for code generation.</returns>
+    private static string FormatKeyLiteral(object? key)
+    {
+        return key switch
+        {
+            null => "null",
+            string s => $"\"{s.Replace("\"", "\\\"")}\"",
+            int i => i.ToString(CultureInfo.InvariantCulture),
+            long l => $"{l}L",
+            bool b => b ? "true" : "false",
+            _ => $"\"{key}\""
+        };
     }
 }

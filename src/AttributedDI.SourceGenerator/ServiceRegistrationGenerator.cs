@@ -1,4 +1,3 @@
-using AttributedDI.SourceGenerator.Strategies;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +16,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
     {
         // Phase 1: Strategies discover and collect what they observe
         var assemblyName = context.CompilationProvider.Select(static (compilation, _) => compilation.Assembly.Name);
-        var typesWithAttributes = ServiceRegistrationStrategy.ScanAssembly(context);
+        var typesWithAttributes = ServicesRegistrationsCollector.Collect(context);
         var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
 
         // Combine all collected data with compilation provider for assembly name
@@ -36,7 +35,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
 
             if (allRegistrations.Any())
             {
-                CodeEmitter.EmitRegistrationModule(
+                GeneratedModuleCodeEmitter.EmitRegistrationModule(
                     spc,
                     customNameInfo.ModuleName,
                     customNameInfo.MethodName,
