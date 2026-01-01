@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace AttributedDI.SourceGenerator.UnitTests;
+namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
 public static class SourceGeneratorRunner
 {

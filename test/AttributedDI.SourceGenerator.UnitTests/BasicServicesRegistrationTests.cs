@@ -1,6 +1,3 @@
-using Microsoft.CodeAnalysis;
-using System.Linq;
-
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class BasicServicesRegistrationTests

@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace AttributedDI.SourceGenerator.UnitTests;
+namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
 public class CompilationFixture
 {
