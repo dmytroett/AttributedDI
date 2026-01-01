@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,112 +19,60 @@ internal static class ServicesRegistrationsCollector
     public static IncrementalValuesProvider<TypeWithAttributesInfo> Collect(
         IncrementalGeneratorInitializationContext context)
     {
-        // Collect RegisterAsSelf attributes
-        var registerAsSelfTypes = context.SyntaxProvider
-            .ForAttributeWithMetadataName<TypeWithAttributesInfo?>(
-                fullyQualifiedMetadataName: KnownAttributes.RegisterAsSelfAttribute,
+        var registerAsSelfTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsSelfAttribute, ExtractTypeInfo);
+        var registerAsImplementedInterfacesTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsImplementedInterfacesAttribute, ExtractTypeInfo);
+        var registerAsTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsAttribute, ExtractRegisterAsInfo);
+
+        var transientLifetimeTypes = CreateAttributeCollector(context, KnownAttributes.TransientAttribute, ExtractLifetimeOnlyInfo);
+        var scopedLifetimeTypes = CreateAttributeCollector(context, KnownAttributes.ScopedAttribute, ExtractLifetimeOnlyInfo);
+        var singletonLifetimeTypes = CreateAttributeCollector(context, KnownAttributes.SingletonAttribute, ExtractLifetimeOnlyInfo);
+
+        return AggregateProviders(
+            registerAsSelfTypes,
+            registerAsImplementedInterfacesTypes,
+            registerAsTypes,
+            transientLifetimeTypes,
+            scopedLifetimeTypes,
+            singletonLifetimeTypes);
+    }
+
+    private static IncrementalValuesProvider<TypeWithAttributesInfo> CreateAttributeCollector(
+        IncrementalGeneratorInitializationContext context,
+        string attributeMetadataName,
+        Func<GeneratorAttributeSyntaxContext, CancellationToken, TypeWithAttributesInfo?> transform)
+    {
+        return context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: attributeMetadataName,
                 predicate: static (_, _) => true,
-                transform: ExtractTypeInfo)
+                transform: transform)
             .Where(static info => info is not null)
             .Select(static (info, _) => info!);
+    }
 
-        // Collect RegisterAsImplementedInterfaces attributes
-        var registerAsImplementedInterfacesTypes = context.SyntaxProvider
-            .ForAttributeWithMetadataName<TypeWithAttributesInfo?>(
-                fullyQualifiedMetadataName: KnownAttributes.RegisterAsImplementedInterfacesAttribute,
-                predicate: static (_, _) => true,
-                transform: ExtractTypeInfo)
-            .Where(static info => info is not null)
-            .Select(static (info, _) => info!);
+    private static IncrementalValuesProvider<TypeWithAttributesInfo> AggregateProviders(
+        params IncrementalValuesProvider<TypeWithAttributesInfo>[] providers)
+    {
+        if (providers.Length == 0)
+        {
+            throw new InvalidOperationException("No providers supplied.");
+        }
 
-        // Collect RegisterAsAttribute - need to handle generic name differently
-        var registerAsTypes = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                predicate: static (node, _) =>
-                {
-                    if (node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
-                        return false;
+        if (providers.Length == 1)
+        {
+            return providers[0];
+        }
 
-                    return typeDecl.AttributeLists
-                        .SelectMany(al => al.Attributes)
-                        .Any(attr =>
-                        {
-                            var name = attr.Name;
-                            return name switch
-                            {
-                                Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax gns => gns.Identifier.Text == "RegisterAs",
-                                Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax ins => ins.Identifier.Text == "RegisterAs",
-                                _ => false
-                            };
-                        });
-                },
-                transform: ExtractRegisterAsInfo)
-            .Where(static info => info is not null)
-            .Select(static (info, _) => info!);
+        var merged = providers[0].Collect();
 
-        // Collect types with lifetime attributes but no registration attributes
-        // These should be registered as self
-        var lifetimeOnlyTypes = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                predicate: static (node, _) =>
-                {
-                    if (node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
-                        return false;
+        for (var i = 1; i < providers.Length; i++)
+        {
+            merged = merged
+                .Combine(providers[i].Collect())
+                .Select(static (pair, _) => pair.Left.AddRange(pair.Right));
+        }
 
-                    // Check if it has a lifetime attribute
-                    var hasLifetimeAttr = typeDecl.AttributeLists
-                        .SelectMany(al => al.Attributes)
-                        .Any(attr =>
-                        {
-                            var name = attr.Name;
-                            var nameStr = name switch
-                            {
-                                Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax ins => ins.Identifier.Text,
-                                _ => null
-                            };
-                            return nameStr == "Transient" || nameStr == "Singleton" || nameStr == "Scoped";
-                        });
-
-                    if (!hasLifetimeAttr)
-                        return false;
-
-                    // Check if it has NO registration attributes
-                    var hasRegistrationAttr = typeDecl.AttributeLists
-                        .SelectMany(al => al.Attributes)
-                        .Any(attr =>
-                        {
-                            var name = attr.Name;
-                            return name switch
-                            {
-                                Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax ins =>
-                                    ins.Identifier.Text == "RegisterAsSelf" ||
-                                    ins.Identifier.Text == "RegisterAsImplementedInterfaces",
-                                Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax gns => gns.Identifier.Text == "RegisterAs",
-                                _ => false
-                            };
-                        });
-
-                    return !hasRegistrationAttr;
-                },
-                transform: ExtractLifetimeOnlyInfo)
-            .Where(static info => info is not null)
-            .Select(static (info, _) => info!);
-
-        // Return all collected types from the four providers using Combine and SelectMany
-        return registerAsSelfTypes
-            .Collect()
-            .Combine(registerAsImplementedInterfacesTypes.Collect())
-            .Combine(registerAsTypes.Collect())
-            .Combine(lifetimeOnlyTypes.Collect())
-            .SelectMany(static (data, _) =>
-            {
-                var builder = ImmutableArray.CreateBuilder<TypeWithAttributesInfo>();
-                builder.AddRange(data.Left.Left.Left);
-                builder.AddRange(data.Left.Left.Right);
-                builder.AddRange(data.Left.Right);
-                builder.AddRange(data.Right);
-                return builder.ToImmutable();
-            });
+        return merged.SelectMany(static (items, _) => items);
     }
 
     /// <summary>
@@ -163,6 +112,8 @@ internal static class ServicesRegistrationsCollector
                 break;
 
             case RegistrationType.RegisterAsImplementedInterfaces:
+                ct.ThrowIfCancellationRequested();
+
                 // Extract all interfaces except IDisposable
                 var interfaces = symbol.AllInterfaces
                     .Where(static iface => !ImplementsDisposableContract(iface))
@@ -226,26 +177,18 @@ internal static class ServicesRegistrationsCollector
     /// <summary>
     /// Extracts RegisterAs attribute information from syntax context.
     /// </summary>
-    private static TypeWithAttributesInfo? ExtractRegisterAsInfo(GeneratorSyntaxContext context, CancellationToken ct)
+    private static TypeWithAttributesInfo? ExtractRegisterAsInfo(GeneratorAttributeSyntaxContext context, CancellationToken ct)
     {
-        if (context.Node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
-            return null;
-
-        if (context.SemanticModel.GetDeclaredSymbol(typeDecl, cancellationToken: ct) is not INamedTypeSymbol symbol)
-            return null;
-
-        var registerAsAttributes = symbol.GetAttributes()
-            .Where(attr => attr.AttributeClass?.Name == "RegisterAsAttribute")
-            .ToList();
-
-        if (registerAsAttributes.Count == 0)
+        if (context.TargetSymbol is not INamedTypeSymbol symbol)
             return null;
 
         var registrations = ImmutableArray.CreateBuilder<RegistrationInfo>();
         var lifetime = ResolveLifetime(symbol);
 
-        foreach (var registerAsAttribute in registerAsAttributes)
+        foreach (var registerAsAttribute in context.Attributes)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (registerAsAttribute.AttributeClass is not { TypeArguments.Length: > 0 } attrClass)
                 continue;
 
@@ -270,12 +213,12 @@ internal static class ServicesRegistrationsCollector
     /// Extracts type information for types with only lifetime attributes.
     /// These are registered as self.
     /// </summary>
-    private static TypeWithAttributesInfo? ExtractLifetimeOnlyInfo(GeneratorSyntaxContext context, CancellationToken ct)
+    private static TypeWithAttributesInfo? ExtractLifetimeOnlyInfo(GeneratorAttributeSyntaxContext context, CancellationToken ct)
     {
-        if (context.Node is not Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax typeDecl)
+        if (context.TargetSymbol is not INamedTypeSymbol symbol)
             return null;
 
-        if (context.SemanticModel.GetDeclaredSymbol(typeDecl, cancellationToken: ct) is not INamedTypeSymbol symbol)
+        if (HasRegistrationAttribute(symbol))
             return null;
 
         var lifetime = ResolveLifetime(symbol);
@@ -291,6 +234,39 @@ internal static class ServicesRegistrationsCollector
 
         return new TypeWithAttributesInfo(
             ImmutableArray.Create(registration));
+    }
+
+    private static bool HasRegistrationAttribute(INamedTypeSymbol symbol)
+    {
+        foreach (var attribute in symbol.GetAttributes())
+        {
+            var displayName = attribute.AttributeClass?.ToDisplayString();
+
+            if (displayName is null)
+            {
+                continue;
+            }
+
+            if (displayName == KnownAttributes.RegisterAsSelfAttribute ||
+                displayName == KnownAttributes.RegisterAsImplementedInterfacesAttribute ||
+                IsRegisterAsAttribute(attribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsRegisterAsAttribute(AttributeData attribute)
+    {
+        if (attribute.AttributeClass is null)
+        {
+            return false;
+        }
+
+        return string.Equals(attribute.AttributeClass.Name, "RegisterAsAttribute", StringComparison.Ordinal) &&
+               string.Equals(attribute.AttributeClass.ContainingNamespace?.ToDisplayString(), "AttributedDI", StringComparison.Ordinal);
     }
 
     /// <summary>
