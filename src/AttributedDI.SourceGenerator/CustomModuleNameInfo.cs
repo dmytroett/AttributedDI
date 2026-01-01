@@ -1,9 +1,10 @@
 namespace AttributedDI.SourceGenerator;
 
 /// <summary>
-/// Contains assembly-level information for code generation.
+/// Contains custom module and method names from the GeneratedModuleNameAttribute.
 /// </summary>
 /// <param name="ModuleName">The custom module name from the attribute, or null to use default.</param>
 /// <param name="MethodName">The custom method name from the attribute, or null to use default.</param>
-/// <param name="AssemblyName">The name of the assembly being processed.</param>
-internal sealed record AssemblyInfo(string? ModuleName, string? MethodName, string AssemblyName);
+internal sealed record CustomModuleNameInfo(string? ModuleName, string? MethodName);
+
+internal sealed record ResolvedModuleNames(string ModuleName, string MethodName);

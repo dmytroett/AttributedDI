@@ -17,30 +17,31 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
     {
         // Phase 1: Strategies discover and collect what they observe
         var typesWithAttributes = ServiceRegistrationStrategy.ScanAssembly(context);
-        var assemblyInfo = GeneratedModuleNameResolver.ScanAssembly(context);
+        var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
 
-        // Combine all collected data
+        // Combine all collected data with compilation provider for assembly name
         var combinedData = typesWithAttributes.Collect()
-            .Combine(assemblyInfo);
+            .Combine(customModuleNameInfo)
+            .Combine(context.CompilationProvider);
 
         // Phase 2: Generate code based on collected data
         context.RegisterSourceOutput(combinedData, static (spc, data) =>
         {
-            var typeInfos = data.Left;
-            var assemblyInfo = data.Right;
+            var typeInfos = data.Left.Left;
+            var customNameInfo = data.Left.Right;
+            var compilation = data.Right;
 
             var allRegistrations = typeInfos.SelectMany(t => t.Registrations).ToImmutableArray();
 
             if (allRegistrations.Any())
             {
-                string moduleName = GeneratedModuleNameResolver.ResolveModuleName(assemblyInfo.AssemblyName, assemblyInfo);
-                string methodName = GeneratedModuleNameResolver.ResolveMethodName(assemblyInfo.AssemblyName, assemblyInfo);
+                string assemblyName = compilation.Assembly.Name;
 
                 CodeEmitter.EmitRegistrationModule(
                     spc,
-                    moduleName,
-                    methodName,
-                    assemblyInfo.AssemblyName,
+                    customNameInfo.ModuleName,
+                    customNameInfo.MethodName,
+                    assemblyName,
                     allRegistrations);
             }
         });
