@@ -110,7 +110,7 @@ public class BasicServicesRegistrationTests
     }
 
     [Fact]
-    public void UsesUserSuppliedNamesWhenProvided()
+    public async Task UsesUserSuppliedNamesWhenProvided()
     {
         var code = """
                    using AttributedDI;
@@ -127,14 +127,7 @@ public class BasicServicesRegistrationTests
         var compilation = new CompilationFixture().WithSourceCode(code).Build();
         var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
 
-        var runResult = driver.GetRunResult();
-        var generatedSources = runResult.Results.Single().GeneratedSources;
-
-        var moduleFile = generatedSources.Single(source => source.HintName == "MyModule.g.cs").SourceText.ToString();
-        var extensionsFile = generatedSources.Single(source => source.HintName == "MyModuleServiceCollectionExtensions.g.cs").SourceText.ToString();
-
-        Assert.Contains("namespace Custom.Namespace", moduleFile);
-        Assert.Contains("namespace Custom.Namespace", extensionsFile);
+        await Verify(driver);
     }
 
     [Fact]
