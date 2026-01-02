@@ -53,7 +53,8 @@ internal static class GeneratedInterfacesCodeEmitter
         foreach (var member in interfaceInfo.MemberSignatures)
         {
             builder.Append("    ").Append(member);
-            if (!member.EndsWith(";", StringComparison.Ordinal))
+            var needsSemicolon = !member.Contains("{", StringComparison.Ordinal) && !member.EndsWith(";", StringComparison.Ordinal);
+            if (needsSemicolon)
             {
                 builder.Append(';');
             }

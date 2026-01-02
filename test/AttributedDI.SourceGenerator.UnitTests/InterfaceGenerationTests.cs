@@ -215,7 +215,7 @@ public class InterfaceGenerationTests
 
                            public event EventHandler? Changed;
 
-                           public int this[int index] { get; set; }
+                           public int this[int index] { get => 0; set { } }
 
                            public Task<int> GetValueAsync(int index) => Task.FromResult(index);
                        }
