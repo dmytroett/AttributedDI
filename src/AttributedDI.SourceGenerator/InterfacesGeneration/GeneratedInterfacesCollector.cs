@@ -14,11 +14,7 @@ internal static class GeneratedInterfacesCollector
         var generateInterfaceTypes = CreateCollector(context, KnownAttributes.GenerateInterfaceAttribute);
         var registerAsGeneratedInterfaceTypes = CreateCollector(context, KnownAttributes.RegisterAsGeneratedInterfaceAttribute);
 
-        return generateInterfaceTypes
-            .Collect()
-            .Combine(registerAsGeneratedInterfaceTypes.Collect())
-            .Select(static (pair, _) => pair.Left.AddRange(pair.Right))
-            .SelectMany(static (items, _) => items);
+        return AggregateIncrementalProviders(generateInterfaceTypes, registerAsGeneratedInterfaceTypes);
     }
 
     private static IncrementalValuesProvider<GeneratedInterfaceInfo> CreateCollector(
