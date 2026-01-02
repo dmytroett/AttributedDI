@@ -1,34 +1,4 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Globalization;
-
 namespace AttributedDI.SourceGenerator.UnitTests;
-
-public class InterfaceGenerationTests
-{
-    private static void AssertGeneratedCodeCompiles(CSharpCompilation originalCompilation, GeneratorDriver driver)
-    {
-        // Get the generated syntax trees from the driver's run result
-        var runResult = driver.GetRunResult();
-        var generatedSyntaxTrees = runResult.GeneratedTrees;
-
-        // Create a new compilation with both original and generated sources
-        var compilationWithGenerated = originalCompilation.AddSyntaxTrees(generatedSyntaxTrees);
-
-        // Check for compilation errors
-        var errors = compilationWithGenerated
-            .GetDiagnostics()
-            .Where(d => d.Severity == DiagnosticSeverity.Error)
-            .ToList();
-
-        if (errors.Count != 0)
-        {
-            var errorMessages = string.Join(
-                Environment.NewLine,
-                errors.Select(static e => $"{e.Id}: {e.GetMessage(CultureInfo.InvariantCulture)}"));
-            throw new AssertionException($"Generated code does not compile:\n{errorMessages}");
-        }
-    }
 
 public class InterfaceGenerationTests
 {
@@ -51,14 +21,14 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        // Verify snapshot output
-        await Verify(driver);
+        Assert.Empty(diagnostics);
 
-        // Verify the generated code compiles with the original source
-        AssertGeneratedCodeCompiles(compilation, driver);
+        await Verify(output);
     }
 
     [Fact]
@@ -77,10 +47,14 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -99,10 +73,14 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -123,10 +101,14 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -147,10 +129,14 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -171,10 +157,14 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -197,9 +187,13 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 }

@@ -1,35 +1,57 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
-public class CompilationFixture
+public class SourceGeneratorTestFixture
 {
     private readonly List<MetadataReference> _extraReferences = [];
+    private readonly List<IIncrementalGenerator> _generators = [];
     private string? _sourceCode;
+    private string? _assemblyName;
 
-    public CompilationFixture WithExtraReferences(params MetadataReference[] references)
+    public SourceGeneratorTestFixture WithExtraReferences(params MetadataReference[] references)
     {
         _extraReferences.AddRange(references);
         return this;
     }
 
-    public CompilationFixture WithExtraReferences(params Type[] markerTypes)
+    public SourceGeneratorTestFixture WithExtraReferences(params Type[] markerTypes)
     {
         var references = markerTypes.Select(t => MetadataReference.CreateFromFile(t.Assembly.Location));
         _extraReferences.AddRange(references);
         return this;
     }
 
-    public CompilationFixture WithSourceCode(string sourceCode)
+    public SourceGeneratorTestFixture WithSourceCode(string sourceCode)
     {
         _sourceCode = sourceCode;
         return this;
     }
 
-    public CSharpCompilation Build()
+    public SourceGeneratorTestFixture WithAssemblyName(string assemblyName)
+    {
+        _assemblyName = assemblyName;
+        return this;
+    }
+
+    public SourceGeneratorTestFixture AddGenerator<TGenerator>()
+        where TGenerator : IIncrementalGenerator, new()
+    {
+        _generators.Add(new TGenerator());
+        return this;
+    }
+
+    public SourceGeneratorTestFixture AddGenerators(params IIncrementalGenerator[] generators)
+    {
+        _generators.AddRange(generators);
+        return this;
+    }
+
+    public SourceGeneratorTestResult RunAndGetOutput()
     {
         Debug.Assert(_sourceCode != null, $"{nameof(WithSourceCode)} has to be called to set source code");
 
@@ -55,12 +77,31 @@ public class CompilationFixture
 
         // Create a Roslyn compilation for the syntax tree with references
         var compilation = CSharpCompilation.Create(
-            "Tests",
+            _assemblyName ?? "Tests",
             [syntaxTree],
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        // Check for compilation errors before running the generator
+        AssertCodeCompiles(compilation, "Pre-generators");
+
+        // Andrew Lock pioneered this approach in StronglyTypedID:
+        // https://github.com/andrewlock/StronglyTypedId/blob/6bd17db4a4b700eaad9e209baf41478cc3f0bbe9/test/StronglyTypedIds.Tests/TestHelpers.cs#L31
+
+        var originalTreeCount = compilation.SyntaxTrees.Length;
+
+        GeneratorDriver driver = CSharpGeneratorDriver
+            .Create(_generators.ToArray())
+            .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var postGeneratorDiagnostics);
+
+        AssertCodeCompiles(outputCompilation, "Post-generators");
+
+        var output = string.Join("\n", outputCompilation.SyntaxTrees.Skip(originalTreeCount).Select(t => t.ToString()));
+
+        return new SourceGeneratorTestResult(output, postGeneratorDiagnostics);
+    }
+
+    private static void AssertCodeCompiles(Compilation compilation, string stageName)
+    {
         var diagnostics = compilation.GetDiagnostics();
         var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
 
@@ -68,9 +109,11 @@ public class CompilationFixture
         {
             string errorMessages = string.Join(Environment.NewLine,
                 errors.Select(e => $"  {e.GetMessage(CultureInfo.InvariantCulture)}"));
-            Assert.Fail($"Source code has compilation errors:{Environment.NewLine}{errorMessages}");
+            Assert.Fail($"{stageName} source code has compilation errors:{Environment.NewLine}{errorMessages}");
         }
-
-        return compilation;
     }
 }
+
+public record SourceGeneratorTestResult(
+    string Output,
+    ImmutableArray<Diagnostic> Diagnostics);

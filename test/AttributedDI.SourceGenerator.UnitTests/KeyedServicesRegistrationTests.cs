@@ -1,8 +1,5 @@
 namespace AttributedDI.SourceGenerator.UnitTests;
 
-/// <summary>
-/// Tests for keyed service registration functionality.
-/// </summary>
 public class KeyedServicesRegistrationTests
 {
     [Fact]
@@ -22,10 +19,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -48,10 +49,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -74,10 +79,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -98,10 +107,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -127,10 +140,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -152,9 +169,13 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 }
