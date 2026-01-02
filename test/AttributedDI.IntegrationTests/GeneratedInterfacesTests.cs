@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using GeneratedInterfacesSut;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AttributedDI.IntegrationTests;
 
@@ -17,7 +17,7 @@ public class GeneratedInterfacesTests
         // assert
         AssertContainsService<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(services, ServiceLifetime.Transient);
         AssertContainsService<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(services, ServiceLifetime.Scoped);
-        AssertDoesNotContainService<ShouldNotGenerateInterfaceWithDisposable>(services);
+        AssertContainsService<IShouldNotGenerateInterfaceWithDisposable, ShouldNotGenerateInterfaceWithDisposable>(services, ServiceLifetime.Transient);
         AssertContainsService<IShouldGenerateInterfaceWithDisposableAndOtherMembers, ShouldGenerateInterfaceWithDisposableAndOtherMembers>(services, ServiceLifetime.Transient);
         AssertDoesNotContainService<GeneratesInterfaceButDoesntRegister>(services);
 

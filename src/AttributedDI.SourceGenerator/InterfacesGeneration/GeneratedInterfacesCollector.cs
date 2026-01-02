@@ -50,7 +50,21 @@ internal static class GeneratedInterfacesCollector
         var members = CollectMembers(typeSymbol, ct);
         var accessibility = ResolveAccessibility(typeSymbol.DeclaredAccessibility);
 
-        return new GeneratedInterfaceInfo(resolvedNaming.InterfaceName, resolvedNaming.InterfaceNamespace, accessibility, members);
+        // Extract class information for generating partial class implementation
+        var className = typeSymbol.Name;
+        var classNamespace = typeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var classTypeParameters = BuildTypeParametersString(typeSymbol);
+
+        // TODO: Add diagnostic when class is not marked as partial
+
+        return new GeneratedInterfaceInfo(
+            resolvedNaming.InterfaceName,
+            resolvedNaming.InterfaceNamespace,
+            accessibility,
+            members,
+            className,
+            classNamespace,
+            classTypeParameters);
     }
 
     private static ImmutableArray<string> CollectMembers(INamedTypeSymbol typeSymbol, CancellationToken ct)
@@ -132,5 +146,29 @@ internal static class GeneratedInterfacesCollector
             Accessibility.Public => "public",
             _ => "internal"
         };
+    }
+
+    private static string BuildTypeParametersString(INamedTypeSymbol typeSymbol)
+    {
+        if (typeSymbol.TypeParameters.IsDefaultOrEmpty)
+        {
+            return string.Empty;
+        }
+
+        var builder = new System.Text.StringBuilder();
+        builder.Append('<');
+
+        for (var i = 0; i < typeSymbol.TypeParameters.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(typeSymbol.TypeParameters[i].Name);
+        }
+
+        builder.Append('>');
+        return builder.ToString();
     }
 }

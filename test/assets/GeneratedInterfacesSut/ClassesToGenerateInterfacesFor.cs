@@ -3,7 +3,7 @@
 namespace GeneratedInterfacesSut;
 
 [RegisterAsGeneratedInterface]
-public class MyTransientClassToGenerateInterface
+public partial class MyTransientClassToGenerateInterface
 {
     public void DoSomething()
     {
@@ -12,7 +12,7 @@ public class MyTransientClassToGenerateInterface
 }
 
 [RegisterAsGeneratedInterface, Scoped]
-public class MyScopedClassToGenerateInterface
+public partial class MyScopedClassToGenerateInterface
 {
     public void DoSomething()
     {
@@ -21,7 +21,7 @@ public class MyScopedClassToGenerateInterface
 }
 
 [RegisterAsGeneratedInterface]
-public class ShouldNotGenerateInterfaceWithDisposable: IDisposable, IAsyncDisposable
+public partial class ShouldNotGenerateInterfaceWithDisposable: IDisposable, IAsyncDisposable
 {
     public void Dispose()
     {
@@ -36,7 +36,7 @@ public class ShouldNotGenerateInterfaceWithDisposable: IDisposable, IAsyncDispos
 }
 
 [RegisterAsGeneratedInterface]
-public class ShouldGenerateInterfaceWithDisposableAndOtherMembers: IDisposable, IAsyncDisposable
+public partial class ShouldGenerateInterfaceWithDisposableAndOtherMembers: IDisposable, IAsyncDisposable
 {
     public void Dispose()
     {
@@ -51,7 +51,7 @@ public class ShouldGenerateInterfaceWithDisposableAndOtherMembers: IDisposable, 
 }
 
 [GenerateInterface]
-public class GeneratesInterfaceButDoesntRegister
+public partial class GeneratesInterfaceButDoesntRegister
 {
     public void PerformAction()
     {

@@ -9,11 +9,17 @@ namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 /// <param name="InterfaceNamespace">The namespace for the generated interface.</param>
 /// <param name="Accessibility">The accessibility keyword (public/internal) to apply.</param>
 /// <param name="MemberSignatures">Members to emit into the generated interface.</param>
+/// <param name="ClassName">The implementing class name without namespace.</param>
+/// <param name="ClassNamespace">The namespace for the implementing class.</param>
+/// <param name="ClassTypeParameters">Type parameters of the implementing class (e.g., "&lt;T, U&gt;" or empty string).</param>
 internal sealed record GeneratedInterfaceInfo(
     string InterfaceName,
     string InterfaceNamespace,
     string Accessibility,
-    ImmutableArray<string> MemberSignatures)
+    ImmutableArray<string> MemberSignatures,
+    string ClassName,
+    string ClassNamespace,
+    string ClassTypeParameters)
 {
     internal string FullyQualifiedName => string.IsNullOrWhiteSpace(InterfaceNamespace)
         ? InterfaceName
