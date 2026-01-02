@@ -246,8 +246,7 @@ internal static class ServicesRegistrationsCollector
             Lifetime: lifetime,
             Key: null);
 
-        return new TypeWithAttributesInfo(
-            ImmutableArray.Create(registration));
+        return new TypeWithAttributesInfo([registration]);
     }
 
     private static bool HasRegistrationAttribute(INamedTypeSymbol symbol)

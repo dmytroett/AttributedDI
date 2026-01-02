@@ -49,7 +49,7 @@ internal static class WellKnownInterfacesRegistry
 
     internal static ImmutableHashSet<string> GetImplementedMemberSignatures(INamedTypeSymbol typeSymbol)
     {
-        var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        var builder = ImmutableHashSet.CreateBuilder(StringComparer.Ordinal);
 
         foreach (var interfaceSymbol in typeSymbol.AllInterfaces)
         {
