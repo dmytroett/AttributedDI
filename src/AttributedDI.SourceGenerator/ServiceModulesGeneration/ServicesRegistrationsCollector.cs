@@ -61,7 +61,10 @@ internal static class ServicesRegistrationsCollector
                 candidate.FullyQualifiedTypeName,
                 candidate.ServiceTypeFullName,
                 lifetime,
-                candidate.Key);
+                candidate.Key,
+                candidate.IsOpenGeneric,
+                candidate.UnboundImplementationTypeName,
+                candidate.UnboundServiceTypeFullName);
 
             if (seenRegistrations.Add(registration))
             {
@@ -82,6 +85,9 @@ internal static class ServicesRegistrationsCollector
                 lifetimeInfo.FullyQualifiedTypeName,
                 null,
                 lifetimeInfo.Lifetime,
+                null,
+                lifetimeInfo.IsOpenGeneric,
+                lifetimeInfo.UnboundFullyQualifiedTypeName,
                 null);
 
             if (seenRegistrations.Add(registration))
@@ -105,13 +111,21 @@ internal sealed record RegistrationInfo(
     string FullyQualifiedTypeName,
     string? ServiceTypeFullName,
     string Lifetime,
-    object? Key);
+    object? Key,
+    bool IsOpenGeneric,
+    string UnboundImplementationTypeName,
+    string? UnboundServiceTypeFullName);
 
 internal sealed record RegistrationCandidate(
     string FullyQualifiedTypeName,
     string? ServiceTypeFullName,
+    bool IsOpenGeneric,
+    string UnboundImplementationTypeName,
+    string? UnboundServiceTypeFullName,
     object? Key);
 
 internal sealed record LifetimeInfo(
     string FullyQualifiedTypeName,
-    string Lifetime);
+    string Lifetime,
+    bool IsOpenGeneric,
+    string UnboundFullyQualifiedTypeName);

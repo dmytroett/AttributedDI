@@ -34,8 +34,15 @@ internal static class LifetimeInfoCollector
             return null;
         }
 
+        var isOpenGeneric = symbol.IsGenericType && symbol.IsDefinition;
+        var unboundName = isOpenGeneric
+            ? symbol.ConstructUnboundGenericType().ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            : symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
         return new LifetimeInfo(
             symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-            lifetime);
+            lifetime,
+            isOpenGeneric,
+            unboundName);
     }
 }

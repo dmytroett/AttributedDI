@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
@@ -23,6 +24,13 @@ public class SourceGeneratorTestFixture
     public SourceGeneratorTestFixture WithExtraReferences(params Type[] markerTypes)
     {
         var references = markerTypes.Select(t => MetadataReference.CreateFromFile(t.Assembly.Location));
+        _extraReferences.AddRange(references);
+        return this;
+    }
+
+    public SourceGeneratorTestFixture WithExtraReferences(params Assembly[] assemblies)
+    {
+        var references = assemblies.Select(a => MetadataReference.CreateFromFile(a.Location));
         _extraReferences.AddRange(references);
         return this;
     }

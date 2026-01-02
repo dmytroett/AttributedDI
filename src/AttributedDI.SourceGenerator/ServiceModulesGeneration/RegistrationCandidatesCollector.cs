@@ -1,9 +1,9 @@
+using AttributedDI.SourceGenerator.InterfacesGeneration;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Linq;
-using AttributedDI.SourceGenerator.InterfacesGeneration;
+using System.Threading;
 
 namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
@@ -55,8 +55,15 @@ internal static class RegistrationCandidatesCollector
             return ImmutableArray<RegistrationCandidate>.Empty;
         }
 
+        var implementationTypeName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var isOpenGeneric = IsOpenGenericDefinition(symbol);
+        var unboundImplementationTypeName = ResolveUnboundName(symbol, implementationTypeName, isOpenGeneric);
+
         var candidate = new RegistrationCandidate(
-            symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            implementationTypeName,
+            null,
+            isOpenGeneric,
+            unboundImplementationTypeName,
             null,
             ExtractKey(context.Attributes[0]));
 
@@ -75,6 +82,10 @@ internal static class RegistrationCandidatesCollector
         var builder = ImmutableArray.CreateBuilder<RegistrationCandidate>();
         var key = ExtractKey(context.Attributes[0]);
 
+        var implementationTypeName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var isOpenGeneric = IsOpenGenericDefinition(symbol);
+        var unboundImplementationTypeName = ResolveUnboundName(symbol, implementationTypeName, isOpenGeneric);
+
         var interfaces = symbol.AllInterfaces
             .Where(static iface => !WellKnownInterfacesRegistry.IsWellKnownInterface(iface))
             .Distinct(SymbolEqualityComparer.Default)
@@ -85,15 +96,23 @@ internal static class RegistrationCandidatesCollector
             ct.ThrowIfCancellationRequested();
 
             builder.Add(new RegistrationCandidate(
-                symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                implementationTypeName,
                 iface?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? string.Empty,
+                isOpenGeneric,
+                unboundImplementationTypeName,
+                iface is INamedTypeSymbol namedInterface
+                    ? ResolveUnboundName(namedInterface, namedInterface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), namedInterface.IsGenericType)
+                    : null,
                 key));
         }
 
         if (builder.Count == 0)
         {
             builder.Add(new RegistrationCandidate(
-                symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                implementationTypeName,
+                null,
+                isOpenGeneric,
+                unboundImplementationTypeName,
                 null,
                 key));
         }
@@ -112,6 +131,10 @@ internal static class RegistrationCandidatesCollector
 
         var registrations = ImmutableArray.CreateBuilder<RegistrationCandidate>();
 
+        var implementationTypeName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var isOpenGeneric = IsOpenGenericDefinition(symbol);
+        var unboundImplementationTypeName = ResolveUnboundName(symbol, implementationTypeName, isOpenGeneric);
+
         foreach (var registerAsAttribute in context.Attributes)
         {
             ct.ThrowIfCancellationRequested();
@@ -122,10 +145,17 @@ internal static class RegistrationCandidatesCollector
             }
 
             var serviceType = attrClass.TypeArguments[0];
+            var serviceTypeName = serviceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var unboundServiceTypeName = serviceType is INamedTypeSymbol namedService
+                ? ResolveUnboundName(namedService, serviceTypeName, namedService.IsGenericType)
+                : serviceTypeName;
 
             registrations.Add(new RegistrationCandidate(
-                symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                serviceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                implementationTypeName,
+                serviceTypeName,
+                isOpenGeneric,
+                unboundImplementationTypeName,
+                unboundServiceTypeName,
                 ExtractKey(registerAsAttribute)));
         }
 
@@ -148,23 +178,93 @@ internal static class RegistrationCandidatesCollector
             return ImmutableArray<RegistrationCandidate>.Empty;
         }
 
+        var implementationTypeName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var isOpenGeneric = IsOpenGenericDefinition(symbol);
+        var unboundImplementationTypeName = ResolveUnboundName(symbol, implementationTypeName, isOpenGeneric);
+        var serviceTypeFullName = BuildGeneratedInterfaceName(naming.FullyQualifiedName, symbol.TypeParameters.Length);
+        var unboundServiceTypeFullName = symbol.TypeParameters.Length > 0 ? serviceTypeFullName : null;
+
         var candidate = new RegistrationCandidate(
-            symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-            naming.FullyQualifiedName,
+            implementationTypeName,
+            serviceTypeFullName,
+            isOpenGeneric,
+            unboundImplementationTypeName,
+            unboundServiceTypeFullName,
             ExtractKey(attribute));
 
         return [candidate];
     }
 
+    private static bool IsOpenGenericDefinition(INamedTypeSymbol symbol) => symbol.IsGenericType && symbol.IsDefinition;
+
+    private static string ResolveUnboundName(INamedTypeSymbol symbol, string displayName, bool isGeneric)
+    {
+        if (!isGeneric)
+        {
+            return displayName;
+        }
+
+        var unbound = symbol.IsUnboundGenericType ? symbol : symbol.ConstructUnboundGenericType();
+        return unbound.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+    }
+
+    private static string BuildGeneratedInterfaceName(string fullyQualifiedName, int typeParameterCount)
+    {
+        var baseName = AddGlobalAlias(StripTypeParameters(fullyQualifiedName));
+
+        if (typeParameterCount <= 0)
+        {
+            return baseName;
+        }
+
+        return $"{baseName}{BuildGenericAritySuffix(typeParameterCount)}";
+    }
+
+    private static string StripTypeParameters(string name)
+    {
+        var genericMarkerIndex = name.IndexOf('<');
+        return genericMarkerIndex < 0 ? name : name[..genericMarkerIndex];
+    }
+
+    private static string BuildGenericAritySuffix(int typeParameterCount) => typeParameterCount switch
+    {
+        <= 0 => string.Empty,
+        1 => "<>",
+        _ => $"<{new string(',', typeParameterCount - 1)}>"
+    };
+
+    private static string AddGlobalAlias(string name)
+    {
+        return name.StartsWith("global::", StringComparison.Ordinal) ? name : $"global::{name}";
+    }
+
     private static object? ExtractKey(AttributeData attribute)
     {
-        if (attribute.ConstructorArguments.Length > 0)
+        var ctor = attribute.AttributeConstructor;
+        if (ctor is { Parameters.Length: > 0 })
         {
-            var keyArg = attribute.ConstructorArguments[0];
-            return !keyArg.IsNull ? keyArg.Value : null;
+            var keyParameterIndex = FindKeyParameterIndex(ctor);
+            if (keyParameterIndex >= 0 && attribute.ConstructorArguments.Length > keyParameterIndex)
+            {
+                var keyArg = attribute.ConstructorArguments[keyParameterIndex];
+                return !keyArg.IsNull ? keyArg.Value : null;
+            }
         }
 
         var keyNamedArg = attribute.NamedArguments.FirstOrDefault(na => na.Key == "Key");
         return !keyNamedArg.Value.IsNull ? keyNamedArg.Value.Value : null;
+    }
+
+    private static int FindKeyParameterIndex(IMethodSymbol ctor)
+    {
+        for (var i = 0; i < ctor.Parameters.Length; i++)
+        {
+            if (string.Equals(ctor.Parameters[i].Name, "key", StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

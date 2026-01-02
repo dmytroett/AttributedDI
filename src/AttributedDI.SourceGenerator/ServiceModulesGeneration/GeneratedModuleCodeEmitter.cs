@@ -123,34 +123,77 @@ internal static class GeneratedModuleCodeEmitter
 
     private static void GenerateRegistrationCode(StringBuilder sb, RegistrationInfo registration)
     {
-        string fullTypeName = registration.FullyQualifiedTypeName;
-        string lifetime = registration.Lifetime;
-        bool isKeyed = registration.Key != null;
+        var fullTypeName = registration.IsOpenGeneric
+            ? registration.UnboundImplementationTypeName
+            : registration.FullyQualifiedTypeName;
+        var serviceType = registration.IsOpenGeneric
+            ? registration.UnboundServiceTypeFullName ?? registration.ServiceTypeFullName
+            : registration.ServiceTypeFullName;
+        var lifetime = registration.Lifetime;
+        var isKeyed = registration.Key != null;
 
-        if (registration.ServiceTypeFullName is string serviceType)
+        if (registration.IsOpenGeneric)
         {
-            if (isKeyed)
-            {
-                string keyLiteral = FormatKeyLiteral(registration.Key);
-                _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceType}, {fullTypeName}>({keyLiteral});");
-            }
-            else
-            {
-                _ = sb.AppendLine($"            services.Add{lifetime}<{serviceType}, {fullTypeName}>();");
-            }
+            EmitOpenGenericRegistration(sb, serviceType, fullTypeName, lifetime, isKeyed, registration.Key);
+            return;
         }
-        else
+
+        if (serviceType is string)
         {
-            if (isKeyed)
-            {
-                string keyLiteral = FormatKeyLiteral(registration.Key);
-                _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
-            }
-            else
-            {
-                _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
-            }
+            EmitClosedGenericRegistration(sb, serviceType, fullTypeName, lifetime, isKeyed, registration.Key);
+            return;
         }
+
+        EmitClosedSelfRegistration(sb, fullTypeName, lifetime, isKeyed, registration.Key);
+    }
+
+    private static void EmitClosedGenericRegistration(StringBuilder sb, string serviceType, string implementationType, string lifetime, bool isKeyed, object? key)
+    {
+        if (!isKeyed)
+        {
+            _ = sb.AppendLine($"            services.Add{lifetime}<{serviceType}, {implementationType}>();");
+            return;
+        }
+
+        var keyLiteral = FormatKeyLiteral(key);
+        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceType}, {implementationType}>({keyLiteral});");
+    }
+
+    private static void EmitClosedSelfRegistration(StringBuilder sb, string implementationType, string lifetime, bool isKeyed, object? key)
+    {
+        if (!isKeyed)
+        {
+            _ = sb.AppendLine($"            services.Add{lifetime}<{implementationType}>();");
+            return;
+        }
+
+        var keyLiteral = FormatKeyLiteral(key);
+        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{implementationType}>({keyLiteral});");
+    }
+
+    private static void EmitOpenGenericRegistration(StringBuilder sb, string? serviceType, string implementationType, string lifetime, bool isKeyed, object? key)
+    {
+        if (serviceType is string)
+        {
+            if (!isKeyed)
+            {
+                _ = sb.AppendLine($"            services.Add{lifetime}(typeof({serviceType}), typeof({implementationType}));");
+                return;
+            }
+
+            var keyLiteral = FormatKeyLiteral(key);
+            _ = sb.AppendLine($"            services.AddKeyed{lifetime}(typeof({serviceType}), {keyLiteral}, typeof({implementationType}));");
+            return;
+        }
+
+        if (!isKeyed)
+        {
+            _ = sb.AppendLine($"            services.Add{lifetime}(typeof({implementationType}));");
+            return;
+        }
+
+        var selfKeyLiteral = FormatKeyLiteral(key);
+        _ = sb.AppendLine($"            services.AddKeyed{lifetime}(typeof({implementationType}), {selfKeyLiteral});");
     }
 
     /// <summary>

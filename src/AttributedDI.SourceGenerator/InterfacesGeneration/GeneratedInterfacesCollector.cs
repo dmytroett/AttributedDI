@@ -53,6 +53,7 @@ internal static class GeneratedInterfacesCollector
         var classNamespace = typeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         var classTypeParameters = BuildTypeParametersString(typeSymbol);
         var typeParameterConstraints = BuildTypeParameterConstraintsString(typeSymbol);
+        var typeParameterCount = typeSymbol.TypeParameters.Length;
 
         // TODO: Add diagnostic when class is not marked as partial
 
@@ -64,6 +65,7 @@ internal static class GeneratedInterfacesCollector
             className,
             classNamespace,
             classTypeParameters,
+            typeParameterCount,
             typeParameterConstraints);
     }
 

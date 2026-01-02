@@ -175,7 +175,7 @@ public class InterfaceGenerationTests
 
                    namespace MyApp
                    {
-                       [RegisterAsGeneratedInterface("IRepository<TEntity>")]
+                       [RegisterAsGeneratedInterface("IRepository<>")]
                        public partial class GenericRepository<TEntity>
                        {
                            public TEntity GetById(int id) => default!;
@@ -189,6 +189,7 @@ public class InterfaceGenerationTests
 
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
+            .WithExtraReferences(typeof(IServiceProvider).Assembly)
             .AddGenerator<ServiceRegistrationGenerator>()
             .RunAndGetOutput();
 

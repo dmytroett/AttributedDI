@@ -21,9 +21,21 @@ internal sealed record GeneratedInterfaceInfo(
     string ClassName,
     string ClassNamespace,
     string ClassTypeParameters,
+    int TypeParameterCount,
     string TypeParameterConstraints)
 {
     internal string FullyQualifiedName => string.IsNullOrWhiteSpace(InterfaceNamespace)
         ? InterfaceName
         : $"{InterfaceNamespace}.{InterfaceName}";
+
+    internal string UnboundInterfaceName => TypeParameterCount > 0
+        ? $"{FullyQualifiedName}{BuildGenericAritySuffix(TypeParameterCount)}"
+        : FullyQualifiedName;
+
+    private static string BuildGenericAritySuffix(int typeParameterCount) => typeParameterCount switch
+    {
+        <= 0 => string.Empty,
+        1 => "<>",
+        _ => $"<{new string(',', typeParameterCount - 1)}>"
+    };
 }
