@@ -253,12 +253,55 @@ internal static class RegistrationCandidatesCollector
             if (keyParameterIndex >= 0 && attribute.ConstructorArguments.Length > keyParameterIndex)
             {
                 var keyArg = attribute.ConstructorArguments[keyParameterIndex];
-                return !keyArg.IsNull ? keyArg.Value : null;
+                return ExtractKeyValue(keyArg);
             }
         }
 
         var keyNamedArg = attribute.NamedArguments.FirstOrDefault(na => na.Key == "Key");
-        return !keyNamedArg.Value.IsNull ? keyNamedArg.Value.Value : null;
+        return ExtractKeyValue(keyNamedArg.Value);
+    }
+
+    private static object? ExtractKeyValue(TypedConstant keyConstant)
+    {
+        if (keyConstant.IsNull)
+        {
+            return null;
+        }
+
+        if (keyConstant.Type is { TypeKind: TypeKind.Enum } enumType)
+        {
+            var literal = ResolveEnumLiteral(enumType, keyConstant.Value);
+            if (literal is not null)
+            {
+                return literal;
+            }
+        }
+
+        return keyConstant.Value;
+    }
+
+    private static KeyLiteral? ResolveEnumLiteral(ITypeSymbol enumType, object? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        foreach (var member in enumType.GetMembers().OfType<IFieldSymbol>())
+        {
+            if (member.ConstantValue is null)
+            {
+                continue;
+            }
+
+            if (Equals(member.ConstantValue, value))
+            {
+                var typeName = enumType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                return new KeyLiteral($"{AddGlobalAlias(typeName)}.{member.Name}");
+            }
+        }
+
+        return null;
     }
 
     private static int FindKeyParameterIndex(IMethodSymbol ctor)
@@ -274,3 +317,5 @@ internal static class RegistrationCandidatesCollector
         return -1;
     }
 }
+
+internal sealed record KeyLiteral(string Literal);

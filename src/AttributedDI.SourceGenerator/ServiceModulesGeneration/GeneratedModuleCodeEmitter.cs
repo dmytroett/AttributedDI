@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
@@ -205,6 +206,7 @@ internal static class GeneratedModuleCodeEmitter
     {
         return key switch
         {
+            KeyLiteral literal => literal.Literal,
             null => "null",
             string s => $"\"{s.Replace("\"", "\\\"")}\"",
             int i => i.ToString(CultureInfo.InvariantCulture),

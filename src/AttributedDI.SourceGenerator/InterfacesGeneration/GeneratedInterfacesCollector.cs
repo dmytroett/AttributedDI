@@ -133,6 +133,11 @@ internal static class GeneratedInterfacesCollector
             return true;
         }
 
+        if (method.IsOverride)
+        {
+            return true; // treat overrides as inherited members
+        }
+
         if (method.ReturnsByRef || method.ReturnsByRefReadonly)
         {
             return true;
@@ -164,6 +169,11 @@ internal static class GeneratedInterfacesCollector
         if (property.DeclaredAccessibility != Accessibility.Public)
         {
             return true;
+        }
+
+        if (property.IsOverride)
+        {
+            return true; // treat overrides as inherited members
         }
 
         if (property.ReturnsByRef || property.ReturnsByRefReadonly)

@@ -17,6 +17,7 @@ namespace AttributedDI;
 /// <list type="bullet">
 /// <item><description>Nested types.</description></item>
 /// <item><description>Explicit interface implementations.</description></item>
+/// <item><description>Overrides of base class members (treated as inherited).</description></item>
 /// <item><description>Non-public members.</description></item>
 /// <item><description>Static members and operators.</description></item>
 /// <item><description><c>ref</c> returns or <c>ref</c>/<c>in</c>/<c>out</c> parameters.</description></item>

@@ -119,6 +119,8 @@ public class KeyedServicesRegistrationTests
         Assert.Empty(diagnostics);
 
         await Verify(output);
+        Assert.Contains("services.AddKeyedTransient<global::MyApp.EnumKeyedSelf>(global::MyApp.ServiceKey.Secondary);", output);
+        Assert.Contains("services.AddKeyedTransient<global::MyApp.IMyService, global::MyApp.EnumKeyedService>(global::MyApp.ServiceKey.Primary);", output);
     }
 
     [Fact]
