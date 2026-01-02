@@ -155,7 +155,7 @@ internal static class GeneratedInterfacesCollector
             return string.Empty;
         }
 
-        var builder = new System.Text.StringBuilder();
+        var builder = new StringBuilder();
         builder.Append('<');
 
         for (var i = 0; i < typeSymbol.TypeParameters.Length; i++)
@@ -179,7 +179,7 @@ internal static class GeneratedInterfacesCollector
             return string.Empty;
         }
 
-        var builder = new System.Text.StringBuilder();
+        var builder = new StringBuilder();
 
         foreach (var typeParameter in typeSymbol.TypeParameters)
         {
