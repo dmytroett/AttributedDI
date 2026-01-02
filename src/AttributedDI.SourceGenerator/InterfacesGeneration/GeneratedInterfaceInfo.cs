@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 
 /// <summary>
 /// Value object describing an interface to be generated.

@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using System;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 
 internal static class GeneratedInterfaceNamingResolver
 {

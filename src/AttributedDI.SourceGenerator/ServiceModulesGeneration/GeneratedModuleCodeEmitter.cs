@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 /// <summary>
 /// Emits the final generated registration module and extension method code.

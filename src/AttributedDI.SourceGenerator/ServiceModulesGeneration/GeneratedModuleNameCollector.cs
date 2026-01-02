@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 /// <summary>
 /// Collects custom module name information from assembly-level attributes.

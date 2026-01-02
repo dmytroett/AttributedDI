@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 
 internal static class GeneratedInterfacesCodeEmitter
 {

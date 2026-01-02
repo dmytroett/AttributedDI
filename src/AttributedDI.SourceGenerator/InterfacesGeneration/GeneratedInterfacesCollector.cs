@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 
 internal static class GeneratedInterfacesCollector
 {

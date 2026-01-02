@@ -1,7 +1,6 @@
-using System;
 using System.Linq;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 /// <summary>
 /// Resolves generated module names and registration method names from assembly names and custom naming information.

@@ -1,4 +1,4 @@
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 /// <summary>
 /// Contains custom module, method, and namespace values from the GeneratedModuleAttribute.
