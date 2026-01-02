@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace AttributedDI.SourceGenerator.InterfacesGeneration;
@@ -43,6 +44,7 @@ internal static class GeneratedInterfacesCollector
         }
 
         var resolvedNaming = naming;
+        var interfaceName = StripTypeParameters(resolvedNaming.InterfaceName);
         var members = CollectMembers(typeSymbol, ct);
         var accessibility = ResolveAccessibility(typeSymbol.DeclaredAccessibility);
 
@@ -50,17 +52,19 @@ internal static class GeneratedInterfacesCollector
         var className = typeSymbol.Name;
         var classNamespace = typeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         var classTypeParameters = BuildTypeParametersString(typeSymbol);
+        var typeParameterConstraints = BuildTypeParameterConstraintsString(typeSymbol);
 
         // TODO: Add diagnostic when class is not marked as partial
 
         return new GeneratedInterfaceInfo(
-            resolvedNaming.InterfaceName,
+            interfaceName,
             resolvedNaming.InterfaceNamespace,
             accessibility,
             members,
             className,
             classNamespace,
-            classTypeParameters);
+            classTypeParameters,
+            typeParameterConstraints);
     }
 
     private static ImmutableArray<string> CollectMembers(INamedTypeSymbol typeSymbol, CancellationToken ct)
@@ -166,5 +170,72 @@ internal static class GeneratedInterfacesCollector
 
         builder.Append('>');
         return builder.ToString();
+    }
+
+    private static string BuildTypeParameterConstraintsString(INamedTypeSymbol typeSymbol)
+    {
+        if (typeSymbol.TypeParameters.IsDefaultOrEmpty)
+        {
+            return string.Empty;
+        }
+
+        var builder = new System.Text.StringBuilder();
+
+        foreach (var typeParameter in typeSymbol.TypeParameters)
+        {
+            var constraints = new List<string>();
+
+            if (typeParameter.HasReferenceTypeConstraint)
+            {
+                constraints.Add(typeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.Annotated
+                    ? "class?"
+                    : "class");
+            }
+
+            if (typeParameter.HasUnmanagedTypeConstraint)
+            {
+                constraints.Add("unmanaged");
+            }
+
+            if (typeParameter.HasValueTypeConstraint)
+            {
+                constraints.Add("struct");
+            }
+
+            foreach (var constraintType in typeParameter.ConstraintTypes)
+            {
+                constraints.Add(constraintType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            }
+
+            if (typeParameter.HasNotNullConstraint)
+            {
+                constraints.Add("notnull");
+            }
+
+            if (typeParameter.HasConstructorConstraint)
+            {
+                constraints.Add("new()");
+            }
+
+            if (constraints.Count == 0)
+            {
+                continue;
+            }
+
+            builder.Append(" where ")
+                .Append(typeParameter.Name)
+                .Append(" : ")
+                .Append(string.Join(", ", constraints));
+        }
+
+        return builder.ToString();
+    }
+
+    private static string StripTypeParameters(string interfaceName)
+    {
+        var genericMarkerIndex = interfaceName.IndexOf('<');
+        return genericMarkerIndex < 0
+            ? interfaceName
+            : interfaceName[..genericMarkerIndex];
     }
 }

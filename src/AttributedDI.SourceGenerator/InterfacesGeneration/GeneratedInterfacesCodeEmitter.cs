@@ -40,7 +40,14 @@ internal static class GeneratedInterfacesCodeEmitter
         builder.Append(interfaceInfo.Accessibility)
             .Append(" interface ")
             .Append(interfaceInfo.InterfaceName)
+            .Append(interfaceInfo.ClassTypeParameters)
             .AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(interfaceInfo.TypeParameterConstraints))
+        {
+            builder.Append(interfaceInfo.TypeParameterConstraints).AppendLine();
+        }
+
         builder.AppendLine("{");
 
         foreach (var member in interfaceInfo.MemberSignatures)
@@ -86,6 +93,11 @@ internal static class GeneratedInterfacesCodeEmitter
             builder.Append(interfaceInfo.ClassTypeParameters);
         }
 
+        if (!string.IsNullOrWhiteSpace(interfaceInfo.TypeParameterConstraints))
+        {
+            builder.Append(' ').Append(interfaceInfo.TypeParameterConstraints);
+        }
+
         builder.AppendLine();
         builder.AppendLine("{");
         builder.AppendLine("}");
@@ -99,7 +111,9 @@ internal static class GeneratedInterfacesCodeEmitter
             ? "Global"
             : interfaceInfo.InterfaceNamespace.Replace('.', '_');
 
-        return $"GeneratedInterfaces_{namespacePart}_{interfaceInfo.InterfaceName}.g.cs";
+        var namePart = SanitizeForHintName(interfaceInfo.InterfaceName + interfaceInfo.ClassTypeParameters);
+
+        return $"GeneratedInterfaces_{namespacePart}_{namePart}.g.cs";
     }
 
     private static string CreateClassHintName(GeneratedInterfaceInfo interfaceInfo)
@@ -108,6 +122,21 @@ internal static class GeneratedInterfacesCodeEmitter
             ? "Global"
             : interfaceInfo.ClassNamespace.Replace('.', '_');
 
-        return $"GeneratedInterfacesImpl_{namespacePart}_{interfaceInfo.ClassName}.g.cs";
+        var namePart = SanitizeForHintName(interfaceInfo.ClassName + interfaceInfo.ClassTypeParameters);
+
+        return $"GeneratedInterfacesImpl_{namespacePart}_{namePart}.g.cs";
+    }
+
+    private static string SanitizeForHintName(string value)
+    {
+        const string invalid = "<>:\"/\\|?*, ";
+        var builder = new StringBuilder(value.Length);
+
+        foreach (var ch in value)
+        {
+            builder.Append(invalid.IndexOf(ch) >= 0 ? '_' : ch);
+        }
+
+        return builder.ToString();
     }
 }

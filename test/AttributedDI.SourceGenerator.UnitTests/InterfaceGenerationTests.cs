@@ -12,7 +12,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public class Foo : IDisposable
+                       public partial class Foo : IDisposable
                        {
                            public void DoWork() { }
 
@@ -40,7 +40,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface("ICustom", "Custom.Contracts")]
-                       public class Bar
+                       public partial class Bar
                        {
                            public int GetValue() => 42;
                        }
@@ -66,7 +66,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [RegisterAsGeneratedInterface("ICustomService", "Contracts")]
-                       public class GeneratedService
+                       public partial class GeneratedService
                        {
                            public string Ping() => "pong";
                        }
@@ -92,7 +92,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public class Repository<T>
+                       public partial class Repository<T>
                        {
                            public T GetById(int id) => default!;
 
@@ -120,7 +120,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public class Mapper<TSource, TDestination>
+                       public partial class Mapper<TSource, TDestination>
                        {
                            public TDestination Map(TSource source) => default!;
 
@@ -148,7 +148,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public class Validator<T> where T : class
+                       public partial class Validator<T> where T : class
                        {
                            public bool Validate(T item) => true;
 
@@ -176,7 +176,7 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [RegisterAsGeneratedInterface("IRepository<TEntity>")]
-                       public class GenericRepository<TEntity>
+                       public partial class GenericRepository<TEntity>
                        {
                            public TEntity GetById(int id) => default!;
 

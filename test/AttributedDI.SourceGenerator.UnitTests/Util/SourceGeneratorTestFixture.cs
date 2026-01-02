@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -69,6 +70,8 @@ public class SourceGeneratorTestFixture
                 .Location), // System.Private.CoreLib - provides System.Attribute
             MetadataReference.CreateFromFile(typeof(RegisterAsSelfAttribute).Assembly
                 .Location), // AttributedDI assembly
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly
+                .Location), // Microsoft.Extensions.DependencyInjection.Abstractions
             MetadataReference.CreateFromFile(AppDomain.CurrentDomain.GetAssemblies()
                 .First(a => a.GetName().Name == "System.Runtime")
                 .Location), // System.Runtime - required for attribute metadata resolution

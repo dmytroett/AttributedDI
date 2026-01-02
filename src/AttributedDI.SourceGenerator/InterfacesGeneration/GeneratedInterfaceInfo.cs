@@ -12,6 +12,7 @@ namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 /// <param name="ClassName">The implementing class name without namespace.</param>
 /// <param name="ClassNamespace">The namespace for the implementing class.</param>
 /// <param name="ClassTypeParameters">Type parameters of the implementing class (e.g., "&lt;T, U&gt;" or empty string).</param>
+/// <param name="TypeParameterConstraints">Constraint clauses for the type parameters (e.g., "where T : class").</param>
 internal sealed record GeneratedInterfaceInfo(
     string InterfaceName,
     string InterfaceNamespace,
@@ -19,7 +20,8 @@ internal sealed record GeneratedInterfaceInfo(
     ImmutableArray<string> MemberSignatures,
     string ClassName,
     string ClassNamespace,
-    string ClassTypeParameters)
+    string ClassTypeParameters,
+    string TypeParameterConstraints)
 {
     internal string FullyQualifiedName => string.IsNullOrWhiteSpace(InterfaceNamespace)
         ? InterfaceName
