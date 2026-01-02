@@ -197,4 +197,191 @@ public class InterfaceGenerationTests
 
         await Verify(output);
     }
+
+    [Fact]
+    public async Task GeneratesInterfaceWithPropertiesIndexersAndAsyncMembers()
+    {
+        var code = """
+                   using AttributedDI;
+                   using System;
+                   using System.Threading.Tasks;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public partial class ComplexType
+                       {
+                           public string Name { get; } = "name";
+
+                           public event EventHandler? Changed;
+
+                           public int this[int index] { get; set; }
+
+                           public Task<int> GetValueAsync(int index) => Task.FromResult(index);
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();        
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task GeneratesInterfaceExcludingNonPublicMembers()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public partial class VisibilitySample
+                       {
+                           public void Allowed() { }
+
+                           internal void InternalOnly() { }
+
+                           protected void ProtectedOnly() { }
+
+                           private void PrivateOnly() { }
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task GeneratesInterfaceFromPartialDeclarations()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public partial class PartialExample
+                       {
+                           public void FromFirst() { }
+                       }
+
+                       public partial class PartialExample
+                       {
+                           public void FromSecond() { }
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+        
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task GeneratesInterfaceWithInheritedAndOverriddenMembers()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public class Base
+                       {
+                           public void BaseOnly() { }
+
+                           public virtual void Execute() { }
+                       }
+
+                       [GenerateInterface]
+                       public partial class Derived : Base
+                       {
+                           public override void Execute() { }
+
+                           public void DerivedOnly() { }
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task GeneratesInterfaceWithComplexGenericConstraints()
+    {
+        var code = """
+                   using AttributedDI;
+                   using System;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public partial class Processor<TInput, TOutput>
+                           where TInput : class, IDisposable, new()
+                           where TOutput : struct
+                       {
+                           public TOutput Process(TInput input) => default!;
+
+                           public TOutput CreateDefault() => default!;
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact(Skip = "Pending diagnostics for invalid GenerateInterface usage on non-class targets.")]
+    public async Task GenerateInterfaceOnInterfaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public interface IFoo
+                       {
+                           void DoWork();
+                       }
+                   }
+                   """;
+
+        var (_, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.NotEmpty(diagnostics);
+    }
 }

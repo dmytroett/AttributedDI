@@ -30,36 +30,6 @@ public class KeyedServicesRegistrationTests
     }
 
     [Fact]
-    public async Task RegistersKeyedServiceAsInterface()
-    {
-        // Tests: RegisterAs<T> with key
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       public interface IMyService { }
-                       public interface IOtherService { }
-
-                       [RegisterAs<IMyService>("primary")]
-                       public class PrimaryServiceImpl : IMyService { }
-
-                       [RegisterAs<IOtherService>("secondary"), Scoped]
-                       public class SecondaryServiceImpl : IOtherService { }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
-
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
     public async Task RegistersKeyedServiceAsImplementedInterfaces()
     {
         // Tests: RegisterAsImplementedInterfaces with key
@@ -104,6 +74,66 @@ public class KeyedServicesRegistrationTests
                        [RegisterAs<IMyService>("secondary")]
                        [Transient]
                        public class MyServiceImpl : IMyService { }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task RegistersKeyedServiceWithEnumKeys()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public enum ServiceKey
+                       {
+                           Primary,
+                           Secondary
+                       }
+
+                       public interface IMyService { }
+
+                       [RegisterAs<IMyService>(ServiceKey.Primary)]
+                       public class EnumKeyedService : IMyService { }
+
+                       [RegisterAsSelf(ServiceKey.Secondary)]
+                       public class EnumKeyedSelf { }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task RegistersKeyedTypeAgainstGeneratedInterface()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("IGenerated", key: "primary")]
+                       public partial class GeneratedService
+                       {
+                           public string Ping() => "pong";
+                       }
                    }
                    """;
 

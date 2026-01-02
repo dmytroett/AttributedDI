@@ -3,14 +3,17 @@ namespace AttributedDI.SourceGenerator.UnitTests;
 public class BasicServicesRegistrationTests
 {
     [Fact]
-    public async Task RegistersServicesWithDifferentLifetimes()
+    public async Task RegistersServicesWithDifferentLifetimesAndInterfaces()
     {
-        // Tests: RegisterAsSelf with Transient (default), Singleton, and Scoped
+        // Tests: RegisterAsSelf with lifetimes plus interface registrations
         var code = """
                    using AttributedDI;
 
                    namespace MyApp
                    {
+                       public interface IMyService { }
+                       public interface IOtherService { }
+
                        [Transient]
                        public class ShouldBeRegisteredAsTransient { } 
                    
@@ -22,30 +25,6 @@ public class BasicServicesRegistrationTests
 
                        [RegisterAsSelf, Scoped]
                        public class ScopedService { }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
-
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
-    public async Task RegistersAsSpecificInterface()
-    {
-        // Tests: RegisterAs<T> with different lifetimes
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       public interface IMyService { }
-                       public interface IOtherService { }
 
                        [RegisterAs<IMyService>]
                        public class MyServiceImpl : IMyService { }
@@ -234,5 +213,28 @@ public class BasicServicesRegistrationTests
         Assert.Empty(diagnostics);
 
         await Verify(output);
+    }
+
+    [Fact(Skip = "Pending diagnostics for conflicting lifetime attributes on a single type.")]
+    public async Task ConflictingLifetimeAttributesEmitDiagnostics()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf]
+                       [Singleton]
+                       [Scoped]
+                       public class ConflictingLifetimes { }
+                   }
+                   """;
+
+        var (_, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.NotEmpty(diagnostics);
     }
 }
