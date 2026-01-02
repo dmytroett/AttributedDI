@@ -1,23 +1,26 @@
 using Microsoft.Extensions.DependencyInjection;
+using GeneratedInterfacesSut;
 
 namespace AttributedDI.IntegrationTests;
 
 public class GeneratedInterfacesTests
 {
     [Fact]
-    public void GeneratedInterfaceRegistration_WorksAsExpected()
+    public void ServicesRegisterCorrectly()
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddAttributedDI(typeof(Company.TeamName.Project.API.MyClassToGenerateInterface).Assembly);
-
-        var serviceProvider = services.BuildServiceProvider();
 
         // Act
-        var myClassInstance = serviceProvider.GetService<Company.TeamName.Project.API.IMyClassToGenerateInterface>();
+        services.AddGeneratedInterfacesSut();
 
-        // Assert
-        Assert.NotNull(myClassInstance);
-        Assert.IsType<Company.TeamName.Project.API.MyClassToGenerateInterface>(myClassInstance);
+        // assert
+        AssertContainsService<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(services, ServiceLifetime.Transient);
+        AssertContainsService<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(services, ServiceLifetime.Scoped);
+        AssertDoesNotContainService<ShouldNotGenerateInterfaceWithDisposable>(services);
+        AssertContainsService<IShouldGenerateInterfaceWithDisposableAndOtherMembers, ShouldGenerateInterfaceWithDisposableAndOtherMembers>(services, ServiceLifetime.Transient);
+        AssertDoesNotContainService<GeneratesInterfaceButDoesntRegister>(services);
+
+        Assert.True(typeof(IGeneratesInterfaceButDoesntRegister) != null);
     }
 }

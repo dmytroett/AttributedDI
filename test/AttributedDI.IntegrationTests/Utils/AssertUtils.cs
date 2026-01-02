@@ -17,6 +17,12 @@ public static class AssertUtils
         Assert.Null(descriptor);
     }
 
+    public static void AssertDoesNotContainService<TService>(IServiceCollection services)
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TService) || d.ImplementationType == typeof(TService));
+        Assert.Null(descriptor);
+    }
+
     public static void AssertContainsKeyedService<TService, TImplementation>(IServiceCollection services, object key, ServiceLifetime expectedLifetime)
     {
         var descriptor = services.SingleOrDefault(d =>

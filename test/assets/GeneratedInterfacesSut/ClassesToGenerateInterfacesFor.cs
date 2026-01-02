@@ -3,7 +3,16 @@
 namespace GeneratedInterfacesSut;
 
 [RegisterAsGeneratedInterface]
-public class MyClassToGenerateInterface
+public class MyTransientClassToGenerateInterface
+{
+    public void DoSomething()
+    {
+        Console.WriteLine("Doing something...");
+    }
+}
+
+[RegisterAsGeneratedInterface, Scoped]
+public class MyScopedClassToGenerateInterface
 {
     public void DoSomething()
     {
@@ -38,5 +47,14 @@ public class ShouldGenerateInterfaceWithDisposableAndOtherMembers: IDisposable, 
     {
         // Async dispose resources
         return ValueTask.CompletedTask;
+    }
+}
+
+[GenerateInterface]
+public class GeneratesInterfaceButDoesntRegister
+{
+    public void PerformAction()
+    {
+        Console.WriteLine("Performing action...");
     }
 }
