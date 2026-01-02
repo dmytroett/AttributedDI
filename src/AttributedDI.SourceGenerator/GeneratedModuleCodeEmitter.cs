@@ -127,66 +127,29 @@ internal static class GeneratedModuleCodeEmitter
         string lifetime = registration.Lifetime;
         bool isKeyed = registration.Key != null;
 
-        switch (registration.RegistrationType)
+        if (registration.ServiceTypeFullName is string serviceType)
         {
-            case RegistrationType.RegisterAsSelf:
-                if (isKeyed)
-                {
-                    string keyLiteral = FormatKeyLiteral(registration.Key);
-                    _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
-                }
-                else
-                {
-                    _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
-                }
-
-                break;
-
-            case RegistrationType.RegisterAs:
-                if (registration.ServiceTypeFullName != null)
-                {
-                    if (isKeyed)
-                    {
-                        string keyLiteral = FormatKeyLiteral(registration.Key);
-                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>({keyLiteral});");
-                    }
-                    else
-                    {
-                        _ = sb.AppendLine($"            services.Add{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>();");
-                    }
-                }
-
-                break;
-
-            case RegistrationType.RegisterAsImplementedInterfaces:
-                // Interface information is pre-extracted during collection
-                if (registration.ServiceTypeFullName != null)
-                {
-                    if (isKeyed)
-                    {
-                        string keyLiteral = FormatKeyLiteral(registration.Key);
-                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>({keyLiteral});");
-                    }
-                    else
-                    {
-                        _ = sb.AppendLine($"            services.Add{lifetime}<{registration.ServiceTypeFullName}, {fullTypeName}>();");
-                    }
-                }
-                else
-                {
-                    // Fallback: register as self if no interfaces found
-                    if (isKeyed)
-                    {
-                        string keyLiteral = FormatKeyLiteral(registration.Key);
-                        _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
-                    }
-                    else
-                    {
-                        _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
-                    }
-                }
-
-                break;
+            if (isKeyed)
+            {
+                string keyLiteral = FormatKeyLiteral(registration.Key);
+                _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceType}, {fullTypeName}>({keyLiteral});");
+            }
+            else
+            {
+                _ = sb.AppendLine($"            services.Add{lifetime}<{serviceType}, {fullTypeName}>();");
+            }
+        }
+        else
+        {
+            if (isKeyed)
+            {
+                string keyLiteral = FormatKeyLiteral(registration.Key);
+                _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{fullTypeName}>({keyLiteral});");
+            }
+            else
+            {
+                _ = sb.AppendLine($"            services.Add{lifetime}<{fullTypeName}>();");
+            }
         }
     }
 

@@ -16,23 +16,21 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
     {
         // Phase 1: Strategies discover and collect what they observe
         var assemblyName = context.CompilationProvider.Select(static (compilation, _) => compilation.Assembly.Name);
-        var typesWithAttributes = ServicesRegistrationsCollector.Collect(context);
+        var registrations = ServicesRegistrationsCollector.Collect(context);
         var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
         var generatedInterfaces = GeneratedInterfacesCollector.Collect(context);
 
         // Combine all collected data with compilation provider for assembly name
-        var combinedData = typesWithAttributes.Collect()
+        var combinedData = registrations.Collect()
             .Combine(customModuleNameInfo)
             .Combine(assemblyName);
 
         // Phase 2: Generate code based on collected data
         context.RegisterSourceOutput(combinedData, static (spc, data) =>
         {
-            var ((typeInfos, customNameInfo), assemblyName) = data;
+            var ((registrationInfos, customNameInfo), assemblyName) = data;
 
-            var allRegistrations = typeInfos.SelectMany(t => t.Registrations).ToImmutableArray();
-
-            if (allRegistrations.Any())
+            if (registrationInfos.Any())
             {
                 GeneratedModuleCodeEmitter.EmitRegistrationModule(
                     spc,
@@ -40,7 +38,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
                     customNameInfo.MethodName,
                     customNameInfo.Namespace,
                     assemblyName,
-                    allRegistrations);
+                    registrationInfos);
             }
         });
 
