@@ -18,6 +18,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         var assemblyName = context.CompilationProvider.Select(static (compilation, _) => compilation.Assembly.Name);
         var typesWithAttributes = ServicesRegistrationsCollector.Collect(context);
         var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
+        var generatedInterfaces = GeneratedInterfacesCollector.Collect(context);
 
         // Combine all collected data with compilation provider for assembly name
         var combinedData = typesWithAttributes.Collect()
@@ -27,9 +28,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         // Phase 2: Generate code based on collected data
         context.RegisterSourceOutput(combinedData, static (spc, data) =>
         {
-            var typeInfos = data.Left.Left;
-            var customNameInfo = data.Left.Right;
-            var assemblyName = data.Right;
+            var ((typeInfos, customNameInfo), assemblyName) = data;
 
             var allRegistrations = typeInfos.SelectMany(t => t.Registrations).ToImmutableArray();
 
@@ -43,6 +42,16 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
                     assemblyName,
                     allRegistrations);
             }
+        });
+
+        context.RegisterSourceOutput(generatedInterfaces.Collect(), static (spc, interfaces) =>
+        {
+            if (interfaces.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            GeneratedInterfacesCodeEmitter.EmitInterfaces(spc, interfaces);
         });
     }
 }

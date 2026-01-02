@@ -14,6 +14,10 @@ internal static class KnownAttributes
     public const string RegisterAsSelfAttribute = "AttributedDI.RegisterAsSelfAttribute";
     public const string RegisterAsAttribute = "AttributedDI.RegisterAsAttribute`1"; // Generic attribute, includes arity
     public const string RegisterAsImplementedInterfacesAttribute = "AttributedDI.RegisterAsImplementedInterfacesAttribute";
+    public const string RegisterAsGeneratedInterfaceAttribute = "AttributedDI.RegisterAsGeneratedInterfaceAttribute";
+
+    // Interface generation attributes
+    public const string GenerateInterfaceAttribute = "AttributedDI.GenerateInterfaceAttribute";
 
     // Assembly-level attributes
     public const string GeneratedModuleAttribute = "AttributedDI.GeneratedModuleAttribute";

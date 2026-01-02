@@ -22,6 +22,7 @@ internal static class ServicesRegistrationsCollector
         var registerAsSelfTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsSelfAttribute, ExtractTypeInfo);
         var registerAsImplementedInterfacesTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsImplementedInterfacesAttribute, ExtractTypeInfo);
         var registerAsTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsAttribute, ExtractRegisterAsInfo);
+        var registerAsGeneratedInterfaceTypes = CreateAttributeCollector(context, KnownAttributes.RegisterAsGeneratedInterfaceAttribute, ExtractRegisterAsGeneratedInterfaceInfo);
 
         var transientLifetimeTypes = CreateAttributeCollector(context, KnownAttributes.TransientAttribute, ExtractLifetimeOnlyInfo);
         var scopedLifetimeTypes = CreateAttributeCollector(context, KnownAttributes.ScopedAttribute, ExtractLifetimeOnlyInfo);
@@ -31,6 +32,7 @@ internal static class ServicesRegistrationsCollector
             registerAsSelfTypes,
             registerAsImplementedInterfacesTypes,
             registerAsTypes,
+            registerAsGeneratedInterfaceTypes,
             transientLifetimeTypes,
             scopedLifetimeTypes,
             singletonLifetimeTypes);
@@ -114,9 +116,9 @@ internal static class ServicesRegistrationsCollector
             case RegistrationType.RegisterAsImplementedInterfaces:
                 ct.ThrowIfCancellationRequested();
 
-                // Extract all interfaces except IDisposable
+                // Extract all interfaces except well-known framework interfaces
                 var interfaces = symbol.AllInterfaces
-                    .Where(static iface => !ImplementsDisposableContract(iface))
+                    .Where(static iface => !WellKnownInterfacesRegistry.IsWellKnownInterface(iface))
                     .Distinct(SymbolEqualityComparer.Default)
                     .ToList();
 
@@ -154,27 +156,6 @@ internal static class ServicesRegistrationsCollector
     }
 
     /// <summary>
-    /// Checks if a type symbol implements IDisposable or IAsyncDisposable.
-    /// </summary>
-    private static bool ImplementsDisposableContract(ITypeSymbol interfaceSymbol)
-    {
-        return IsDisposableInterface(interfaceSymbol) || interfaceSymbol.AllInterfaces.Any(IsDisposableInterface);
-    }
-
-    /// <summary>
-    /// Checks if a type symbol is IDisposable or IAsyncDisposable.
-    /// </summary>
-    private static bool IsDisposableInterface(ITypeSymbol interfaceSymbol)
-    {
-        if (interfaceSymbol.SpecialType == SpecialType.System_IDisposable)
-        {
-            return true;
-        }
-
-        return interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IAsyncDisposable";
-    }
-
-    /// <summary>
     /// Extracts RegisterAs attribute information from syntax context.
     /// </summary>
     private static TypeWithAttributesInfo? ExtractRegisterAsInfo(GeneratorAttributeSyntaxContext context, CancellationToken ct)
@@ -207,6 +188,39 @@ internal static class ServicesRegistrationsCollector
         return registrations.Count > 0
             ? new TypeWithAttributesInfo(registrations.ToImmutable())
             : null;
+    }
+
+    /// <summary>
+    /// Extracts RegisterAsGeneratedInterface attribute information from syntax context.
+    /// </summary>
+    private static TypeWithAttributesInfo? ExtractRegisterAsGeneratedInterfaceInfo(GeneratorAttributeSyntaxContext context, CancellationToken ct)
+    {
+        if (context.TargetSymbol is not INamedTypeSymbol symbol)
+        {
+            return null;
+        }
+
+        var attribute = context.Attributes[0];
+        if (!GeneratedInterfaceNamingResolver.TryResolve(symbol, attribute, out var naming) || naming is null)
+        {
+            // TODO: emit diagnostic when generated interface naming cannot be resolved.
+            return null;
+        }
+
+        var resolvedNaming = naming;
+
+        var lifetime = ResolveLifetime(symbol);
+
+        var registration = new RegistrationInfo(
+            FullyQualifiedTypeName: symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            Namespace: symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+            TypeName: symbol.Name,
+            RegistrationType: RegistrationType.RegisterAs,
+            ServiceTypeFullName: resolvedNaming.FullyQualifiedName,
+            Lifetime: lifetime,
+            Key: ExtractKey(attribute));
+
+        return new TypeWithAttributesInfo(ImmutableArray.Create(registration));
     }
 
     /// <summary>
@@ -249,6 +263,7 @@ internal static class ServicesRegistrationsCollector
 
             if (displayName == KnownAttributes.RegisterAsSelfAttribute ||
                 displayName == KnownAttributes.RegisterAsImplementedInterfacesAttribute ||
+                displayName == KnownAttributes.RegisterAsGeneratedInterfaceAttribute ||
                 IsRegisterAsAttribute(attribute))
             {
                 return true;
