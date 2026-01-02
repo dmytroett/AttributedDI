@@ -21,22 +21,7 @@ public partial class MyScopedClassToGenerateInterface
 }
 
 [RegisterAsGeneratedInterface]
-public partial class ShouldNotGenerateInterfaceWithDisposable: IDisposable, IAsyncDisposable
-{
-    public void Dispose()
-    {
-        // Dispose resources
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        // Async dispose resources
-        return ValueTask.CompletedTask;
-    }
-}
-
-[RegisterAsGeneratedInterface]
-public partial class ShouldGenerateInterfaceWithDisposableAndOtherMembers: IDisposable, IAsyncDisposable
+public partial class ShouldGenerateEmptyInterface: IDisposable, IAsyncDisposable
 {
     public void Dispose()
     {

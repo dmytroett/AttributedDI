@@ -17,8 +17,7 @@ public class GeneratedInterfacesTests
         // assert
         AssertContainsService<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(services, ServiceLifetime.Transient);
         AssertContainsService<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(services, ServiceLifetime.Scoped);
-        AssertContainsService<IShouldNotGenerateInterfaceWithDisposable, ShouldNotGenerateInterfaceWithDisposable>(services, ServiceLifetime.Transient);
-        AssertContainsService<IShouldGenerateInterfaceWithDisposableAndOtherMembers, ShouldGenerateInterfaceWithDisposableAndOtherMembers>(services, ServiceLifetime.Transient);
+        AssertContainsService<IShouldGenerateEmptyInterface, ShouldGenerateEmptyInterface>(services, ServiceLifetime.Transient);
         AssertDoesNotContainService<GeneratesInterfaceButDoesntRegister>(services);
 
         Assert.True(typeof(IGeneratesInterfaceButDoesntRegister) != null);
