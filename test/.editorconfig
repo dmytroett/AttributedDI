@@ -1,3 +1,5 @@
 [*.cs]
 dotnet_diagnostic.IDE0058.severity = none
 dotnet_naming_rule.interface_should_be_begins_with_i.severity = silent
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1816.severity = none

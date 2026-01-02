@@ -23,5 +23,6 @@
   <Folder Name="/test/assets/">
     <Project Path="test/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
     <Project Path="test/assets/CustomModuleName/CustomModuleName.csproj" />
+    <Project Path="test/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />
   </Folder>
 </Solution>
