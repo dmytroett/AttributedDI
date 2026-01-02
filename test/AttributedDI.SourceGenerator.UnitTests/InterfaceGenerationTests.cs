@@ -225,7 +225,7 @@ public class InterfaceGenerationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();        
+            .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
 
@@ -291,7 +291,7 @@ public class InterfaceGenerationTests
             .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
-        
+
         await Verify(output);
     }
 
@@ -358,6 +358,77 @@ public class InterfaceGenerationTests
 
         Assert.Empty(diagnostics);
 
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task SkipsNestedTypes()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public partial class Outer
+                       {
+                           [GenerateInterface]
+                           public partial class Inner
+                           {
+                               public void DoWork() { }
+                           }
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+        Assert.True(string.IsNullOrWhiteSpace(output));
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task SkipsRefReturnsAndRefLikeParameters()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public partial class RefMembers
+                       {
+                           public ref int RefReturn(ref int value) => ref value;
+
+                           public int InParameter(in int value) => value;
+
+                           public int OutParameter(out int value)
+                           {
+                               value = 1;
+                               return value;
+                           }
+
+                           public void Allowed() { }
+
+                           private ref int PrivateRefReturn(ref int value) => ref value;
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+        Assert.Contains("void Allowed()", output);
+        Assert.DoesNotContain("RefReturn", output);
+        Assert.DoesNotContain("InParameter", output);
+        Assert.DoesNotContain("OutParameter", output);
+        Assert.DoesNotContain("PrivateRefReturn", output);
         await Verify(output);
     }
 

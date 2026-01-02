@@ -171,6 +171,12 @@ internal static class RegistrationCandidatesCollector
             return ImmutableArray<RegistrationCandidate>.Empty;
         }
 
+        if (symbol.ContainingType is not null)
+        {
+            // Nested types are not supported for generated interfaces/registrations.
+            return ImmutableArray<RegistrationCandidate>.Empty;
+        }
+
         var attribute = context.Attributes[0];
         if (!GeneratedInterfaceNamingResolver.TryResolve(symbol, attribute, out var naming) || naming is null)
         {

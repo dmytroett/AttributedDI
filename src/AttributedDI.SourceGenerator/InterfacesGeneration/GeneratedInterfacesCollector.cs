@@ -38,6 +38,12 @@ internal static class GeneratedInterfacesCollector
             return null;
         }
 
+        if (typeSymbol.ContainingType is not null)
+        {
+            // Nested types are not supported for interface generation.
+            return null;
+        }
+
         if (!GeneratedInterfaceNamingResolver.TryResolve(typeSymbol, context.Attributes[0], out var naming) || naming is null)
         {
             return null;
@@ -88,10 +94,12 @@ internal static class GeneratedInterfacesCollector
             {
                 case IMethodSymbol method when ShouldIgnoreMethod(method):
                     continue;
-                case IMethodSymbol method when method.DeclaredAccessibility == Accessibility.Public:
+                case IMethodSymbol method:
                     AddMemberIfNeeded(method, membersToSkip, membersBuilder, seenMembers);
                     break;
-                case IPropertySymbol property when property.DeclaredAccessibility == Accessibility.Public:
+                case IPropertySymbol property when ShouldIgnoreProperty(property):
+                    continue;
+                case IPropertySymbol property:
                     AddMemberIfNeeded(property, membersToSkip, membersBuilder, seenMembers);
                     break;
             }
@@ -125,6 +133,16 @@ internal static class GeneratedInterfacesCollector
             return true;
         }
 
+        if (method.ReturnsByRef || method.ReturnsByRefReadonly)
+        {
+            return true;
+        }
+
+        if (HasRefLikeParameters(method.Parameters))
+        {
+            return true;
+        }
+
         return method.MethodKind is MethodKind.Constructor
             or MethodKind.StaticConstructor
             or MethodKind.Destructor
@@ -139,6 +157,34 @@ internal static class GeneratedInterfacesCollector
             or MethodKind.LambdaMethod
             or MethodKind.LocalFunction
             or MethodKind.AnonymousFunction;
+    }
+
+    private static bool ShouldIgnoreProperty(IPropertySymbol property)
+    {
+        if (property.DeclaredAccessibility != Accessibility.Public)
+        {
+            return true;
+        }
+
+        if (property.ReturnsByRef || property.ReturnsByRefReadonly)
+        {
+            return true;
+        }
+
+        return HasRefLikeParameters(property.Parameters);
+    }
+
+    private static bool HasRefLikeParameters(ImmutableArray<IParameterSymbol> parameters)
+    {
+        foreach (var parameter in parameters)
+        {
+            if (parameter.RefKind != RefKind.None)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static string ResolveAccessibility(Accessibility accessibility)
