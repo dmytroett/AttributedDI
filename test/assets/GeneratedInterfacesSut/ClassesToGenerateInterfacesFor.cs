@@ -1,4 +1,5 @@
 ﻿using AttributedDI;
+using System.Collections;
 using System.ComponentModel;
 
 namespace GeneratedInterfacesSut;
@@ -47,7 +48,7 @@ public partial class GeneratesInterfaceButDoesntRegister
 
 [RegisterAsGeneratedInterface]
 public partial class ClassWithABunchOfKnownInterfaces :
-    INotifyPropertyChanged, IDisposable, IEquatable<ClassWithABunchOfKnownInterfaces>, IComparable<ClassWithABunchOfKnownInterfaces>
+    INotifyPropertyChanged, IDisposable, IEquatable<ClassWithABunchOfKnownInterfaces>, IComparable<ClassWithABunchOfKnownInterfaces>, IEnumerable
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -87,6 +88,11 @@ public partial class ClassWithABunchOfKnownInterfaces :
     }
 
     public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
     {
         throw new NotImplementedException();
     }

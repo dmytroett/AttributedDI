@@ -1,5 +1,6 @@
 using GeneratedInterfacesSut;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections;
 using System.ComponentModel;
 
 namespace AttributedDI.IntegrationTests;
@@ -46,6 +47,7 @@ public class GeneratedInterfacesTests
             Assert.NotEqual(nameof(IComparable.CompareTo), member.Name);
             Assert.NotEqual(nameof(IEquatable<object>.Equals), member.Name);
             Assert.NotEqual(nameof(IDisposable.Dispose), member.Name);
+            Assert.NotEqual(nameof(IEnumerable.GetEnumerator), member.Name);
         }
     }
 }
