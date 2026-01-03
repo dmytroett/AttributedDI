@@ -1,5 +1,6 @@
+using AttributedDI.SourceGenerator.InterfacesGeneration;
+using AttributedDI.SourceGenerator.ServiceModulesGeneration;
 using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace AttributedDI.SourceGenerator;
@@ -14,26 +15,22 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Phase 1: Strategies discover and collect what they observe
+        // Phase 1: locate the attributes & extract structured info for code generation.
         var assemblyName = context.CompilationProvider.Select(static (compilation, _) => compilation.Assembly.Name);
-        var typesWithAttributes = ServicesRegistrationsCollector.Collect(context);
+        var registrations = ServicesRegistrationsCollector.Collect(context);
         var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
+        var generatedInterfaces = InterfaceGenerationPipeline.Collect(context);
 
-        // Combine all collected data with compilation provider for assembly name
-        var combinedData = typesWithAttributes.Collect()
+        var combinedData = registrations.Collect()
             .Combine(customModuleNameInfo)
             .Combine(assemblyName);
 
         // Phase 2: Generate code based on collected data
         context.RegisterSourceOutput(combinedData, static (spc, data) =>
         {
-            var typeInfos = data.Left.Left;
-            var customNameInfo = data.Left.Right;
-            var assemblyName = data.Right;
+            var ((registrationInfos, customNameInfo), assemblyName) = data;
 
-            var allRegistrations = typeInfos.SelectMany(t => t.Registrations).ToImmutableArray();
-
-            if (allRegistrations.Any())
+            if (registrationInfos.Any())
             {
                 GeneratedModuleCodeEmitter.EmitRegistrationModule(
                     spc,
@@ -41,8 +38,18 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
                     customNameInfo.MethodName,
                     customNameInfo.Namespace,
                     assemblyName,
-                    allRegistrations);
+                    registrationInfos);
             }
+        });
+
+        context.RegisterSourceOutput(generatedInterfaces.Collect(), static (spc, interfaces) =>
+        {
+            if (interfaces.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            GeneratedInterfacesCodeEmitter.EmitInterfaces(spc, interfaces);
         });
     }
 }

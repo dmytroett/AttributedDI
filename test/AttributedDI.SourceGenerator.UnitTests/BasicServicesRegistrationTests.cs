@@ -3,14 +3,17 @@ namespace AttributedDI.SourceGenerator.UnitTests;
 public class BasicServicesRegistrationTests
 {
     [Fact]
-    public async Task RegistersServicesWithDifferentLifetimes()
+    public async Task RegistersServicesWithDifferentLifetimesAndInterfaces()
     {
-        // Tests: RegisterAsSelf with Transient (default), Singleton, and Scoped
+        // Tests: RegisterAsSelf with lifetimes plus interface registrations
         var code = """
                    using AttributedDI;
 
                    namespace MyApp
                    {
+                       public interface IMyService { }
+                       public interface IOtherService { }
+
                        [Transient]
                        public class ShouldBeRegisteredAsTransient { } 
                    
@@ -22,26 +25,6 @@ public class BasicServicesRegistrationTests
 
                        [RegisterAsSelf, Scoped]
                        public class ScopedService { }
-                   }
-                   """;
-
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
-
-        await Verify(driver);
-    }
-
-    [Fact]
-    public async Task RegistersAsSpecificInterface()
-    {
-        // Tests: RegisterAs<T> with different lifetimes
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       public interface IMyService { }
-                       public interface IOtherService { }
 
                        [RegisterAs<IMyService>]
                        public class MyServiceImpl : IMyService { }
@@ -51,10 +34,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -77,10 +64,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -103,14 +94,18 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
-    public void UsesUserSuppliedNamesWhenProvided()
+    public async Task UsesUserSuppliedNamesWhenProvided()
     {
         var code = """
                    using AttributedDI;
@@ -124,17 +119,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        var runResult = driver.GetRunResult();
-        var generatedSources = runResult.Results.Single().GeneratedSources;
+        Assert.Empty(diagnostics);
 
-        var moduleFile = generatedSources.Single(source => source.HintName == "MyModule.g.cs").SourceText.ToString();
-        var extensionsFile = generatedSources.Single(source => source.HintName == "MyModuleServiceCollectionExtensions.g.cs").SourceText.ToString();
-
-        Assert.Contains("namespace Custom.Namespace", moduleFile);
-        Assert.Contains("namespace Custom.Namespace", extensionsFile);
+        await Verify(output);
     }
 
     [Fact]
@@ -150,10 +142,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -179,10 +175,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -205,9 +205,36 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact(Skip = "Pending diagnostics for conflicting lifetime attributes on a single type.")]
+    public async Task ConflictingLifetimeAttributesEmitDiagnostics()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf]
+                       [Singleton]
+                       [Scoped]
+                       public class ConflictingLifetimes { }
+                   }
+                   """;
+
+        var (_, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.NotEmpty(diagnostics);
     }
 }

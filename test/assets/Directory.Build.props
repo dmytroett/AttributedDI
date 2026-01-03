@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Ease the restrictions as these contain test code -->
+    <AnalysisMode>Default</AnalysisMode>
+  </PropertyGroup>
+</Project>

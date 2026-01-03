@@ -1,0 +1,3 @@
+[*.cs]
+# Ignore The event 'ClassWithABunchOfKnownInterfaces.PropertyChanged' is never used
+dotnet_diagnostic.CS0067.severity = none

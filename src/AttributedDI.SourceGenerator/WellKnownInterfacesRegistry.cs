@@ -1,0 +1,97 @@
+using Microsoft.CodeAnalysis;
+using System;
+using System.Collections.Immutable;
+
+namespace AttributedDI.SourceGenerator;
+
+/// <summary>
+/// Provides lookups for well-known framework interfaces and their members to avoid redundant generation.
+/// </summary>
+internal static class WellKnownInterfacesRegistry
+{
+    private static readonly SymbolDisplayFormat MemberDisplayFormat = new(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
+        memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType,
+        parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeOptionalBrackets | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+        propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+    private static readonly ImmutableHashSet<string> WellKnownInterfaceMetadataNames = ImmutableHashSet.Create(
+        StringComparer.Ordinal,
+        "global::System.IDisposable",
+        "global::System.IAsyncDisposable",
+        "global::System.IComparable",
+        "global::System.IComparable`1",
+        "global::System.IEquatable`1",
+        "global::System.Collections.IEnumerable",
+        "global::System.Collections.Generic.IEnumerable`1",
+        "global::System.Collections.Generic.IAsyncEnumerable`1",
+        "global::System.Collections.ICollection",
+        "global::System.Collections.IList",
+        "global::System.Collections.Generic.ICollection`1",
+        "global::System.Collections.Generic.IList`1",
+        "global::System.Collections.Generic.IReadOnlyCollection`1",
+        "global::System.Collections.Generic.IReadOnlyList`1",
+        "global::System.ComponentModel.INotifyPropertyChanged");
+
+    /// <summary>
+    /// Gets the display format used for member signature comparisons.
+    /// </summary>
+    internal static SymbolDisplayFormat InterfaceMemberDisplayFormat => MemberDisplayFormat;
+
+    internal static string GetMemberSignature(ISymbol member)
+    {
+        if (member is IEventSymbol eventSymbol)
+        {
+            var eventType = eventSymbol.Type.ToDisplayString(InterfaceMemberDisplayFormat);
+            return $"event {eventType} {eventSymbol.Name};";
+        }
+
+        return member.ToDisplayString(InterfaceMemberDisplayFormat);
+    }
+
+    internal static bool IsWellKnownInterface(ITypeSymbol interfaceSymbol)
+    {
+        if (interfaceSymbol is not INamedTypeSymbol namedTypeSymbol)
+        {
+            return false;
+        }
+
+        var definitionSymbol = namedTypeSymbol.IsGenericType ? namedTypeSymbol.ConstructedFrom : namedTypeSymbol;
+        var namespaceName = definitionSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var metadataName = string.IsNullOrEmpty(namespaceName)
+            ? $"global::{definitionSymbol.MetadataName}"
+            : $"global::{namespaceName}.{definitionSymbol.MetadataName}";
+
+        return WellKnownInterfaceMetadataNames.Contains(metadataName);
+    }
+
+    internal static ImmutableHashSet<string> GetImplementedMemberSignatures(INamedTypeSymbol typeSymbol)
+    {
+        var builder = ImmutableHashSet.CreateBuilder(StringComparer.Ordinal);
+
+        foreach (var interfaceSymbol in typeSymbol.AllInterfaces)
+        {
+            if (!IsWellKnownInterface(interfaceSymbol))
+            {
+                continue;
+            }
+
+            foreach (var interfaceMember in interfaceSymbol.GetMembers())
+            {
+                var implementation = typeSymbol.FindImplementationForInterfaceMember(interfaceMember);
+                if (implementation is null)
+                {
+                    continue;
+                }
+
+                var signature = GetMemberSignature(implementation);
+                builder.Add(signature);
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+}

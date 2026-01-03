@@ -1,8 +1,5 @@
 namespace AttributedDI.SourceGenerator.UnitTests;
 
-/// <summary>
-/// Tests for keyed service registration functionality.
-/// </summary>
 public class KeyedServicesRegistrationTests
 {
     [Fact]
@@ -22,36 +19,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
-    }
+        Assert.Empty(diagnostics);
 
-    [Fact]
-    public async Task RegistersKeyedServiceAsInterface()
-    {
-        // Tests: RegisterAs<T> with key
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       public interface IMyService { }
-                       public interface IOtherService { }
-
-                       [RegisterAs<IMyService>("primary")]
-                       public class PrimaryServiceImpl : IMyService { }
-
-                       [RegisterAs<IOtherService>("secondary"), Scoped]
-                       public class SecondaryServiceImpl : IOtherService { }
-                   }
-                   """;
-
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
-
-        await Verify(driver);
+        await Verify(output);
     }
 
     [Fact]
@@ -74,10 +49,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -98,10 +77,76 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task RegistersKeyedServiceWithEnumKeys()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public enum ServiceKey
+                       {
+                           Primary,
+                           Secondary
+                       }
+
+                       public interface IMyService { }
+
+                       [RegisterAs<IMyService>(ServiceKey.Primary)]
+                       public class EnumKeyedService : IMyService { }
+
+                       [RegisterAsSelf(ServiceKey.Secondary)]
+                       public class EnumKeyedSelf { }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+        Assert.Contains("services.AddKeyedTransient<global::MyApp.EnumKeyedSelf>(global::MyApp.ServiceKey.Secondary);", output);
+        Assert.Contains("services.AddKeyedTransient<global::MyApp.IMyService, global::MyApp.EnumKeyedService>(global::MyApp.ServiceKey.Primary);", output);
+    }
+
+    [Fact]
+    public async Task RegistersKeyedTypeAgainstGeneratedInterface()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("IGenerated", key: "primary")]
+                       public partial class GeneratedService
+                       {
+                           public string Ping() => "pong";
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -127,10 +172,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 
     [Fact]
@@ -152,9 +201,13 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var compilation = new CompilationFixture().WithSourceCode(code).Build();
-        var driver = RunSourceGenerator(compilation, new ServiceRegistrationGenerator());
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
 
-        await Verify(driver);
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
     }
 }
