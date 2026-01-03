@@ -22,13 +22,6 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public SourceGeneratorTestFixture WithExtraReferences(params Type[] markerTypes)
-    {
-        var references = markerTypes.Select(t => MetadataReference.CreateFromFile(t.Assembly.Location));
-        _extraReferences.AddRange(references);
-        return this;
-    }
-
     public SourceGeneratorTestFixture WithExtraReferences(params Assembly[] assemblies)
     {
         var references = assemblies.Select(a => MetadataReference.CreateFromFile(a.Location));

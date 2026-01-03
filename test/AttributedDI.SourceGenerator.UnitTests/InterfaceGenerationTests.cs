@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class InterfaceGenerationTests
@@ -8,21 +10,87 @@ public class InterfaceGenerationTests
         var code = """
                    using AttributedDI;
                    using System;
+                   using System.Collections;
+                   using System.Collections.Generic;
+                   using System.ComponentModel;
 
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public partial class Foo : IDisposable
+                       public partial class GenericListHost : IList<int>, IReadOnlyList<int>, INotifyPropertyChanged
                        {
-                           public void DoWork() { }
+                           public event PropertyChangedEventHandler? PropertyChanged;
 
-                           public void Dispose() { }
+                           public void Custom() { }
+
+                           public int this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                           public int Count => throw new NotImplementedException();
+
+                           public bool IsReadOnly => throw new NotImplementedException();
+
+                           public void Add(int item) => throw new NotImplementedException();
+
+                           public void Clear() => throw new NotImplementedException();
+
+                           public bool Contains(int item) => throw new NotImplementedException();
+
+                           public void CopyTo(int[] array, int arrayIndex) => throw new NotImplementedException();
+
+                           public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                           public int IndexOf(int item) => throw new NotImplementedException();
+
+                           public void Insert(int index, int item) => throw new NotImplementedException();
+
+                           public bool Remove(int item) => throw new NotImplementedException();
+
+                           public void RemoveAt(int index) => throw new NotImplementedException();
+
+                           IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+                       }
+
+                       [GenerateInterface]
+                       public partial class NonGenericListHost : IList
+                       {
+                           public void CustomNonGeneric() { }
+
+                           public int Add(object? value) => throw new NotImplementedException();
+
+                           public void Clear() => throw new NotImplementedException();
+
+                           public bool Contains(object? value) => throw new NotImplementedException();
+
+                           public int IndexOf(object? value) => throw new NotImplementedException();
+
+                           public void Insert(int index, object? value) => throw new NotImplementedException();
+
+                           public bool IsFixedSize => throw new NotImplementedException();
+
+                           public bool IsReadOnly => throw new NotImplementedException();
+
+                           public void Remove(object? value) => throw new NotImplementedException();
+
+                           public void RemoveAt(int index) => throw new NotImplementedException();
+
+                           public object? this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                           public int Count => throw new NotImplementedException();
+
+                           public bool IsSynchronized => throw new NotImplementedException();
+
+                           public object SyncRoot => throw new NotImplementedException();
+
+                           public void CopyTo(Array array, int index) => throw new NotImplementedException();
+
+                           public IEnumerator GetEnumerator() => throw new NotImplementedException();
                        }
                    }
                    """;
 
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
+            .WithExtraReferences(typeof(INotifyPropertyChanged).Assembly)
             .AddGenerator<ServiceRegistrationGenerator>()
             .RunAndGetOutput();
 
@@ -278,6 +346,43 @@ public class InterfaceGenerationTests
                            protected void ProtectedOnly() { }
 
                            private void PrivateOnly() { }
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task SkipsExplicitInterfaceImplementations()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public interface IExplicitContract
+                       {
+                           void Hidden();
+
+                           int Value { get; }
+                       }
+
+                       [GenerateInterface]
+                       public partial class ExplicitImplementationSample : IExplicitContract
+                       {
+                           void IExplicitContract.Hidden() { }
+
+                           int IExplicitContract.Value => 42;
+
+                           public void Visible() { }
                        }
                    }
                    """;
