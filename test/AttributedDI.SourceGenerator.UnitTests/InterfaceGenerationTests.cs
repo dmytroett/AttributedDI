@@ -13,15 +13,26 @@ public class InterfaceGenerationTests
                    using System.Collections;
                    using System.Collections.Generic;
                    using System.ComponentModel;
+                   using System.Threading.Tasks;
 
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public partial class GenericListHost : IList<int>, IReadOnlyList<int>, INotifyPropertyChanged
+                       public partial class GenericListHost : IList<int>, IReadOnlyList<int>, INotifyPropertyChanged, IDisposable, IAsyncDisposable, IComparable, IComparable<GenericListHost>, IEquatable<GenericListHost>
                        {
                            public event PropertyChangedEventHandler? PropertyChanged;
 
                            public void Custom() { }
+
+                           public void Dispose() { }
+
+                           public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+                           public int CompareTo(object? obj) => throw new NotImplementedException();
+
+                           public int CompareTo(GenericListHost? other) => throw new NotImplementedException();
+
+                           public bool Equals(GenericListHost? other) => throw new NotImplementedException();
 
                            public int this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
