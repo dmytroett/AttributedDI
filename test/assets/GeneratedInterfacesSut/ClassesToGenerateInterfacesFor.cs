@@ -1,4 +1,5 @@
 ﻿using AttributedDI;
+using System.ComponentModel;
 
 namespace GeneratedInterfacesSut;
 
@@ -41,5 +42,87 @@ public partial class GeneratesInterfaceButDoesntRegister
     public void PerformAction()
     {
         Console.WriteLine("Performing action...");
+    }
+}
+
+[RegisterAsGeneratedInterface]
+public partial class ClassWithABunchOfKnownInterfaces :
+    INotifyPropertyChanged, IDisposable, IEquatable<ClassWithABunchOfKnownInterfaces>, IComparable<ClassWithABunchOfKnownInterfaces>
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void DoWork()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int CompareTo(ClassWithABunchOfKnownInterfaces? other)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Equals(ClassWithABunchOfKnownInterfaces? other)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (ReferenceEquals(obj, null))
+        {
+            return false;
+        }
+
+        throw new NotImplementedException();
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool operator ==(ClassWithABunchOfKnownInterfaces left, ClassWithABunchOfKnownInterfaces right)
+    {
+        if (ReferenceEquals(left, null))
+        {
+            return ReferenceEquals(right, null);
+        }
+
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ClassWithABunchOfKnownInterfaces left, ClassWithABunchOfKnownInterfaces right)
+    {
+        return !(left == right);
+    }
+
+    public static bool operator <(ClassWithABunchOfKnownInterfaces left, ClassWithABunchOfKnownInterfaces right)
+    {
+        return ReferenceEquals(left, null) ? !ReferenceEquals(right, null) : left.CompareTo(right) < 0;
+    }
+
+    public static bool operator <=(ClassWithABunchOfKnownInterfaces left, ClassWithABunchOfKnownInterfaces right)
+    {
+        return ReferenceEquals(left, null) || left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >(ClassWithABunchOfKnownInterfaces left, ClassWithABunchOfKnownInterfaces right)
+    {
+        return !ReferenceEquals(left, null) && left.CompareTo(right) > 0;
+    }
+
+    public static bool operator >=(ClassWithABunchOfKnownInterfaces left, ClassWithABunchOfKnownInterfaces right)
+    {
+        return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
     }
 }

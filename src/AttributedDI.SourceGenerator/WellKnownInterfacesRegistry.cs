@@ -59,9 +59,11 @@ internal static class WellKnownInterfacesRegistry
             return false;
         }
 
-        var metadataName = namedTypeSymbol.IsGenericType
-            ? namedTypeSymbol.ConstructedFrom.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            : namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var definitionSymbol = namedTypeSymbol.IsGenericType ? namedTypeSymbol.ConstructedFrom : namedTypeSymbol;
+        var namespaceName = definitionSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var metadataName = string.IsNullOrEmpty(namespaceName)
+            ? $"global::{definitionSymbol.MetadataName}"
+            : $"global::{namespaceName}.{definitionSymbol.MetadataName}";
 
         return WellKnownInterfaceMetadataNames.Contains(metadataName);
     }

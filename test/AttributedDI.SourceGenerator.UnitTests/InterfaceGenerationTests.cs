@@ -3,7 +3,7 @@ namespace AttributedDI.SourceGenerator.UnitTests;
 public class InterfaceGenerationTests
 {
     [Fact]
-    public async Task GeneratesInterfaceWithDefaultNamingAndSkipsDisposableMembers()
+    public async Task GeneratesInterfaceWithDefaultNamingAndSkipsKnownInterfacesMembers()
     {
         var code = """
                    using AttributedDI;
