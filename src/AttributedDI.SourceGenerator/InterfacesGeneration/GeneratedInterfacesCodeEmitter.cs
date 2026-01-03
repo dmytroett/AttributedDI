@@ -112,9 +112,9 @@ internal static class GeneratedInterfacesCodeEmitter
             ? "Global"
             : interfaceInfo.InterfaceNamespace.Replace('.', '_');
 
-        var namePart = SanitizeForHintName(interfaceInfo.InterfaceName + interfaceInfo.ClassTypeParameters);
+        var namePart = SanitizeForHintName(interfaceInfo.InterfaceName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
 
-        return $"GeneratedInterfaces_{namespacePart}_{namePart}.g.cs";
+        return $"{namespacePart}_{namePart}.g.cs";
     }
 
     private static string CreateClassHintName(GeneratedInterfaceInfo interfaceInfo)
@@ -123,9 +123,9 @@ internal static class GeneratedInterfacesCodeEmitter
             ? "Global"
             : interfaceInfo.ClassNamespace.Replace('.', '_');
 
-        var namePart = SanitizeForHintName(interfaceInfo.ClassName + interfaceInfo.ClassTypeParameters);
+        var namePart = SanitizeForHintName(interfaceInfo.ClassName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
 
-        return $"GeneratedInterfacesImpl_{namespacePart}_{namePart}.g.cs";
+        return $"{namespacePart}_{namePart}.g.cs";
     }
 
     private static string SanitizeForHintName(string value)
@@ -139,5 +139,12 @@ internal static class GeneratedInterfacesCodeEmitter
         }
 
         return builder.ToString();
+    }
+
+    private static string BuildGenericArityHintSuffix(int typeParameterCount)
+    {
+        return typeParameterCount > 0
+            ? $"`{typeParameterCount}"
+            : string.Empty;
     }
 }
