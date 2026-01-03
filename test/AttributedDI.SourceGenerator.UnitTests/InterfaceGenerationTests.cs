@@ -198,6 +198,34 @@ public class InterfaceGenerationTests
         await Verify(output);
     }
 
+    [Fact(DisplayName = "Generates and registers generic interface with custom name and two generic parameters with type constraints")]
+    public async Task GeneratesAndRegistersGenericInterfaceWithCustomNameAndTwoGenericParametersWithConstraints()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("ITransformation<,>")]
+                       public partial class GenericTransformation<TInput, TOutput>
+                           where TOutput : class, new()
+                       {
+                           public TOutput Transform(TInput source) => default!;
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithExtraReferences(typeof(IServiceProvider).Assembly)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
     [Fact]
     public async Task GeneratesInterfaceWithPropertiesIndexersAndAsyncMembers()
     {
