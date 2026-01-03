@@ -41,6 +41,17 @@ internal static class WellKnownInterfacesRegistry
     /// </summary>
     internal static SymbolDisplayFormat InterfaceMemberDisplayFormat => MemberDisplayFormat;
 
+    internal static string GetMemberSignature(ISymbol member)
+    {
+        if (member is IEventSymbol eventSymbol)
+        {
+            var eventType = eventSymbol.Type.ToDisplayString(InterfaceMemberDisplayFormat);
+            return $"event {eventType} {eventSymbol.Name};";
+        }
+
+        return member.ToDisplayString(InterfaceMemberDisplayFormat);
+    }
+
     internal static bool IsWellKnownInterface(ITypeSymbol interfaceSymbol)
     {
         if (interfaceSymbol is not INamedTypeSymbol namedTypeSymbol)
@@ -74,7 +85,7 @@ internal static class WellKnownInterfacesRegistry
                     continue;
                 }
 
-                var signature = implementation.ToDisplayString(MemberDisplayFormat);
+                var signature = GetMemberSignature(implementation);
                 builder.Add(signature);
             }
         }

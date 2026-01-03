@@ -104,6 +104,11 @@ internal static class InterfaceGenerationBuilder
                 case IPropertySymbol property:
                     AddMemberIfNeeded(property, membersToSkip, membersBuilder, seenMembers);
                     break;
+                case IEventSymbol @event when ShouldIgnoreEvent(@event):
+                    continue;
+                case IEventSymbol @event:
+                    AddMemberIfNeeded(@event, membersToSkip, membersBuilder, seenMembers);
+                    break;
             }
         }
 
@@ -116,7 +121,7 @@ internal static class InterfaceGenerationBuilder
         ImmutableArray<string>.Builder membersBuilder,
         HashSet<string> seenMembers)
     {
-        var signature = member.ToDisplayString(WellKnownInterfacesRegistry.InterfaceMemberDisplayFormat);
+        var signature = WellKnownInterfacesRegistry.GetMemberSignature(member);
         if (membersToSkip.Contains(signature))
         {
             return;
@@ -184,6 +189,16 @@ internal static class InterfaceGenerationBuilder
         }
 
         return HasRefLikeParameters(property.Parameters);
+    }
+
+    private static bool ShouldIgnoreEvent(IEventSymbol @event)
+    {
+        if (@event.DeclaredAccessibility != Accessibility.Public)
+        {
+            return true;
+        }
+
+        return @event.IsOverride;
     }
 
     private static bool HasRefLikeParameters(ImmutableArray<IParameterSymbol> parameters)

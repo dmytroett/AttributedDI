@@ -7,6 +7,7 @@ namespace MyApp;
 public interface IComplexType
 {
     string Name { get; }
+    event global::System.EventHandler? Changed;
     int this[int index] { get; set; }
     global::System.Threading.Tasks.Task<int> GetValueAsync(int index);
 }
