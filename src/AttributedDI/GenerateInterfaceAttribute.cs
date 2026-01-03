@@ -12,6 +12,7 @@ namespace AttributedDI;
 /// <item><description>Public methods, properties, events, and indexers declared on the type.</description></item>
 /// <item><description>Declared members only; inherited members are ignored.</description></item>
 /// <item><description>Generic type parameters and constraints are preserved, including nullability annotations.</description></item>
+/// <item><description>Optional parameters with default values are preserved.</description></item>
 /// </list>
 /// <para>Not generated (ignored):</para>
 /// <list type="bullet">

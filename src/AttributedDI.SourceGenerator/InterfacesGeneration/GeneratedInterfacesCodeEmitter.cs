@@ -86,7 +86,7 @@ internal static class GeneratedInterfacesCodeEmitter
             .Append(interfaceInfo.ClassName)
             .Append(interfaceInfo.ClassTypeParameters)
             .Append(" : ")
-            .Append(interfaceInfo.FullyQualifiedName);
+            .Append(BuildFullyQualifiedName(interfaceInfo.InterfaceNamespace, interfaceInfo.InterfaceName));
 
         // Add type parameters to the interface reference if needed
         if (!string.IsNullOrEmpty(interfaceInfo.ClassTypeParameters))
@@ -126,6 +126,13 @@ internal static class GeneratedInterfacesCodeEmitter
         var namePart = SanitizeForHintName(interfaceInfo.ClassName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
 
         return $"{namespacePart}_{namePart}.g.cs";
+    }
+
+    private static string BuildFullyQualifiedName(string @namespace, string name)
+    {
+        return string.IsNullOrWhiteSpace(@namespace)
+            ? name
+            : $"{@namespace}.{name}";
     }
 
     private static string SanitizeForHintName(string value)

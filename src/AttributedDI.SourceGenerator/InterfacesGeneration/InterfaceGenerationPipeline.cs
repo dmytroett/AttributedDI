@@ -2,13 +2,12 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
 namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 
-internal static class GeneratedInterfacesCollector
+internal static class InterfaceGenerationPipeline
 {
     public static IncrementalValuesProvider<GeneratedInterfaceInfo> Collect(IncrementalGeneratorInitializationContext context)
     {
@@ -26,12 +25,15 @@ internal static class GeneratedInterfacesCollector
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: attributeMetadataName,
                 predicate: static (_, _) => true,
-                transform: static (ctx, ct) => Transform(ctx, ct))
+                transform: static (ctx, ct) => InterfaceGenerationBuilder.Build(ctx, ct))
             .Where(static info => info is not null)
             .Select(static (info, _) => info!);
     }
+}
 
-    private static GeneratedInterfaceInfo? Transform(GeneratorAttributeSyntaxContext context, CancellationToken ct)
+internal static class InterfaceGenerationBuilder
+{
+    internal static GeneratedInterfaceInfo? Build(GeneratorAttributeSyntaxContext context, CancellationToken ct)
     {
         if (context.TargetSymbol is not INamedTypeSymbol typeSymbol)
         {

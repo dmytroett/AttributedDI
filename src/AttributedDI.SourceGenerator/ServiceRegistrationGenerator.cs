@@ -19,7 +19,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         var assemblyName = context.CompilationProvider.Select(static (compilation, _) => compilation.Assembly.Name);
         var registrations = ServicesRegistrationsCollector.Collect(context);
         var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
-        var generatedInterfaces = GeneratedInterfacesCollector.Collect(context);
+        var generatedInterfaces = InterfaceGenerationPipeline.Collect(context);
 
         var combinedData = registrations.Collect()
             .Combine(customModuleNameInfo)
