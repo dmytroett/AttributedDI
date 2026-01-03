@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Text;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
@@ -106,7 +107,16 @@ public class SourceGeneratorTestFixture
 
         AssertCodeCompiles(outputCompilation, "Post-generators");
 
-        var output = string.Join("\n", outputCompilation.SyntaxTrees.Skip(originalTreeCount).Select(t => t.ToString()));
+        var output = outputCompilation.SyntaxTrees
+            .Skip(originalTreeCount)
+            .Aggregate(new StringBuilder(), (sb, tree) =>
+            {
+                sb.AppendLine(CultureInfo.InvariantCulture, $"File name: {Path.GetFileName(tree.FilePath)}");
+                sb.AppendLine(tree.ToString());
+
+                return sb;
+            })
+            .ToString();
 
         return new SourceGeneratorTestResult(output, postGeneratorDiagnostics);
     }
