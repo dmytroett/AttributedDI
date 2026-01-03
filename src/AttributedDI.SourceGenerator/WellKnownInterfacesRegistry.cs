@@ -27,7 +27,14 @@ internal static class WellKnownInterfacesRegistry
         "global::System.IEquatable`1",
         "global::System.Collections.IEnumerable",
         "global::System.Collections.Generic.IEnumerable`1",
-        "global::System.Collections.Generic.IAsyncEnumerable`1");
+        "global::System.Collections.Generic.IAsyncEnumerable`1",
+        "global::System.Collections.ICollection",
+        "global::System.Collections.IList",
+        "global::System.Collections.Generic.ICollection`1",
+        "global::System.Collections.Generic.IList`1",
+        "global::System.Collections.Generic.IReadOnlyCollection`1",
+        "global::System.Collections.Generic.IReadOnlyList`1",
+        "global::System.ComponentModel.INotifyPropertyChanged");
 
     /// <summary>
     /// Gets the display format used for member signature comparisons.
