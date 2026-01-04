@@ -24,7 +24,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         {
             postInitializationContext.AddEmbeddedAttributeDefinition();
             postInitializationContext.AddSource(
-                "AttributedDiGeneratedModuleAttribute.g.cs",
+                "AttributedDI.Generated.Internal.GeneratedModuleAttribute.g.cs",
                 SourceText.From(GeneratedModuleAttributeSource, Encoding.UTF8));
         });
 

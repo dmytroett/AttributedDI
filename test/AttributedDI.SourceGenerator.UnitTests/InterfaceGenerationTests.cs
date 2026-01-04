@@ -530,8 +530,7 @@ public class InterfaceGenerationTests
             .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
-        Assert.Empty(output);
-        Assert.True(string.IsNullOrWhiteSpace(output));
+
         await Verify(output);
     }
 

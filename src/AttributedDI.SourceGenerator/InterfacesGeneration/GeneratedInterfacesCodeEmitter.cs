@@ -111,24 +111,14 @@ internal static class GeneratedInterfacesCodeEmitter
 
     private static string CreateInterfaceHintName(GeneratedInterfaceInfo interfaceInfo)
     {
-        var namespacePart = string.IsNullOrWhiteSpace(interfaceInfo.InterfaceNamespace)
-            ? "Global"
-            : interfaceInfo.InterfaceNamespace.Replace('.', '_');
-
         var namePart = SanitizeForHintName(interfaceInfo.InterfaceName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
-
-        return $"{namespacePart}_{namePart}.g.cs";
+        return CreateHintName(interfaceInfo.InterfaceNamespace, namePart);
     }
 
     private static string CreateClassHintName(GeneratedInterfaceInfo interfaceInfo)
     {
-        var namespacePart = string.IsNullOrWhiteSpace(interfaceInfo.ClassNamespace)
-            ? "Global"
-            : interfaceInfo.ClassNamespace.Replace('.', '_');
-
         var namePart = SanitizeForHintName(interfaceInfo.ClassName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
-
-        return $"{namespacePart}_{namePart}.g.cs";
+        return CreateHintName(interfaceInfo.ClassNamespace, namePart);
     }
 
     private static string BuildFullyQualifiedName(string @namespace, string name)
@@ -156,5 +146,15 @@ internal static class GeneratedInterfacesCodeEmitter
         return typeParameterCount > 0
             ? $"`{typeParameterCount}"
             : string.Empty;
+    }
+
+    private static string CreateHintName(string? @namespace, string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(@namespace))
+        {
+            return $"Global.{typeName}.g.cs";
+        }
+
+        return $"{@namespace}.{typeName}.g.cs";
     }
 }

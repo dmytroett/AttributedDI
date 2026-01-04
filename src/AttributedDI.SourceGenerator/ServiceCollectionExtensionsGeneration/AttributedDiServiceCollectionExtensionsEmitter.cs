@@ -92,6 +92,6 @@ internal static class AttributedDiServiceCollectionExtensionsEmitter
         builder.AppendLine("    }");
         builder.AppendLine("}");
 
-        context.AddSource("AttributedDiGeneratedServiceCollectionExtensions.g.cs", builder.ToString());
+        context.AddSource("AttributedDI.AttributedDiGeneratedServiceCollectionExtensions.g.cs", builder.ToString());
     }
 }

@@ -30,11 +30,11 @@ internal static class GeneratedModuleCodeEmitter
     {
         // Emit module class
         string moduleSource = EmitModuleClass(moduleName, namespaceName, assemblyName, registrations);
-        context.AddSource($"{moduleName}.g.cs", moduleSource);
+        context.AddSource(CreateHintName(namespaceName, moduleName), moduleSource);
 
         // Emit extension methods
         string extensionSource = EmitExtensionMethod(moduleName, methodName, namespaceName, assemblyName);
-        context.AddSource($"{moduleName}ServiceCollectionExtensions.g.cs", extensionSource);
+        context.AddSource(CreateHintName(namespaceName, $"{moduleName}ServiceCollectionExtensions"), extensionSource);
     }
 
     private static string EmitModuleClass(string moduleName, string namespaceName, string assemblyName, ImmutableArray<RegistrationInfo> registrations)
@@ -111,6 +111,16 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine("}");
 
         return sb.ToString();
+    }
+
+    private static string CreateHintName(string namespaceName, string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceName))
+        {
+            return $"{typeName}.g.cs";
+        }
+
+        return $"{namespaceName}.{typeName}.g.cs";
     }
 
     /// <summary>
