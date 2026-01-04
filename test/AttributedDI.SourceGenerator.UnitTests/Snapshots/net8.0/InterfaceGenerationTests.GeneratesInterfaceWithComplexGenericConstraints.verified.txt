@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IProcessor<TInput, TOutput>
  where TInput : class, global::System.IDisposable, new() where TOutput : struct
 {
@@ -17,6 +18,7 @@ File name: MyApp_Processor`2.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class Processor<TInput, TOutput> : MyApp.IProcessor<TInput, TOutput>  where TInput : class, global::System.IDisposable, new() where TOutput : struct
 {
 }

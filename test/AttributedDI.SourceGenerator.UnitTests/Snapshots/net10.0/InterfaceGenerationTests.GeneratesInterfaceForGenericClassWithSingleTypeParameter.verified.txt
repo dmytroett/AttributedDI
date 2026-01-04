@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IRepository<T>
 {
     T GetById(int id);
@@ -16,6 +17,7 @@ File name: MyApp_Repository`1.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class Repository<T> : MyApp.IRepository<T>
 {
 }

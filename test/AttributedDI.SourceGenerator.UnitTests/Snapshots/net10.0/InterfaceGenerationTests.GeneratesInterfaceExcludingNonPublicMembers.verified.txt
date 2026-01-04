@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IVisibilitySample
 {
     void Allowed();
@@ -15,6 +16,7 @@ File name: MyApp_VisibilitySample.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class VisibilitySample : MyApp.IVisibilitySample
 {
 }

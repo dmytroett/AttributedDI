@@ -12,6 +12,8 @@ namespace Custom.Namespace
     /// Service registration module for the Tests assembly.
     /// This module registers all services marked with AttributedDI attributes.
     /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
+    [global::AttributedDI.GeneratedModuleAttribute]
     public partial class MyModule : IServiceModule
     {
         /// <summary>
@@ -38,6 +40,7 @@ namespace Custom.Namespace
     /// <summary>
     /// Extension methods for registering services from the MyModule module.
     /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
     public static partial class MyModuleServiceCollectionExtensions
     {
         /// <summary>

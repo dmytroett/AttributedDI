@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IPartialExample
 {
     void FromFirst();
@@ -16,6 +17,7 @@ File name: MyApp_PartialExample.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class PartialExample : MyApp.IPartialExample
 {
 }

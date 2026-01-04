@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IGenericListHost
 {
     void Custom();
@@ -15,6 +16,7 @@ File name: MyApp_GenericListHost.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class GenericListHost : MyApp.IGenericListHost
 {
 }
@@ -25,6 +27,7 @@ File name: MyApp_INonGenericListHost.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface INonGenericListHost
 {
     void CustomNonGeneric();
@@ -36,6 +39,7 @@ File name: MyApp_NonGenericListHost.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class NonGenericListHost : MyApp.INonGenericListHost
 {
 }

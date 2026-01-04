@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IValidator<T>
  where T : class
 {
@@ -17,6 +18,7 @@ File name: MyApp_Validator`1.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class Validator<T> : MyApp.IValidator<T>  where T : class
 {
 }

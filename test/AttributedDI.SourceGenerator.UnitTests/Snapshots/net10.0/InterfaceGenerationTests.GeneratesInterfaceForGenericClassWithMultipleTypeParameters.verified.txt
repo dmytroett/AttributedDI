@@ -4,6 +4,7 @@
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public interface IMapper<TSource, TDestination>
 {
     TDestination Map(TSource source);
@@ -16,6 +17,7 @@ File name: MyApp_Mapper`2.g.cs
 
 namespace MyApp;
 
+[global::System.CodeDom.Compiler.GeneratedCode("AttributedDI.SourceGenerator", "1.0.0.0")]
 public partial class Mapper<TSource, TDestination> : MyApp.IMapper<TSource, TDestination>
 {
 }
