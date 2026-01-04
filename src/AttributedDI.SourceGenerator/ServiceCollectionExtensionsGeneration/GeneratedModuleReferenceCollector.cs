@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator.ModuleInitializerGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
 
 internal static class GeneratedModuleReferenceCollector
 {

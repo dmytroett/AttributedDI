@@ -3,11 +3,11 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator.ModuleInitializerGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
 
-internal static class ModuleInitializerPipeline
+internal static class AttributedDiServiceCollectionExtensionsPipeline
 {
-    public static IncrementalValueProvider<ImmutableArray<GeneratedModuleRegistrationInfo>> Collect(
+    public static IncrementalValueProvider<AttributedDiServiceCollectionExtensionsInfo> Collect(
         IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ServiceModuleToGenerate> moduleToGenerate)
     {
         var isEntryPoint = context.CompilationProvider
@@ -16,7 +16,7 @@ internal static class ModuleInitializerPipeline
         var generatedModulesFromReferences = context.CompilationProvider
             .Select(static (compilation, token) => CollectFromCompilation(compilation, token));
 
-        var modulesToInitialize = moduleToGenerate
+        var modulesToInclude = moduleToGenerate
             .Select(static (module, _) =>
             {
                 var (registrationInfos, customNameInfo, _) = module;
@@ -30,27 +30,27 @@ internal static class ModuleInitializerPipeline
                 return (GeneratedModuleRegistrationInfo?)new GeneratedModuleRegistrationInfo(fullyQualifiedName);
             });
 
-        var result = isEntryPoint
+        return isEntryPoint
             .Combine(generatedModulesFromReferences)
-            .Combine(modulesToInitialize)
+            .Combine(modulesToInclude)
             .Select(static (data, _) =>
             {
-                var ((isEntryPoint, modulesFromReferences), currentModuleToInitialize) = data;
+                var ((isEntryPoint, modulesFromReferences), currentModuleToInclude) = data;
 
                 if (!isEntryPoint)
                 {
-                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
+                    return new AttributedDiServiceCollectionExtensionsInfo(
+                        false,
+                        ImmutableArray<GeneratedModuleRegistrationInfo>.Empty);
                 }
 
-                if (currentModuleToInitialize == null)
+                if (currentModuleToInclude == null)
                 {
-                    return modulesFromReferences;
+                    return new AttributedDiServiceCollectionExtensionsInfo(true, modulesFromReferences);
                 }
 
-                return modulesFromReferences.Add(currentModuleToInitialize);
+                return new AttributedDiServiceCollectionExtensionsInfo(true, modulesFromReferences.Add(currentModuleToInclude));
             });
-
-        return result;
     }
 
     private static ImmutableArray<GeneratedModuleRegistrationInfo> CollectFromCompilation(Compilation compilation, CancellationToken token)
@@ -66,3 +66,7 @@ internal static class ModuleInitializerPipeline
 }
 
 internal sealed record GeneratedModuleRegistrationInfo(string FullyQualifiedTypeName);
+
+internal sealed record AttributedDiServiceCollectionExtensionsInfo(
+    bool IsEntryPoint,
+    ImmutableArray<GeneratedModuleRegistrationInfo> ModuleTypes);

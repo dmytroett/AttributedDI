@@ -1,5 +1,5 @@
 using AttributedDI.SourceGenerator.InterfacesGeneration;
-using AttributedDI.SourceGenerator.ModuleInitializerGeneration;
+using AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
 using AttributedDI.SourceGenerator.ServiceModulesGeneration;
 using Microsoft.CodeAnalysis;
 using System;
@@ -21,7 +21,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
         // Phase 1: locate the attributes & extract structured info for code generation.        
         var moduleToGenerate = ModuleGenerationPipeline.Collect(context);
         var generatedInterfaces = InterfaceGenerationPipeline.Collect(context);
-        var referencedModules = ModuleInitializerPipeline.Collect(context, moduleToGenerate);        
+        var addAttributedDiExtensions = AttributedDiServiceCollectionExtensionsPipeline.Collect(context, moduleToGenerate);
 
         // Phase 2: Generate code based on collected data
         context.RegisterSourceOutput(moduleToGenerate, static (spc, data) =>
@@ -40,14 +40,14 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
             }
         });
 
-        context.RegisterSourceOutput(referencedModules, static (spc, modules) =>
+        context.RegisterSourceOutput(addAttributedDiExtensions, static (spc, info) =>
         {
-            if (modules.IsDefaultOrEmpty)
+            if (!info.IsEntryPoint)
             {
                 return;
             }
 
-            GeneratedModuleInitializerEmitter.EmitModuleInitializer(spc, modules);
+            AttributedDiServiceCollectionExtensionsEmitter.EmitExtensionMethods(spc, info.ModuleTypes);
         });
 
         context.RegisterSourceOutput(generatedInterfaces.Collect(), static (spc, interfaces) =>
