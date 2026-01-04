@@ -1,3 +1,0 @@
-namespace AttributedDI.SourceGenerator.ModuleInitializerGeneration;
-
-internal record GeneratedModuleRegistrationInfo(string FullyQualifiedTypeName);

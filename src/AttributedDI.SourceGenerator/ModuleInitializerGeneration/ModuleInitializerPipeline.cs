@@ -64,3 +64,5 @@ internal static class ModuleInitializerPipeline
         return GeneratedModuleReferenceCollector.CollectGeneratedModulesFromReferences(compilation, token);
     }
 }
+
+internal sealed record GeneratedModuleRegistrationInfo(string FullyQualifiedTypeName);

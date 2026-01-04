@@ -25,4 +25,4 @@ internal static class ModuleGenerationPipeline
     }
 }
 
-internal record ServiceModuleToGenerate(ImmutableArray<RegistrationInfo> Registrations, ResolvedModuleNames ModuleNames, string AssemblyName);
+internal sealed record ServiceModuleToGenerate(ImmutableArray<RegistrationInfo> Registrations, ResolvedModuleNames ModuleNames, string AssemblyName);
