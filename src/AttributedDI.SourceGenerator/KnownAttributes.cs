@@ -23,5 +23,5 @@ internal static class KnownAttributes
     public const string GeneratedModuleNameAttribute = "AttributedDI.GeneratedModuleNameAttribute";
 
     // Generated module marker attribute
-    public const string GeneratedModuleAttribute = "AttributedDI.GeneratedModuleAttribute";
+    public const string GeneratedModuleAttribute = "AttributedDI.Generated.Internal.GeneratedModuleAttribute";
 }

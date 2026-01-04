@@ -8,7 +8,7 @@ namespace AttributedDI;
 /// <summary>
 /// Represents configuration options for AttributedDI service registration.
 /// </summary>
-public class AttributedDiOptions
+public sealed class AttributedDiOptions
 {
     private readonly HashSet<IServiceModule> modules = new(ModuleTypeComparer.Instance);
 

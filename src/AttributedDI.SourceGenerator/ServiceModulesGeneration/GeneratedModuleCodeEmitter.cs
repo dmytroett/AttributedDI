@@ -57,7 +57,7 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine("    /// This module registers all services marked with AttributedDI attributes.");
         _ = sb.AppendLine("    /// </summary>");
         GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
-        _ = sb.AppendLine("    [global::AttributedDI.GeneratedModuleAttribute]");
+        _ = sb.AppendLine("    [global::AttributedDI.Generated.Internal.GeneratedModuleAttribute]");
         _ = sb.AppendLine($"    public partial class {moduleName} : IServiceModule");
         _ = sb.AppendLine("    {");
         _ = sb.AppendLine("        /// <summary>");
