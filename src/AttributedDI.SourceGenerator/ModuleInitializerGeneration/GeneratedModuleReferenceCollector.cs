@@ -5,16 +5,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ModuleInitializerGeneration;
 
 internal static class GeneratedModuleReferenceCollector
 {
-    public static IncrementalValueProvider<ImmutableArray<GeneratedModuleRegistrationInfo>> Collect(IncrementalGeneratorInitializationContext context)
-    {
-        return context.CompilationProvider.Select(static (compilation, token) => CollectFromCompilation(compilation, token));
-    }
-
-    private static ImmutableArray<GeneratedModuleRegistrationInfo> CollectFromCompilation(Compilation compilation, CancellationToken token)
+    public static ImmutableArray<GeneratedModuleRegistrationInfo> CollectGeneratedModulesFromReferences(Compilation compilation, CancellationToken token)
     {
         var serviceModuleSymbol = compilation.GetTypeByMetadataName("AttributedDI.IServiceModule");
         if (serviceModuleSymbol is null)

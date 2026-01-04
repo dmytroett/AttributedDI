@@ -1,3 +1,3 @@
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ModuleInitializerGeneration;
 
 internal readonly record struct GeneratedModuleRegistrationInfo(string FullyQualifiedTypeName);

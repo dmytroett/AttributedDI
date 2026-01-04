@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ModuleInitializerGeneration;
 
 internal static class GeneratedModuleInitializerEmitter
 {

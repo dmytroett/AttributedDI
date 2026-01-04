@@ -1,4 +1,5 @@
 using AttributedDI.SourceGenerator.InterfacesGeneration;
+using AttributedDI.SourceGenerator.ModuleInitializerGeneration;
 using AttributedDI.SourceGenerator.ServiceModulesGeneration;
 using Microsoft.CodeAnalysis;
 using System;
@@ -17,64 +18,15 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Phase 1: locate the attributes & extract structured info for code generation.
-        var assemblyName = context.CompilationProvider.Select(static (compilation, _) => compilation.Assembly.Name);
-        var isEntryPoint = context.CompilationProvider
-            .Select(static (compilation, _) => compilation.Options.OutputKind != OutputKind.DynamicallyLinkedLibrary);
-        var registrations = ServicesRegistrationsCollector.Collect(context);
-        var customModuleNameInfo = GeneratedModuleNameCollector.Collect(context);
-        var referencedModules = GeneratedModuleReferenceCollector.Collect(context);
+        // Phase 1: locate the attributes & extract structured info for code generation.        
+        var moduleToGenerate = ModuleGenerationPipeline.Collect(context);
         var generatedInterfaces = InterfaceGenerationPipeline.Collect(context);
-
-        var combinedData = registrations.Collect()
-            .Combine(customModuleNameInfo)
-            .Combine(assemblyName);
-        var moduleRegistrations = combinedData
-            .Select(static (data, _) =>
-            {
-                var ((registrationInfos, customNameInfo), _) = data;
-
-                if (registrationInfos.IsDefaultOrEmpty)
-                {
-                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
-                }
-
-                var fullyQualifiedName = $"global::{customNameInfo.Namespace}.{customNameInfo.ModuleName}";
-                return ImmutableArray.Create(new GeneratedModuleRegistrationInfo(fullyQualifiedName));
-            })
-            .Combine(referencedModules)
-            .Select(static (data, _) =>
-            {
-                var currentModules = data.Left;
-                var referenced = data.Right;
-
-                if (currentModules.IsDefaultOrEmpty && referenced.IsDefaultOrEmpty)
-                {
-                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
-                }
-
-                var combined = currentModules.IsDefaultOrEmpty
-                    ? referenced
-                    : referenced.IsDefaultOrEmpty
-                        ? currentModules
-                        : currentModules.AddRange(referenced);
-
-                if (combined.Length <= 1)
-                {
-                    return combined;
-                }
-
-                return combined
-                    .Distinct()
-                    .OrderBy(static info => info.FullyQualifiedTypeName, StringComparer.Ordinal)
-                    .ToImmutableArray();
-            })
-            .Combine(isEntryPoint);
+        var referencedModules = ModuleInitializerPipeline.Collect(context, moduleToGenerate);        
 
         // Phase 2: Generate code based on collected data
-        context.RegisterSourceOutput(combinedData, static (spc, data) =>
+        context.RegisterSourceOutput(moduleToGenerate, static (spc, data) =>
         {
-            var ((registrationInfos, customNameInfo), assemblyName) = data;
+            var (registrationInfos, customNameInfo, assemblyName) = data;
 
             if (registrationInfos.Any())
             {
@@ -88,12 +40,9 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
             }
         });
 
-        context.RegisterSourceOutput(moduleRegistrations, static (spc, data) =>
+        context.RegisterSourceOutput(referencedModules, static (spc, modules) =>
         {
-            var modules = data.Left;
-            var isEntryPoint = data.Right;
-
-            if (!isEntryPoint || modules.IsDefaultOrEmpty)
+            if (modules.IsDefaultOrEmpty)
             {
                 return;
             }

@@ -127,3 +127,7 @@ internal static class GeneratedModuleNameCollector
         return false;
     }
 }
+
+internal sealed record CustomModuleNameInfo(string? ModuleName, string? MethodName, string? Namespace);
+
+internal sealed record ResolvedModuleNames(string ModuleName, string MethodName, string Namespace);
