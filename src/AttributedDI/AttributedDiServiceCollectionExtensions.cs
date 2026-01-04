@@ -113,7 +113,7 @@ public static partial class AttributedDiServiceCollectionExtensions
         {
             foreach (var moduleType in AttributedDiGeneratedModuleRegistry.GetRegisteredModules())
             {
-                var module = (IServiceModule)Activator.CreateInstance(moduleType)!;
+                var module = (IServiceModule)Activator.CreateInstance(moduleType.ModuleType)!;
                 _ = services.AddModule(module);
             }
         }
