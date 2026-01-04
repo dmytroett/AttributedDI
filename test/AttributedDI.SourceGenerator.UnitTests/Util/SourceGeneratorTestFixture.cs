@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Text;
 
@@ -15,6 +16,7 @@ public class SourceGeneratorTestFixture
     private readonly List<IIncrementalGenerator> _generators = [];
     private string? _sourceCode;
     private string? _assemblyName;
+    private OutputKind _outputKind = OutputKind.DynamicallyLinkedLibrary;
 
     public SourceGeneratorTestFixture WithExtraReferences(params MetadataReference[] references)
     {
@@ -38,6 +40,41 @@ public class SourceGeneratorTestFixture
     public SourceGeneratorTestFixture WithAssemblyName(string assemblyName)
     {
         _assemblyName = assemblyName;
+        return this;
+    }
+
+    public SourceGeneratorTestFixture WithOutputKind(OutputKind outputKind)
+    {
+        _outputKind = outputKind;
+        return this;
+    }
+
+    public SourceGeneratorTestFixture WithReferencedAssemblySource(string sourceCode, string assemblyName)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            [syntaxTree],
+            GetBaseReferences(),
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        AssertCodeCompiles(compilation, $"Reference assembly ({assemblyName})");
+
+        using var stream = new MemoryStream();
+        var emitResult = compilation.Emit(stream);
+        if (!emitResult.Success)
+        {
+            string errorMessages = string.Join(
+                Environment.NewLine,
+                emitResult.Diagnostics
+                    .Where(d => d.Severity == DiagnosticSeverity.Error)
+                    .Select(d => $"  {d.GetMessage(CultureInfo.InvariantCulture)}"));
+            Assert.Fail($"Reference assembly ({assemblyName}) emit failed:{Environment.NewLine}{errorMessages}");
+        }
+
+        stream.Position = 0;
+        _extraReferences.Add(MetadataReference.CreateFromStream(stream));
+
         return this;
     }
 
@@ -66,26 +103,14 @@ public class SourceGeneratorTestFixture
         // Without these, the source generator cannot read attributes like [assembly: RegistrationMethodName("...")]
         // because the compilation lacks the metadata for System.Attribute and related types.
         // See: https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md
-        List<MetadataReference> references =
-        [
-            MetadataReference.CreateFromFile(typeof(object).Assembly
-                .Location), // System.Private.CoreLib - provides System.Attribute
-            MetadataReference.CreateFromFile(typeof(RegisterAsSelfAttribute).Assembly
-                .Location), // AttributedDI assembly
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly
-                .Location), // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(AppDomain.CurrentDomain.GetAssemblies()
-                .First(a => a.GetName().Name == "System.Runtime")
-                .Location), // System.Runtime - required for attribute metadata resolution
-            .._extraReferences
-        ];
+        List<MetadataReference> references = [.. GetBaseReferences(), .. _extraReferences];
 
         // Create a Roslyn compilation for the syntax tree with references
         var compilation = CSharpCompilation.Create(
             _assemblyName ?? "Tests",
             [syntaxTree],
             references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(_outputKind));
 
         AssertCodeCompiles(compilation, "Pre-generators");
 
@@ -114,6 +139,22 @@ public class SourceGeneratorTestFixture
         return new SourceGeneratorTestResult(output, postGeneratorDiagnostics);
     }
 
+    private static List<MetadataReference> GetBaseReferences()
+    {
+        return
+        [
+            // System.Private.CoreLib - provides System.Attribute
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            // AttributedDI assembly
+            MetadataReference.CreateFromFile(typeof(RegisterAsSelfAttribute).Assembly.Location), 
+            // Microsoft.Extensions.DependencyInjection.Abstractions
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location), 
+            // System.Runtime - required for attribute metadata resolution
+            MetadataReference.CreateFromFile(
+                AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "System.Runtime").Location),
+        ];
+    }
+
     private static void AssertCodeCompiles(Compilation compilation, string stageName)
     {
         var diagnostics = compilation.GetDiagnostics();
@@ -121,8 +162,7 @@ public class SourceGeneratorTestFixture
 
         if (errors.Count > 0)
         {
-            string errorMessages = string.Join(Environment.NewLine,
-                errors.Select(e => $"  {e.GetMessage(CultureInfo.InvariantCulture)}"));
+            string errorMessages = string.Join(Environment.NewLine, errors.Select(e => $"  {e.GetMessage(CultureInfo.InvariantCulture)}"));
             Assert.Fail($"{stageName} source code has compilation errors:{Environment.NewLine}{errorMessages}");
         }
     }
