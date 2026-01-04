@@ -20,5 +20,8 @@ internal static class KnownAttributes
     public const string GenerateInterfaceAttribute = "AttributedDI.GenerateInterfaceAttribute";
 
     // Assembly-level attributes
+    public const string GeneratedModuleNameAttribute = "AttributedDI.GeneratedModuleNameAttribute";
+
+    // Generated module marker attribute
     public const string GeneratedModuleAttribute = "AttributedDI.GeneratedModuleAttribute";
 }

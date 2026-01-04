@@ -1,3 +1,4 @@
+using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Immutable;
@@ -55,6 +56,8 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine($"    /// Service registration module for the {assemblyName} assembly.");
         _ = sb.AppendLine("    /// This module registers all services marked with AttributedDI attributes.");
         _ = sb.AppendLine("    /// </summary>");
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
+        _ = sb.AppendLine("    [global::AttributedDI.GeneratedModuleAttribute]");
         _ = sb.AppendLine($"    public partial class {moduleName} : IServiceModule");
         _ = sb.AppendLine("    {");
         _ = sb.AppendLine("        /// <summary>");
@@ -92,6 +95,7 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine("    /// <summary>");
         _ = sb.AppendLine($"    /// Extension methods for registering services from the {moduleName} module.");
         _ = sb.AppendLine("    /// </summary>");
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
         _ = sb.AppendLine($"    public static partial class {moduleName}ServiceCollectionExtensions");
         _ = sb.AppendLine("    {");
         _ = sb.AppendLine("        /// <summary>");

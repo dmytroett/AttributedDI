@@ -12,7 +12,7 @@ namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 internal static class GeneratedModuleNameCollector
 {
     /// <summary>
-    /// Scans the assembly for custom module name information from GeneratedModuleAttribute.
+    /// Scans the assembly for custom module name information from GeneratedModuleNameAttribute.
     /// Returns null for all properties if no attribute is present.
     /// </summary>
     /// <param name="context">The incremental generator initialization context.</param>
@@ -24,7 +24,7 @@ internal static class GeneratedModuleNameCollector
 
         var customModuleNameAttribute = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                KnownAttributes.GeneratedModuleAttribute,
+                KnownAttributes.GeneratedModuleNameAttribute,
                 predicate: static (node, _) => node is CompilationUnitSyntax,
                 transform: CollectUserDefinedNames)
             .Where(static info => info is not null)
@@ -48,7 +48,7 @@ internal static class GeneratedModuleNameCollector
     private static CustomModuleNameInfo? CollectUserDefinedNames(GeneratorAttributeSyntaxContext context, CancellationToken token)
     {
         var attributeData = context.Attributes
-            .FirstOrDefault(attr => attr.AttributeClass is not null && IsGeneratedModuleAttribute(attr.AttributeClass));
+            .FirstOrDefault(attr => attr.AttributeClass is not null && IsGeneratedModuleNameAttribute(attr.AttributeClass));
 
         if (attributeData is null)
         {
@@ -111,16 +111,15 @@ internal static class GeneratedModuleNameCollector
     }
 
     /// <summary>
-    /// Determines whether the given attribute class is a GeneratedModuleAttribute.
+    /// Determines whether the given attribute class is a GeneratedModuleNameAttribute.
     /// Uses multiple matching strategies: symbol equality, full name, and short name.
     /// </summary>
     /// <param name="attributeClass">The attribute class to check.</param>
-    /// <returns>True if the attribute is a GeneratedModuleAttribute; otherwise, false.</returns>
-    private static bool IsGeneratedModuleAttribute(INamedTypeSymbol attributeClass)
+    /// <returns>True if the attribute is a GeneratedModuleNameAttribute; otherwise, false.</returns>
+    private static bool IsGeneratedModuleNameAttribute(INamedTypeSymbol attributeClass)
     {
-        if (string.Equals(attributeClass.ToDisplayString(), KnownAttributes.GeneratedModuleAttribute, StringComparison.Ordinal) &&
-            (string.Equals(attributeClass.Name, "GeneratedModuleAttribute", StringComparison.Ordinal) ||
-            string.Equals(attributeClass.Name, "GeneratedModule", StringComparison.Ordinal)))
+        if (string.Equals(attributeClass.ToDisplayString(), KnownAttributes.GeneratedModuleNameAttribute, StringComparison.Ordinal) &&
+            string.Equals(attributeClass.Name, "GeneratedModuleNameAttribute", StringComparison.Ordinal))
         {
             return true;
         }

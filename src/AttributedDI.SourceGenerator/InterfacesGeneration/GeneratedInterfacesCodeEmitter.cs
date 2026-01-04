@@ -1,3 +1,4 @@
+using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System;
@@ -37,6 +38,7 @@ internal static class GeneratedInterfacesCodeEmitter
             builder.AppendLine();
         }
 
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
         builder.Append(interfaceInfo.Accessibility)
             .Append(" interface ")
             .Append(interfaceInfo.InterfaceName)
@@ -80,6 +82,7 @@ internal static class GeneratedInterfacesCodeEmitter
             builder.AppendLine();
         }
 
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
         // Build the partial class declaration that implements the interface
         builder.Append(interfaceInfo.Accessibility)
             .Append(" partial class ")

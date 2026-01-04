@@ -111,7 +111,11 @@ public static partial class AttributedDiServiceCollectionExtensions
 
         if (opts.RegisterGeneratedModules)
         {
-            AddAttributedDiGeneratedModules(services);
+            foreach (var moduleType in AttributedDiGeneratedModuleRegistry.GetRegisteredModules())
+            {
+                var module = (IServiceModule)Activator.CreateInstance(moduleType)!;
+                _ = services.AddModule(module);
+            }
         }
 
         if (opts.AdditionalModules.Count > 0)
@@ -139,6 +143,4 @@ public static partial class AttributedDiServiceCollectionExtensions
 
         return services;
     }
-
-    static partial void AddAttributedDiGeneratedModules(IServiceCollection services);
 }

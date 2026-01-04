@@ -9,29 +9,29 @@ namespace AttributedDI;
 /// <example>
 /// <code>
 /// // Customize module, method, and namespace
-/// [assembly: GeneratedModule(moduleName: "MyFeatureModule", methodName: "AddMyFeature", moduleNamespace: "My.Company.Features")]
+/// [assembly: GeneratedModuleName(moduleName: "MyFeatureModule", methodName: "AddMyFeature", moduleNamespace: "My.Company.Features")]
 /// 
 /// // Customize only method name (module name derived from assembly)
-/// [assembly: GeneratedModule(methodName: "AddMyFeature")]
+/// [assembly: GeneratedModuleName(methodName: "AddMyFeature")]
 /// 
 /// // Customize only module name (method name uses the default derived from assembly name)
-/// [assembly: GeneratedModule(moduleName: "MyFeatureModule")]
+/// [assembly: GeneratedModuleName(moduleName: "MyFeatureModule")]
 /// 
 /// // Customize only namespace (module and method derived from assembly)
-/// [assembly: GeneratedModule(moduleNamespace: "My.Company.Generated")]
+/// [assembly: GeneratedModuleName(moduleNamespace: "My.Company.Generated")]
 /// </code>
 /// </example>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
-public sealed class GeneratedModuleAttribute : Attribute
+public sealed class GeneratedModuleNameAttribute : Attribute
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="GeneratedModuleAttribute"/> class.
+    /// Initializes a new instance of the <see cref="GeneratedModuleNameAttribute"/> class.
     /// </summary>
     /// <param name="moduleName">The name for the generated module class. If null, derived from assembly name.</param>
     /// <param name="methodName">The name for the registration extension method. If null, uses "Add" + module name.</param>
     /// <param name="moduleNamespace">The namespace for the generated module and extension class. If null, derived from assembly name.</param>
     /// <exception cref="ArgumentException">Thrown when a provided value is empty or whitespace.</exception>
-    public GeneratedModuleAttribute(string? moduleName = null, string? methodName = null, string? moduleNamespace = null)
+    public GeneratedModuleNameAttribute(string? moduleName = null, string? methodName = null, string? moduleNamespace = null)
     {
         if (moduleName is not null && string.IsNullOrWhiteSpace(moduleName))
         {

@@ -55,4 +55,3 @@ public sealed class MultiInterfaceSingletonService : IFirstService, ISecondServi
 public class LifetimeOnlyTransientService
 {
 }
-

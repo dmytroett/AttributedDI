@@ -1,7 +1,7 @@
 namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 /// <summary>
-/// Contains custom module, method, and namespace values from the GeneratedModuleAttribute.
+/// Contains custom module, method, and namespace values from the GeneratedModuleNameAttribute.
 /// </summary>
 /// <param name="ModuleName">The custom module name from the attribute, or null to use default.</param>
 /// <param name="MethodName">The custom method name from the attribute, or null to use default.</param>

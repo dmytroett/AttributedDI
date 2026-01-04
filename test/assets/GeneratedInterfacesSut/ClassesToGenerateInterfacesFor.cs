@@ -23,7 +23,7 @@ public partial class MyScopedClassToGenerateInterface
 }
 
 [RegisterAsGeneratedInterface]
-public partial class ShouldGenerateEmptyInterface: IDisposable, IAsyncDisposable
+public partial class ShouldGenerateEmptyInterface : IDisposable, IAsyncDisposable
 {
     public void Dispose()
     {
