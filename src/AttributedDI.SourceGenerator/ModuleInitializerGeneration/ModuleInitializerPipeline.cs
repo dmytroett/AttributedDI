@@ -42,12 +42,12 @@ internal static class ModuleInitializerPipeline
                     return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
                 }
 
-                if (!currentModuleToInitialize.HasValue)
+                if (currentModuleToInitialize == null)
                 {
                     return modulesFromReferences;
                 }
 
-                return modulesFromReferences.Add(currentModuleToInitialize.Value);
+                return modulesFromReferences.Add(currentModuleToInitialize);
             });
 
         return result;
