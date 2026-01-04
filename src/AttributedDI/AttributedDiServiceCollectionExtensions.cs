@@ -7,7 +7,7 @@ namespace AttributedDI;
 /// <summary>
 /// Provides extension methods for <see cref="IServiceCollection"/> to register service modules.
 /// </summary>
-public static partial class AttributedDiServiceCollectionExtensions
+public static class AttributedDiServiceCollectionExtensions
 {
     /// <summary>
     /// Adds a service module to the service collection.
