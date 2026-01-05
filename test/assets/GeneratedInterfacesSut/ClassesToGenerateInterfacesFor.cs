@@ -132,3 +132,12 @@ public partial class ClassWithABunchOfKnownInterfaces :
         return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
     }
 }
+
+[RegisterAsGeneratedInterface(interfaceNamespace: "GeneratedInterfacesSut.Abstractions")]
+public partial class CustomNamespaceViaParameter{ }
+
+[RegisterAsGeneratedInterface("GeneratedInterfacesSut.Contracts.ICustomInterface1")]
+public partial class CustomNamespaceViaFullyQualifiedName{ }
+
+[RegisterAsGeneratedInterface("ICustomInterface2", "GeneratedInterfacesSut.Internal")]
+public partial class CustomNamespaceViaBoth{ }

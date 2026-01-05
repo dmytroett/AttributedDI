@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
     <ProjectReference Include="..\assets\CustomModuleName\CustomModuleName.csproj" />
     <ProjectReference Include="..\assets\Company.TeamName.Project.API\Company.TeamName.Project.API.csproj" />
     <ProjectReference Include="..\assets\GeneratedInterfacesSut\GeneratedInterfacesSut.csproj" />
