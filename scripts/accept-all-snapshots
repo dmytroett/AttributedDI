@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/accept-all-snapshots
+
+Accepts Verify snapshots for all tests by promoting one TFM's received files
+per test to verified files and removing the other received files. When multiple
+TFMs exist for a test, the highest TFM version is accepted.
+USAGE
+}
+
+if [[ $# -ne 0 ]]; then
+  usage
+  exit 1
+fi
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+snapshots_dir="$repo_root/test/AttributedDI.SourceGenerator.UnitTests/Snapshots"
+
+if [[ ! -d "$snapshots_dir" ]]; then
+  echo "Snapshots directory not found: $snapshots_dir" >&2
+  exit 1
+fi
+
+shopt -s nullglob
+
+received_files=("$snapshots_dir"/*.received.*)
+
+if [[ ${#received_files[@]} -eq 0 ]]; then
+  echo "No received files found in $snapshots_dir" >&2
+  exit 0
+fi
+
+declare -A seen
+
+for received_path in "${received_files[@]}"; do
+  file_name="$(basename "$received_path")"
+  base_name=""
+  if [[ "$file_name" =~ ^(.+)\.DotNet[0-9]+_[0-9]+\.received\. ]]; then
+    base_name="${BASH_REMATCH[1]}"
+  elif [[ "$file_name" == *.received.* ]]; then
+    base_name="${file_name%.received.*}"
+  fi
+
+  if [[ -z "$base_name" ]]; then
+    continue
+  fi
+
+  if [[ -n "${seen[$base_name]+x}" ]]; then
+    continue
+  fi
+
+  seen[$base_name]=1
+  test_class="${base_name%.*}"
+  test_method="${base_name##*.}"
+  "$repo_root/scripts/accept-snapshot" "$test_class" "$test_method"
+done
