@@ -141,3 +141,12 @@ public partial class CustomNamespaceViaFullyQualifiedName{ }
 
 [RegisterAsGeneratedInterface("ICustomInterface2", "GeneratedInterfacesSut.Internal")]
 public partial class CustomNamespaceViaBoth{ }
+
+[GenerateInterface(interfaceNamespace: "GeneratedInterfacesSut.Abstractions")]
+public partial class CustomNamespaceViaParameterG{ }
+
+[GenerateInterface("GeneratedInterfacesSut.Contracts.ICustomInterface1G")]
+public partial class CustomNamespaceViaFullyQualifiedNameG{ }
+
+[GenerateInterface("ICustomInterface2G", "GeneratedInterfacesSut.Internal")]
+public partial class CustomNamespaceViaBothG{ }

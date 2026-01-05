@@ -12,6 +12,7 @@ internal static class GeneratedModuleReferenceCollector
     public static ImmutableArray<GeneratedModuleRegistrationInfo> CollectGeneratedModulesFromReferences(Compilation compilation, CancellationToken token)
     {
         var serviceModuleSymbol = compilation.GetTypeByMetadataName("AttributedDI.IServiceModule");
+
         if (serviceModuleSymbol is null)
         {
             return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
