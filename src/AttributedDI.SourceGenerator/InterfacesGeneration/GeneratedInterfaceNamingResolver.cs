@@ -14,7 +14,7 @@ internal static class GeneratedInterfaceNamingResolver
         var interfaceNamespaceArgument = GetOptionalStringArgument(attribute, position: 1, name: "InterfaceNamespace");
 
         var defaultInterfaceName = $"I{typeSymbol.Name}";
-        var defaultNamespace = typeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var defaultNamespace = NormalizeNamespace(typeSymbol.ContainingNamespace?.ToDisplayString());
 
         if (!string.IsNullOrWhiteSpace(interfaceNameArgument))
         {
@@ -28,13 +28,15 @@ internal static class GeneratedInterfaceNamingResolver
 
             naming = new GeneratedInterfaceNaming(
                 parsed.Name,
-                string.IsNullOrEmpty(parsed.Namespace) ? interfaceNamespaceArgument ?? defaultNamespace : parsed.Namespace);
+                string.IsNullOrEmpty(parsed.Namespace)
+                    ? NormalizeNamespace(interfaceNamespaceArgument) ?? defaultNamespace
+                    : NormalizeNamespace(parsed.Namespace));
             return true;
         }
 
         if (!string.IsNullOrWhiteSpace(interfaceNamespaceArgument))
         {
-            naming = new GeneratedInterfaceNaming(defaultInterfaceName, interfaceNamespaceArgument!);
+            naming = new GeneratedInterfaceNaming(defaultInterfaceName, NormalizeNamespace(interfaceNamespaceArgument)!);
             return true;
         }
 
@@ -87,6 +89,24 @@ internal static class GeneratedInterfaceNamingResolver
         var parsedNamespace = nameToParse[..lastDot];
         var parsedName = nameToParse[(lastDot + 1)..];
         return (parsedName, parsedNamespace);
+    }
+
+    private static string NormalizeNamespace(string? namespaceValue)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceValue))
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(namespaceValue, "<global namespace>", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        const string prefix = "global::";
+        return namespaceValue!.StartsWith(prefix, StringComparison.Ordinal)
+            ? namespaceValue.Substring(prefix.Length)
+            : namespaceValue;
     }
 }
 

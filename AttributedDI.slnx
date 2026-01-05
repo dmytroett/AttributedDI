@@ -21,6 +21,8 @@
     <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
   </Folder>
   <Folder Name="/test/assets/">
+    <Project Path="test/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
+    <Project Path="test/assets/AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
     <Project Path="test/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
     <Project Path="test/assets/CustomModuleName/CustomModuleName.csproj" />
     <Project Path="test/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />

@@ -115,12 +115,31 @@ internal static class GeneratedModuleCodeEmitter
 
     private static string CreateHintName(string namespaceName, string typeName)
     {
-        if (string.IsNullOrWhiteSpace(namespaceName))
+        var normalized = NormalizeNamespace(namespaceName);
+        if (string.IsNullOrWhiteSpace(normalized))
         {
             return $"{typeName}.g.cs";
         }
 
-        return $"{namespaceName}.{typeName}.g.cs";
+        return $"{normalized}.{typeName}.g.cs";
+    }
+
+    private static string NormalizeNamespace(string? namespaceValue)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceValue))
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(namespaceValue, "<global namespace>", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        const string prefix = "global::";
+        return namespaceValue!.StartsWith(prefix, StringComparison.Ordinal)
+            ? namespaceValue.Substring(prefix.Length)
+            : namespaceValue;
     }
 
     /// <summary>
