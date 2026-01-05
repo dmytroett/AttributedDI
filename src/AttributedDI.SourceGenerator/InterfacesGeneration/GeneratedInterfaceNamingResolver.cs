@@ -16,27 +16,26 @@ internal static class GeneratedInterfaceNamingResolver
         var defaultInterfaceName = $"I{typeSymbol.Name}";
         var defaultNamespace = NormalizeNamespace(typeSymbol.ContainingNamespace?.ToDisplayString());
 
-        if (!string.IsNullOrWhiteSpace(interfaceNameArgument))
+        if (!string.IsNullOrWhiteSpace(interfaceNamespaceArgument))
         {
-            var parsed = ParseInterfaceName(interfaceNameArgument!);
-            if (!string.IsNullOrEmpty(interfaceNamespaceArgument) && !string.IsNullOrEmpty(parsed.Namespace))
-            {
-                // TODO: emit diagnostic for conflicting interface name and namespace inputs.
-                naming = null;
-                return false;
-            }
+            var parsed = !string.IsNullOrWhiteSpace(interfaceNameArgument)
+                ? ParseInterfaceName(interfaceNameArgument!)
+                : (Name: defaultInterfaceName, Namespace: string.Empty);
 
             naming = new GeneratedInterfaceNaming(
                 parsed.Name,
-                string.IsNullOrEmpty(parsed.Namespace)
-                    ? NormalizeNamespace(interfaceNamespaceArgument) ?? defaultNamespace
-                    : NormalizeNamespace(parsed.Namespace));
+                NormalizeNamespace(interfaceNamespaceArgument));
             return true;
         }
 
-        if (!string.IsNullOrWhiteSpace(interfaceNamespaceArgument))
+        if (!string.IsNullOrWhiteSpace(interfaceNameArgument))
         {
-            naming = new GeneratedInterfaceNaming(defaultInterfaceName, NormalizeNamespace(interfaceNamespaceArgument)!);
+            var parsed = ParseInterfaceName(interfaceNameArgument!);
+            var resolvedNamespace = string.IsNullOrEmpty(parsed.Namespace)
+                ? defaultNamespace
+                : NormalizeNamespace(parsed.Namespace);
+
+            naming = new GeneratedInterfaceNaming(parsed.Name, resolvedNamespace);
             return true;
         }
 
@@ -93,6 +92,11 @@ internal static class GeneratedInterfaceNamingResolver
 
     private static string NormalizeNamespace(string? namespaceValue)
     {
+        if (namespaceValue is null)
+        {
+            return string.Empty;
+        }
+
         if (string.IsNullOrWhiteSpace(namespaceValue))
         {
             return string.Empty;
@@ -104,7 +108,7 @@ internal static class GeneratedInterfaceNamingResolver
         }
 
         const string prefix = "global::";
-        return namespaceValue!.StartsWith(prefix, StringComparison.Ordinal)
+        return namespaceValue.StartsWith(prefix, StringComparison.Ordinal)
             ? namespaceValue.Substring(prefix.Length)
             : namespaceValue;
     }

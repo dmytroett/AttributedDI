@@ -150,6 +150,29 @@ public class KeyedServicesRegistrationTests
     }
 
     [Fact]
+    public async Task RegistersKeyedTypeAgainstGeneratedInterfaceInGlobalNamespace()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   [RegisterAsGeneratedInterface("IGenerated", key: "primary")]
+                   public partial class GeneratedService
+                   {
+                       public string Ping() => "pong";
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
     public async Task RegistersKeyedAndNonKeyedServicesTogether()
     {
         // Tests: Mix of keyed and non-keyed registrations
