@@ -38,16 +38,11 @@ dotnet format --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
 
 This is a library. **All** public methods, properties, classes, and interfaces in library code **must** have XML documentation (///).
 
-**Scope**: This requirement applies to library code only (`src/AttributedDI/`, `src/AttributedDI.SourceGenerator/`). Test projects are exempt.
+This requirement applies to library code only (`src/AttributedDI/`, `src/AttributedDI.SourceGenerator/`). Test projects are exempt.
 
-### Required XML Tags
+Document only public APIs in library projects
 
-- `<summary>`: What it does
-- `<param>`: Each parameter's purpose and constraints
-- `<returns>`: Return value description
-- `<exception>`: Any exceptions thrown
-- `<example>`: Usage examples (for complex/frequently-used APIs)
-- `<remarks>`: Edge cases or important notes (when needed)
+Update documentation when signatures change
 
 ### Example
 
