@@ -1,48 +1,47 @@
 ---
 name: snapshot-unit-testing
-description: Write unit tests for the project. Use this skill each time the user wants to add/edit unit (but not integration) tests in the project.
+description: Write or update unit (not integration) tests in this repo using Verify snapshot testing, especially for source generator output, and run/accept snapshots via the provided scripts.
 ---
 
-# Overview
+# Scope
 
-Unit tests are located under `test/*UnitTests`. Most of the tests should be snapshot based, e.g. there is a snapshot of an output from the previous run of the test, subsequent runs compare new snapshot with the old one. The difference between verified and received is interpreted by test runner as a bug.
+Locate unit tests under `test/*UnitTests`. Use Verify snapshots when validating generated output; prefer normal assertions for non-generator logic.
 
-Never read raw snapshot files. Use test output (TODO expand on that).
+# Principles
 
-Not everything should be tested via snapshot testing approach. Use snapshot based approach only when needed to verify source generator output.
+Favor a small number of representative scenarios; combine related assertions to minimize snapshot files even if individual tests are larger.
 
-Come up with particular usage scenarios and align tests accordingly. Prefer small amount of independend scenarios (consequently small amout of tests) even if that means individual tests can be large. Such approach leads to smaller amount of snapshot files, which makes it easier to manage. Suggest restructuring/regrouping/realigning existing tests to match this recommendation.
+Avoid opening or reading `.received`/`.verified` files; rely on `dotnet test` output and VerifyException details only.
 
-**Run targeted test**:
-   - Use `dotnet test` with `--filter` to run only the relevant test(s).
-   - Consider `--no-build` and `--no-restore` when appropriate.
+Treat `scripts/accept-snapshot` and `scripts/accept-all-snapshots` as black boxes; do not open or inspect them.
 
-**Inspect results**:
-   - Use `dotnet test` output (failure summary, VerifyException details, and test names) to infer whether the test logic is wrong or snapshots need updating.
-   - Base the decision on the test name and failure reason; do not open or read raw snapshot `.received`/`.verified` files.   
+# Workflow
 
-**Accept snapshots when correct** (snapshot tests only):
-   - Use `scripts/accept-snapshot` for a single test, or `scripts/accept-all-snapshots` for bulk updates.
-   - If the test is not snapshot-based, do not use these scripts.
-   - Do not open or read script files. Use them assuming as black box.
-   - Avoid accepting snapshots if the behavior change is unintended or the test intent is unclear. Ask the user for clarification if needed.
+Write or update the test based on a concrete scenario.
 
-Use `Verify` library for snapshot testing. Iterate until all tests pass.
+Run targeted tests with `dotnet test --filter` and add `--no-build`/`--no-restore` when appropriate.
+
+Inspect `dotnet test` output to decide whether the test logic is wrong or snapshots need updating; do not open raw snapshot files.
+
+Accept snapshots only when the behavior change is intended and clearly understood:
+- Use `scripts/accept-snapshot <TestClassName> <TestMethodName>` for a single test.
+- Use `scripts/accept-all-snapshots` for bulk updates.
+- Skip these scripts for non-snapshot tests.
+
+Re-run tests and iterate until they pass.
 
 # Commands
 
-- Single test:
+- Run a single test:
   - `dotnet test --filter "FullyQualifiedName~<TestClass>.<TestMethod>"`
-- Do not open snapshot files:
-  - Avoid reading `.received`/`.verified` files; rely on `dotnet test` output instead.
 - Accept one snapshot:
   - `scripts/accept-snapshot <TestClassName> <TestMethodName>`
 - Accept all snapshots:
   - `scripts/accept-all-snapshots`
 
-## Failure pattern (Verify)
+# Verify failure pattern
 
-Typical Verify failures list a received file and a verified file, for example (use this output only, do not read the files):
+Use the failure output only; do not open the files listed.
 
 ```
 VerifyException : Directory: /home/me/projects/AttributedDI/test/AttributedDI.SourceGenerator.UnitTests/Snapshots
