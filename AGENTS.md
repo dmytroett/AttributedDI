@@ -1,5 +1,9 @@
 # Codex Instructions for AttributedDI
 
+# Overview
+
+This project is about building a library to simplify dependency registration in DI container. The general idea - mark components that need to be registered with an attribute, like `[RegisterAsSelf]`, and the library will  generate the code like `services.AddTransient<MyService>()` to automatically register and wire all of the components. Heavily uses .NET source generators to avoid reflection scan at runtime.
+
 ## General Guidelines
 
 - When uncertain about APIs, best practices, or modern implementation patterns, consult Microsoft documentation.
