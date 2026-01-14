@@ -1,6 +1,6 @@
 ---
 name: snapshot-unit-testing
-description: Write or update unit (not integration) tests in this repo using Verify snapshot testing, especially for source generator output, and run/accept snapshots via the provided scripts.
+description: Write or update unit (not integration) tests in this repo, use Verify snapshot testing for source generator output, and run/accept snapshots via the provided scripts.
 ---
 
 # Scope
