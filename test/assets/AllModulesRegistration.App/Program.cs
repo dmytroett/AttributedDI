@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using AllModulesRegistration.Core;
 using AttributedDI;
 using Microsoft.Extensions.DependencyInjection;
-using AllModulesRegistration.Core;
 
 ServiceCollection services = new();
 

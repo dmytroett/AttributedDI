@@ -134,19 +134,19 @@ public partial class ClassWithABunchOfKnownInterfaces :
 }
 
 [RegisterAsGeneratedInterface(interfaceNamespace: "GeneratedInterfacesSut.Abstractions")]
-public partial class CustomNamespaceViaParameter{ }
+public partial class CustomNamespaceViaParameter { }
 
 [RegisterAsGeneratedInterface("GeneratedInterfacesSut.Contracts.ICustomInterface1")]
-public partial class CustomNamespaceViaFullyQualifiedName{ }
+public partial class CustomNamespaceViaFullyQualifiedName { }
 
 [RegisterAsGeneratedInterface("ICustomInterface2", "GeneratedInterfacesSut.Internal")]
-public partial class CustomNamespaceViaBoth{ }
+public partial class CustomNamespaceViaBoth { }
 
 [GenerateInterface(interfaceNamespace: "GeneratedInterfacesSut.Abstractions")]
-public partial class CustomNamespaceViaParameterG{ }
+public partial class CustomNamespaceViaParameterG { }
 
 [GenerateInterface("GeneratedInterfacesSut.Contracts.ICustomInterface1G")]
-public partial class CustomNamespaceViaFullyQualifiedNameG{ }
+public partial class CustomNamespaceViaFullyQualifiedNameG { }
 
 [GenerateInterface("ICustomInterface2G", "GeneratedInterfacesSut.Internal")]
-public partial class CustomNamespaceViaBothG{ }
+public partial class CustomNamespaceViaBothG { }

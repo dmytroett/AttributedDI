@@ -1,4 +1,3 @@
-using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System;
@@ -87,7 +86,7 @@ internal static class GeneratedInterfacesCodeEmitter
         GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
         // Build the partial class declaration that implements the interface
         var fullyQualifiedInterfaceName = BuildFullyQualifiedName(interfaceInfo.InterfaceNamespace, interfaceInfo.InterfaceName);
-        
+
         builder.Append(interfaceInfo.Accessibility)
             .Append(" partial class ")
             .Append(interfaceInfo.ClassName)

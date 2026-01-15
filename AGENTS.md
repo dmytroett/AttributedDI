@@ -21,17 +21,17 @@ This project is about building a library to simplify dependency registration in 
 
 When done with code generation or modification, you must:
 
-1. Run `dotnet format --include <list-of-changed-files>`
+1. Run `dotnet format --no-restore --include <list-of-changed-files>`
 2. Ensure no formatting issues remain
 
 Example:
 ```
-dotnet format --include src/AttributedDI/MyClass.cs
+dotnet format --no-restore --include src/AttributedDI/MyClass.cs
 ```
 
 For multiple files:
 ```
-dotnet format --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
+dotnet format --no-restore --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
 ```
 
 ## Public API Documentation

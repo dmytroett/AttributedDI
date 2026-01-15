@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using AllModulesRegistration.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AttributedDI.IntegrationTests;
 
@@ -9,7 +9,7 @@ public class AllModulesRegistrationTests
     [Fact]
     public void AllServicesRegisteredCorrectly()
     {
-        ServiceCollection services = new ();
+        ServiceCollection services = new();
 
         services.AddAttributedDi();
 
