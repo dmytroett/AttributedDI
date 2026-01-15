@@ -28,7 +28,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 $snapshotsDir = Join-Path $repoRoot 'test/AttributedDI.SourceGenerator.UnitTests/Snapshots'
 
 if (-not (Test-Path -Path $snapshotsDir -PathType Container)) {

@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/accept-all-snapshots
+Usage: accept-all-snapshots
 
 Accepts Verify snapshots for all tests by promoting one TFM's received files
 per test to verified files and removing the other received files. When multiple
@@ -16,7 +16,8 @@ if [[ $# -ne 0 ]]; then
   exit 1
 fi
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/../../../.." && pwd)"
 snapshots_dir="$repo_root/test/AttributedDI.SourceGenerator.UnitTests/Snapshots"
 
 if [[ ! -d "$snapshots_dir" ]]; then
@@ -55,5 +56,5 @@ for received_path in "${received_files[@]}"; do
   seen[$base_name]=1
   test_class="${base_name%.*}"
   test_method="${base_name##*.}"
-  "$repo_root/scripts/accept-snapshot" "$test_class" "$test_method"
+  "$script_dir/accept-snapshot" "$test_class" "$test_method"
 done

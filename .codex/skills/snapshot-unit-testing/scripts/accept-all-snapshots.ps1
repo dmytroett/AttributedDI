@@ -16,7 +16,7 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 $snapshotsDir = Join-Path $repoRoot 'test/AttributedDI.SourceGenerator.UnitTests/Snapshots'
 
 if (-not (Test-Path -Path $snapshotsDir -PathType Container)) {
@@ -59,5 +59,5 @@ foreach ($receivedFile in $receivedFiles) {
     $testClass = $baseName.Substring(0, $lastDotIndex)
     $testMethod = $baseName.Substring($lastDotIndex + 1)
 
-    & (Join-Path $repoRoot 'scripts/accept-snapshot.ps1') $testClass $testMethod
+    & (Join-Path $PSScriptRoot 'accept-snapshot.ps1') $testClass $testMethod
 }
