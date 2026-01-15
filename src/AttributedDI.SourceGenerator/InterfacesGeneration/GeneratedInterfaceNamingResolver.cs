@@ -14,27 +14,28 @@ internal static class GeneratedInterfaceNamingResolver
         var interfaceNamespaceArgument = GetOptionalStringArgument(attribute, position: 1, name: "InterfaceNamespace");
 
         var defaultInterfaceName = $"I{typeSymbol.Name}";
-        var defaultNamespace = typeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var defaultNamespace = NormalizeNamespace(typeSymbol.ContainingNamespace?.ToDisplayString());
+
+        if (!string.IsNullOrWhiteSpace(interfaceNamespaceArgument))
+        {
+            var parsed = !string.IsNullOrWhiteSpace(interfaceNameArgument)
+                ? ParseInterfaceName(interfaceNameArgument!)
+                : (Name: defaultInterfaceName, Namespace: string.Empty);
+
+            naming = new GeneratedInterfaceNaming(
+                parsed.Name,
+                NormalizeNamespace(interfaceNamespaceArgument));
+            return true;
+        }
 
         if (!string.IsNullOrWhiteSpace(interfaceNameArgument))
         {
             var parsed = ParseInterfaceName(interfaceNameArgument!);
-            if (!string.IsNullOrEmpty(interfaceNamespaceArgument) && !string.IsNullOrEmpty(parsed.Namespace))
-            {
-                // TODO: emit diagnostic for conflicting interface name and namespace inputs.
-                naming = null;
-                return false;
-            }
+            var resolvedNamespace = string.IsNullOrEmpty(parsed.Namespace)
+                ? defaultNamespace
+                : NormalizeNamespace(parsed.Namespace);
 
-            naming = new GeneratedInterfaceNaming(
-                parsed.Name,
-                string.IsNullOrEmpty(parsed.Namespace) ? interfaceNamespaceArgument ?? defaultNamespace : parsed.Namespace);
-            return true;
-        }
-
-        if (!string.IsNullOrWhiteSpace(interfaceNamespaceArgument))
-        {
-            naming = new GeneratedInterfaceNaming(defaultInterfaceName, interfaceNamespaceArgument!);
+            naming = new GeneratedInterfaceNaming(parsed.Name, resolvedNamespace);
             return true;
         }
 
@@ -87,6 +88,29 @@ internal static class GeneratedInterfaceNamingResolver
         var parsedNamespace = nameToParse[..lastDot];
         var parsedName = nameToParse[(lastDot + 1)..];
         return (parsedName, parsedNamespace);
+    }
+
+    private static string NormalizeNamespace(string? namespaceValue)
+    {
+        if (namespaceValue is null)
+        {
+            return string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(namespaceValue))
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(namespaceValue, "<global namespace>", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        const string prefix = "global::";
+        return namespaceValue.StartsWith(prefix, StringComparison.Ordinal)
+            ? namespaceValue.Substring(prefix.Length)
+            : namespaceValue;
     }
 }
 

@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: accept-snapshot <TestClassName> <TestMethodName>
+
+Accepts Verify snapshots for a single test by promoting one TFM's received files
+to verified files and removing the other received files. When multiple TFMs
+exist, the highest TFM version is accepted.
+USAGE
+}
+
+if [[ $# -ne 2 ]]; then
+  usage
+  exit 1
+fi
+
+test_class="$1"
+test_method="$2"
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/../../../.." && pwd)"
+snapshots_dir="$repo_root/test/AttributedDI.SourceGenerator.UnitTests/Snapshots"
+
+if [[ ! -d "$snapshots_dir" ]]; then
+  echo "Snapshots directory not found: $snapshots_dir" >&2
+  exit 1
+fi
+
+base_name="${test_class}.${test_method}"
+
+shopt -s nullglob
+
+select_files_for_tfm() {
+  local tfm="$1"
+  local files=("$snapshots_dir/${base_name}.${tfm}.received."*)
+  printf '%s\n' "${files[@]}"
+}
+
+tfm_key() {
+  local tfm="$1"
+  if [[ "$tfm" =~ ^DotNet([0-9]+)_([0-9]+)$ ]]; then
+    printf '%s\n' "$((10#${BASH_REMATCH[1]} * 1000 + 10#${BASH_REMATCH[2]}))"
+  else
+    printf '%s\n' "-1"
+  fi
+}
+
+selected_files=()
+selected_tfm=""
+
+escaped_base_name="${base_name//./\\.}"
+tfms=()
+for received_path in "$snapshots_dir/${base_name}".*.received.*; do
+  file_name="$(basename "$received_path")"
+  if [[ "$file_name" =~ ^${escaped_base_name}\.DotNet([0-9]+)_([0-9]+)\.received\. ]]; then
+    tfms+=("DotNet${BASH_REMATCH[1]}_${BASH_REMATCH[2]}")
+  fi
+done
+
+if [[ ${#tfms[@]} -gt 0 ]]; then
+  best_tfm=""
+  best_key="-1"
+  for tfm in "${tfms[@]}"; do
+    key="$(tfm_key "$tfm")"
+    if [[ "$key" -gt "$best_key" ]]; then
+      best_key="$key"
+      best_tfm="$tfm"
+    fi
+  done
+  if [[ -n "$best_tfm" ]]; then
+    selected_tfm="$best_tfm"
+    mapfile -t selected_files < <(select_files_for_tfm "$selected_tfm")
+  fi
+fi
+
+if [[ ${#selected_files[@]} -eq 0 ]]; then
+  mapfile -t selected_files < <(printf '%s\n' "$snapshots_dir/${base_name}.received."*)
+  selected_tfm=""
+fi
+
+if [[ ${#selected_files[@]} -eq 0 ]]; then
+  echo "No received files found for $base_name in $snapshots_dir" >&2
+  exit 1
+fi
+
+for received_path in "${selected_files[@]}"; do
+  file_name="$(basename "$received_path")"
+  if [[ -n "$selected_tfm" ]]; then
+    verified_name="${file_name/.${selected_tfm}.received./.verified.}"
+  else
+    verified_name="${file_name/.received./.verified.}"
+  fi
+  verified_path="$snapshots_dir/$verified_name"
+  mv -f "$received_path" "$verified_path"
+  echo "Accepted: $verified_name"
+done
+
+mapfile -t remaining_received < <(printf '%s\n' "$snapshots_dir/${base_name}".*.received.* "$snapshots_dir/${base_name}.received."*)
+for received_path in "${remaining_received[@]}"; do
+  if [[ -f "$received_path" ]]; then
+    rm -f "$received_path"
+    echo "Removed: $(basename "$received_path")"
+  fi
+done

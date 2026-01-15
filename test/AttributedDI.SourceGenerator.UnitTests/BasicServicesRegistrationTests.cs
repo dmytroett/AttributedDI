@@ -110,7 +110,7 @@ public class BasicServicesRegistrationTests
         var code = """
                    using AttributedDI;
 
-                   [assembly: GeneratedModule(moduleName: "MyModule", methodName: "AddTheModule", moduleNamespace: "Custom.Namespace")]
+                   [assembly: GeneratedModuleName(moduleName: "MyModule", methodName: "AddTheModule", moduleNamespace: "Custom.Namespace")]
 
                    namespace MyApp
                    {

@@ -31,12 +31,14 @@ internal static class GeneratedInterfacesCodeEmitter
         builder.AppendLine("#nullable enable");
         builder.AppendLine();
 
-        if (!string.IsNullOrWhiteSpace(interfaceInfo.InterfaceNamespace))
+        var interfaceNamespace = NormalizeNamespace(interfaceInfo.InterfaceNamespace);
+        if (!string.IsNullOrWhiteSpace(interfaceNamespace))
         {
-            builder.Append("namespace ").Append(interfaceInfo.InterfaceNamespace).AppendLine(";");
+            builder.Append("namespace ").Append(interfaceNamespace).AppendLine(";");
             builder.AppendLine();
         }
 
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
         builder.Append(interfaceInfo.Accessibility)
             .Append(" interface ")
             .Append(interfaceInfo.InterfaceName)
@@ -74,19 +76,23 @@ internal static class GeneratedInterfacesCodeEmitter
         builder.AppendLine("#nullable enable");
         builder.AppendLine();
 
-        if (!string.IsNullOrWhiteSpace(interfaceInfo.ClassNamespace))
+        var classNamespace = NormalizeNamespace(interfaceInfo.ClassNamespace);
+        if (!string.IsNullOrWhiteSpace(classNamespace))
         {
-            builder.Append("namespace ").Append(interfaceInfo.ClassNamespace).AppendLine(";");
+            builder.Append("namespace ").Append(classNamespace).AppendLine(";");
             builder.AppendLine();
         }
 
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
         // Build the partial class declaration that implements the interface
+        var fullyQualifiedInterfaceName = BuildFullyQualifiedName(interfaceInfo.InterfaceNamespace, interfaceInfo.InterfaceName);
+
         builder.Append(interfaceInfo.Accessibility)
             .Append(" partial class ")
             .Append(interfaceInfo.ClassName)
             .Append(interfaceInfo.ClassTypeParameters)
             .Append(" : ")
-            .Append(BuildFullyQualifiedName(interfaceInfo.InterfaceNamespace, interfaceInfo.InterfaceName));
+            .Append(fullyQualifiedInterfaceName);
 
         // Add type parameters to the interface reference if needed
         if (!string.IsNullOrEmpty(interfaceInfo.ClassTypeParameters))
@@ -108,31 +114,22 @@ internal static class GeneratedInterfacesCodeEmitter
 
     private static string CreateInterfaceHintName(GeneratedInterfaceInfo interfaceInfo)
     {
-        var namespacePart = string.IsNullOrWhiteSpace(interfaceInfo.InterfaceNamespace)
-            ? "Global"
-            : interfaceInfo.InterfaceNamespace.Replace('.', '_');
-
         var namePart = SanitizeForHintName(interfaceInfo.InterfaceName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
-
-        return $"{namespacePart}_{namePart}.g.cs";
+        return CreateHintName(interfaceInfo.InterfaceNamespace, namePart);
     }
 
     private static string CreateClassHintName(GeneratedInterfaceInfo interfaceInfo)
     {
-        var namespacePart = string.IsNullOrWhiteSpace(interfaceInfo.ClassNamespace)
-            ? "Global"
-            : interfaceInfo.ClassNamespace.Replace('.', '_');
-
         var namePart = SanitizeForHintName(interfaceInfo.ClassName + BuildGenericArityHintSuffix(interfaceInfo.TypeParameterCount));
-
-        return $"{namespacePart}_{namePart}.g.cs";
+        return CreateHintName(interfaceInfo.ClassNamespace, namePart);
     }
 
     private static string BuildFullyQualifiedName(string @namespace, string name)
     {
-        return string.IsNullOrWhiteSpace(@namespace)
+        var normalized = NormalizeNamespace(@namespace);
+        return string.IsNullOrWhiteSpace(normalized)
             ? name
-            : $"{@namespace}.{name}";
+            : $"{normalized}.{name}";
     }
 
     private static string SanitizeForHintName(string value)
@@ -153,5 +150,35 @@ internal static class GeneratedInterfacesCodeEmitter
         return typeParameterCount > 0
             ? $"`{typeParameterCount}"
             : string.Empty;
+    }
+
+    private static string CreateHintName(string? @namespace, string typeName)
+    {
+        var normalized = NormalizeNamespace(@namespace);
+        // Roslyn uses "<global namespace>" for types declared without an explicit namespace (top-level files).
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return $"Global.{typeName}.g.cs";
+        }
+
+        return $"{normalized}.{typeName}.g.cs";
+    }
+
+    private static string NormalizeNamespace(string? @namespace)
+    {
+        if (string.IsNullOrWhiteSpace(@namespace))
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(@namespace, "<global namespace>", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        const string prefix = "global::";
+        return @namespace!.StartsWith(prefix, StringComparison.Ordinal)
+            ? @namespace.Substring(prefix.Length)
+            : @namespace;
     }
 }

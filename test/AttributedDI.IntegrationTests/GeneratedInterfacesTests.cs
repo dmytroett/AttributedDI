@@ -50,4 +50,26 @@ public class GeneratedInterfacesTests
             Assert.NotEqual(nameof(IEnumerable.GetEnumerator), member.Name);
         }
     }
+
+    [Fact]
+    public void RegisterAsgeneratedInterfaceCorrectlyHandlesCustomNamespaces()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddGeneratedInterfacesSut();
+
+        AssertContainsService<GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameter, CustomNamespaceViaParameter>(services, ServiceLifetime.Transient);
+        AssertContainsService<GeneratedInterfacesSut.Contracts.ICustomInterface1, CustomNamespaceViaFullyQualifiedName>(services, ServiceLifetime.Transient);
+        AssertContainsService<GeneratedInterfacesSut.Internal.ICustomInterface2, CustomNamespaceViaBoth>(services, ServiceLifetime.Transient);
+    }
+
+    [Fact]
+    public void GenerateInterfaceCorrectlyHandlesCustomNamespaces()
+    {
+        Assert.NotNull(typeof(GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameterG));
+        Assert.NotNull(typeof(GeneratedInterfacesSut.Contracts.ICustomInterface1G));
+        Assert.NotNull(typeof(GeneratedInterfacesSut.Internal.ICustomInterface2G));
+    }
 }

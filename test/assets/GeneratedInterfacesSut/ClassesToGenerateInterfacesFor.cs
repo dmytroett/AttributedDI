@@ -23,7 +23,7 @@ public partial class MyScopedClassToGenerateInterface
 }
 
 [RegisterAsGeneratedInterface]
-public partial class ShouldGenerateEmptyInterface: IDisposable, IAsyncDisposable
+public partial class ShouldGenerateEmptyInterface : IDisposable, IAsyncDisposable
 {
     public void Dispose()
     {
@@ -132,3 +132,21 @@ public partial class ClassWithABunchOfKnownInterfaces :
         return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
     }
 }
+
+[RegisterAsGeneratedInterface(interfaceNamespace: "GeneratedInterfacesSut.Abstractions")]
+public partial class CustomNamespaceViaParameter { }
+
+[RegisterAsGeneratedInterface("GeneratedInterfacesSut.Contracts.ICustomInterface1")]
+public partial class CustomNamespaceViaFullyQualifiedName { }
+
+[RegisterAsGeneratedInterface("ICustomInterface2", "GeneratedInterfacesSut.Internal")]
+public partial class CustomNamespaceViaBoth { }
+
+[GenerateInterface(interfaceNamespace: "GeneratedInterfacesSut.Abstractions")]
+public partial class CustomNamespaceViaParameterG { }
+
+[GenerateInterface("GeneratedInterfacesSut.Contracts.ICustomInterface1G")]
+public partial class CustomNamespaceViaFullyQualifiedNameG { }
+
+[GenerateInterface("ICustomInterface2G", "GeneratedInterfacesSut.Internal")]
+public partial class CustomNamespaceViaBothG { }

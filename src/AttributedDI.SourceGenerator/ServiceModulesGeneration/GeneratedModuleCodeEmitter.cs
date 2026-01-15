@@ -1,3 +1,4 @@
+using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Immutable;
@@ -29,11 +30,11 @@ internal static class GeneratedModuleCodeEmitter
     {
         // Emit module class
         string moduleSource = EmitModuleClass(moduleName, namespaceName, assemblyName, registrations);
-        context.AddSource($"{moduleName}.g.cs", moduleSource);
+        context.AddSource(CreateHintName(namespaceName, moduleName), moduleSource);
 
         // Emit extension methods
         string extensionSource = EmitExtensionMethod(moduleName, methodName, namespaceName, assemblyName);
-        context.AddSource($"{moduleName}ServiceCollectionExtensions.g.cs", extensionSource);
+        context.AddSource(CreateHintName(namespaceName, $"{moduleName}ServiceCollectionExtensions"), extensionSource);
     }
 
     private static string EmitModuleClass(string moduleName, string namespaceName, string assemblyName, ImmutableArray<RegistrationInfo> registrations)
@@ -55,6 +56,8 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine($"    /// Service registration module for the {assemblyName} assembly.");
         _ = sb.AppendLine("    /// This module registers all services marked with AttributedDI attributes.");
         _ = sb.AppendLine("    /// </summary>");
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
+        _ = sb.AppendLine("    [global::AttributedDI.Generated.Internal.GeneratedModuleAttribute]");
         _ = sb.AppendLine($"    public partial class {moduleName} : IServiceModule");
         _ = sb.AppendLine("    {");
         _ = sb.AppendLine("        /// <summary>");
@@ -92,6 +95,7 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine("    /// <summary>");
         _ = sb.AppendLine($"    /// Extension methods for registering services from the {moduleName} module.");
         _ = sb.AppendLine("    /// </summary>");
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
         _ = sb.AppendLine($"    public static partial class {moduleName}ServiceCollectionExtensions");
         _ = sb.AppendLine("    {");
         _ = sb.AppendLine("        /// <summary>");
@@ -107,6 +111,35 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine("}");
 
         return sb.ToString();
+    }
+
+    private static string CreateHintName(string namespaceName, string typeName)
+    {
+        var normalized = NormalizeNamespace(namespaceName);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return $"{typeName}.g.cs";
+        }
+
+        return $"{normalized}.{typeName}.g.cs";
+    }
+
+    private static string NormalizeNamespace(string? namespaceValue)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceValue))
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(namespaceValue, "<global namespace>", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        const string prefix = "global::";
+        return namespaceValue!.StartsWith(prefix, StringComparison.Ordinal)
+            ? namespaceValue.Substring(prefix.Length)
+            : namespaceValue;
     }
 
     /// <summary>

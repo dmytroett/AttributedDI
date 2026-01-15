@@ -1,5 +1,9 @@
 # Codex Instructions for AttributedDI
 
+## Overview
+
+This project is about building a library to simplify dependency registration in DI container. The general idea - mark components that need to be registered with an attribute, like `[RegisterAsSelf]`, and the library will  generate the code like `services.AddTransient<MyService>()` to automatically register and wire all of the components. Heavily uses .NET source generators to avoid reflection scan at runtime.
+
 ## General Guidelines
 
 - When uncertain about APIs, best practices, or modern implementation patterns, consult Microsoft documentation.
@@ -17,33 +21,28 @@
 
 When done with code generation or modification, you must:
 
-1. Run `dotnet format --include <list-of-changed-files>`
+1. Run `dotnet format --no-restore --include <list-of-changed-files>`
 2. Ensure no formatting issues remain
 
 Example:
 ```
-dotnet format --include src/AttributedDI/MyClass.cs
+dotnet format --no-restore --include src/AttributedDI/MyClass.cs
 ```
 
 For multiple files:
 ```
-dotnet format --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
+dotnet format --no-restore --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
 ```
 
 ## Public API Documentation
 
 This is a library. **All** public methods, properties, classes, and interfaces in library code **must** have XML documentation (///).
 
-**Scope**: This requirement applies to library code only (`src/AttributedDI/`, `src/AttributedDI.SourceGenerator/`). Test projects are exempt.
+This requirement applies to library code only (`src/AttributedDI/`, `src/AttributedDI.SourceGenerator/`). Test projects are exempt.
 
-### Required XML Tags
+Document only public APIs in library projects
 
-- `<summary>`: What it does
-- `<param>`: Each parameter's purpose and constraints
-- `<returns>`: Return value description
-- `<exception>`: Any exceptions thrown
-- `<example>`: Usage examples (for complex/frequently-used APIs)
-- `<remarks>`: Edge cases or important notes (when needed)
+Update documentation when signatures change
 
 ### Example
 

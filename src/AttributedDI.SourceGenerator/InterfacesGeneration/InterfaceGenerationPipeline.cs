@@ -58,7 +58,7 @@ internal static class InterfaceGenerationBuilder
 
         // Extract class information for generating partial class implementation
         var className = typeSymbol.Name;
-        var classNamespace = typeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var classNamespace = NormalizeNamespace(typeSymbol.ContainingNamespace?.ToDisplayString());
         var classTypeParameters = BuildTypeParametersString(typeSymbol);
         var typeParameterConstraints = BuildTypeParameterConstraintsString(typeSymbol);
         var typeParameterCount = typeSymbol.TypeParameters.Length;
@@ -75,6 +75,24 @@ internal static class InterfaceGenerationBuilder
             classTypeParameters,
             typeParameterCount,
             typeParameterConstraints);
+    }
+
+    private static string NormalizeNamespace(string? namespaceValue)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceValue))
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(namespaceValue, "<global namespace>", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        const string prefix = "global::";
+        return namespaceValue!.StartsWith(prefix, StringComparison.Ordinal)
+            ? namespaceValue.Substring(prefix.Length)
+            : namespaceValue;
     }
 
     private static ImmutableArray<string> CollectMembers(INamedTypeSymbol typeSymbol, CancellationToken ct)

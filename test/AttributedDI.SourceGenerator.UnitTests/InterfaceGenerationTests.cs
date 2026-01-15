@@ -5,6 +5,31 @@ namespace AttributedDI.SourceGenerator.UnitTests;
 public class InterfaceGenerationTests
 {
     [Fact]
+    public async Task GeneratesInterfaceInGlobalNamespace()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   [GenerateInterface]
+                   public partial class GlobalService
+                   {
+                       public void DoWork()
+                       {
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
     public async Task GeneratesInterfaceWithDefaultNamingAndSkipsKnownInterfacesMembers()
     {
         var code = """
@@ -530,7 +555,7 @@ public class InterfaceGenerationTests
             .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
-        Assert.True(string.IsNullOrWhiteSpace(output));
+
         await Verify(output);
     }
 
