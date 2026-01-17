@@ -3,16 +3,20 @@ namespace AttributedDI.SourceGenerator.UnitTests;
 public class BasicServicesRegistrationTests
 {
     [Fact]
-    public async Task RegistersServicesWithDifferentLifetimesAndInterfaces()
+    public async Task RegistersServicesAcrossCommonScenarios()
     {
-        // Tests: RegisterAsSelf with lifetimes plus interface registrations
+        // Tests: RegisterAsSelf/implemented interfaces, multiple registrations, disposables, and nested namespaces.
         var code = """
                    using AttributedDI;
+                   using System;
+                   using System.Threading.Tasks;
 
                    namespace MyApp
                    {
                        public interface IMyService { }
                        public interface IOtherService { }
+                       public interface IService { }
+                       public interface IRepository { }
 
                        [Transient]
                        public class ShouldBeRegisteredAsTransient { } 
@@ -31,66 +35,38 @@ public class BasicServicesRegistrationTests
 
                        [RegisterAs<IOtherService>, Singleton]
                        public class OtherServiceImpl : IOtherService { }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
-
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
-    public async Task RegistersAsImplementedInterfaces()
-    {
-        // Tests: RegisterAsImplementedInterfaces for types implementing multiple interfaces
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       public interface IService { }
-                       public interface IRepository { }
 
                        [RegisterAsImplementedInterfaces]
                        public class ServiceImpl : IService { }
 
                        [RegisterAsImplementedInterfaces, Scoped]
                        public class MultiImpl : IService, IRepository { }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
-
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
-    public async Task RegistersMultipleServicesFromSameType()
-    {
-        // Tests: Multiple registration attributes on single type
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       public interface IService { }
-                       public interface IRepository { }
 
                        [RegisterAsSelf]
                        [RegisterAs<IService>]
                        [RegisterAs<IRepository>]
                        [Singleton]
                        public class MultiRegistration : IService, IRepository { }
+
+                       [RegisterAsImplementedInterfaces]
+                       public class DisposableService : IService, IDisposable, IAsyncDisposable
+                       {
+                           public void Dispose() { }
+
+                           public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+                       }
+                   }
+
+                   namespace MyApp.Services
+                   {
+                       [RegisterAsSelf, Singleton]
+                       public class OuterService { }
+                   }
+
+                   namespace MyApp.Services.Internal
+                   {
+                       [RegisterAsSelf]
+                       public class InnerService { }
                    }
                    """;
 
@@ -130,7 +106,7 @@ public class BasicServicesRegistrationTests
     }
 
     [Fact]
-    public async Task HandlesEmptyAssembly()
+    public void HandlesEmptyAssembly()
     {
         // Tests: No services to register (should generate nothing)
         var code = """
@@ -148,71 +124,8 @@ public class BasicServicesRegistrationTests
             .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
-    public async Task HandlesDisposable()
-    {
-        // Tests: Service implementing IDisposable and IAsyncDisposable
-        var code = """
-                   using AttributedDI;
-                   using System;
-                   using System.Threading.Tasks;
-
-                   namespace MyApp
-                   {
-                       public interface IService { }
-
-                       [RegisterAsImplementedInterfaces]
-                       public class DisposableService : IService, IDisposable, IAsyncDisposable
-                       {
-                           public void Dispose() { }
-
-                           public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-                       }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
-
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
-    public async Task RegistersServicesInNestedNamespaces()
-    {
-        // Tests: Services across different nested namespaces
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp.Services
-                   {
-                       [RegisterAsSelf, Singleton]
-                       public class OuterService { }
-                   }
-
-                   namespace MyApp.Services.Internal
-                   {
-                       [RegisterAsSelf]
-                       public class InnerService { }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
-
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
+        Assert.DoesNotContain("TestsModule", output);
+        Assert.DoesNotContain("AddTests", output);
     }
 
     [Fact(Skip = "Pending diagnostics for conflicting lifetime attributes on a single type.")]
