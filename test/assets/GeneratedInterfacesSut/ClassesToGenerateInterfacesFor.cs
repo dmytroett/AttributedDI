@@ -159,6 +159,11 @@ public partial class WithExcludedMembers
     [ExcludeInterfaceMember]
     public void ExcludedMethod() { }
 
+    public int IncludedProperty { get; set; }
+
+    [ExcludeInterfaceMember]
+    public int ExcludedProperty { get; set; }
+
     public event EventHandler<EventArgs>? IncludedEvent;
 
     [ExcludeInterfaceMember]

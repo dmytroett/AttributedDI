@@ -23,7 +23,7 @@ public class GeneratedInterfacesTests
         AssertContainsService<IShouldGenerateEmptyInterface, ShouldGenerateEmptyInterface>(services, ServiceLifetime.Transient);
         AssertDoesNotContainService<GeneratesInterfaceButDoesntRegister>(services);
 
-        Assert.True(typeof(IGeneratesInterfaceButDoesntRegister) != null);
+        Assert.NotNull(typeof(IGeneratesInterfaceButDoesntRegister));
     }
 
     [Fact]
@@ -40,20 +40,20 @@ public class GeneratedInterfacesTests
 
         var @interfaceType = typeof(IClassWithABunchOfKnownInterfaces);
 
-        var members = @interfaceType.GetMembers();
+        var members = @interfaceType.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        var memberNames = members.Select(member => member.Name).ToArray();
 
-        foreach (var member in members)
-        {
-            Assert.NotEqual(nameof(INotifyPropertyChanged.PropertyChanged), member.Name);
-            Assert.NotEqual(nameof(IComparable.CompareTo), member.Name);
-            Assert.NotEqual(nameof(IEquatable<object>.Equals), member.Name);
-            Assert.NotEqual(nameof(IDisposable.Dispose), member.Name);
-            Assert.NotEqual(nameof(IEnumerable.GetEnumerator), member.Name);
-        }
+        Assert.DoesNotContain(nameof(INotifyPropertyChanged.PropertyChanged), memberNames);
+        Assert.DoesNotContain(nameof(IComparable.CompareTo), memberNames);
+        Assert.DoesNotContain(nameof(IEquatable<object>.Equals), memberNames);
+        Assert.DoesNotContain(nameof(IDisposable.Dispose), memberNames);
+        Assert.DoesNotContain(nameof(IEnumerable.GetEnumerator), memberNames);
+
+        Assert.Contains(nameof(IClassWithABunchOfKnownInterfaces.DoWork), memberNames);
     }
 
     [Fact]
-    public void RegisterAsgeneratedInterfaceCorrectlyHandlesCustomNamespaces()
+    public void RegisterAsGeneratedInterfaceCorrectlyHandlesCustomNamespaces()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -79,11 +79,23 @@ public class GeneratedInterfacesTests
     {
         var type = typeof(IWithExcludedMembers);
 
-        var members = type.GetMembers();
-        var memberNames = members.Select(x => x.Name).ToArray();
+        var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        var memberNames = members.Select(member => member.Name).ToArray();
 
-        Assert.DoesNotContain(memberNames, name => name.Contains(nameof(WithExcludedMembers.ExcludedEvent)));
-        Assert.DoesNotContain(memberNames, name => name.Contains(nameof(WithExcludedMembers.ExcludedMethod)));
+        Assert.Contains(nameof(WithExcludedMembers.IncludedMethod), memberNames);
+        Assert.Contains(nameof(WithExcludedMembers.IncludedProperty), memberNames);
+        Assert.Contains(nameof(WithExcludedMembers.IncludedEvent), memberNames);
+
+        Assert.DoesNotContain(nameof(WithExcludedMembers.ExcludedMethod), memberNames);
+        Assert.DoesNotContain(nameof(WithExcludedMembers.ExcludedProperty), memberNames);
+        Assert.DoesNotContain(nameof(WithExcludedMembers.ExcludedEvent), memberNames);
+
+        Assert.NotNull(type.GetMethod(nameof(WithExcludedMembers.IncludedMethod), Type.EmptyTypes));
+        Assert.Null(type.GetMethod(nameof(WithExcludedMembers.ExcludedMethod), Type.EmptyTypes));
+        Assert.NotNull(type.GetProperty(nameof(WithExcludedMembers.IncludedProperty)));
+        Assert.Null(type.GetProperty(nameof(WithExcludedMembers.ExcludedProperty)));
+        Assert.NotNull(type.GetEvent(nameof(WithExcludedMembers.IncludedEvent)));
+        Assert.Null(type.GetEvent(nameof(WithExcludedMembers.ExcludedEvent)));
 
         var indexers = members
             .Where(x => x.MemberType == MemberTypes.Property)
@@ -91,7 +103,8 @@ public class GeneratedInterfacesTests
             .Where(x => x.GetIndexParameters().Length > 0)
             .ToArray();
 
-        // there are 2 indexers, one is ignored.
+        Assert.Contains(indexers, indexer => indexer.GetIndexParameters().Single().ParameterType == typeof(int));
+        Assert.DoesNotContain(indexers, indexer => indexer.GetIndexParameters().Single().ParameterType == typeof(string));
         Assert.Single(indexers);
     }
 }
