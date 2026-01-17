@@ -15,4 +15,8 @@
     <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="AGENTS.md" />
+  </ItemGroup>
+
 </Project>
