@@ -92,4 +92,65 @@ public class AddAttributedDiTests
 
         await Verify(output);
     }
+
+    [Fact]
+    public async Task GeneratesAddAttributedDiForLibraryWhenEnabled()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf]
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "true")
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task DoesNotGenerateAddAttributedDiWhenDisabled()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf]
+                       public class MyService
+                       {
+                       }
+                   }
+
+                   public static class Program
+                   {
+                       public static void Main()
+                       {
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithOutputKind(OutputKind.ConsoleApplication)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "false")
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+
+        await Verify(output);
+    }
 }
