@@ -2,21 +2,21 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AttributedDI.IntegrationTests.Utils;
 
-public static class AssertUtils
+public static class ServiceProviderAssert
 {
-    public static void AssertContainsService<TService, TImplementation>(IServiceProvider provider, ServiceLifetime expectedLifetime)
-        where TService: notnull
+    public static void Resolves<TService, TImplementation>(IServiceProvider provider, ServiceLifetime expectedLifetime)
+        where TService : notnull
     {
         AssertServiceLifetime<TService, TImplementation>(provider, expectedLifetime, key: null);
     }
 
-    public static void AssertDoesNotContainService<TService>(IServiceProvider provider)
+    public static void DoesNotResolve<TService>(IServiceProvider provider)
     {
         Assert.Null(provider.GetService<TService>());
     }
 
-    public static void AssertContainsKeyedService<TService, TImplementation>(IServiceProvider provider, object key, ServiceLifetime expectedLifetime)
-        where TService: notnull
+    public static void ResolvesKeyed<TService, TImplementation>(IServiceProvider provider, object key, ServiceLifetime expectedLifetime)
+        where TService : notnull
     {
         AssertServiceLifetime<TService, TImplementation>(provider, expectedLifetime, key);
     }
@@ -25,7 +25,7 @@ public static class AssertUtils
         IServiceProvider provider,
         ServiceLifetime expectedLifetime,
         object? key)
-        where TService: notnull
+        where TService : notnull
     {
         switch (expectedLifetime)
         {
@@ -44,7 +44,7 @@ public static class AssertUtils
     }
 
     private static void AssertSingletonLifetime<TService, TImplementation>(IServiceProvider provider, object? key)
-        where TService: notnull
+        where TService : notnull
     {
         var first = GetRequiredService<TService>(provider, key);
         var second = GetRequiredService<TService>(provider, key);
@@ -58,7 +58,7 @@ public static class AssertUtils
     }
 
     private static void AssertScopedLifetime<TService, TImplementation>(IServiceProvider provider, object? key)
-        where TService: notnull
+        where TService : notnull
     {
         using var scope = provider.CreateScope();
         var first = GetRequiredService<TService>(scope.ServiceProvider, key);
@@ -74,7 +74,7 @@ public static class AssertUtils
     }
 
     private static void AssertTransientLifetime<TService, TImplementation>(IServiceProvider provider, object? key)
-        where TService: notnull
+        where TService : notnull
     {
         using var scope = provider.CreateScope();
         var first = GetRequiredService<TService>(scope.ServiceProvider, key);
@@ -86,7 +86,7 @@ public static class AssertUtils
     }
 
     private static TService GetRequiredService<TService>(IServiceProvider provider, object? key)
-        where TService: notnull
+        where TService : notnull
     {
         return key is null
             ? provider.GetRequiredService<TService>()

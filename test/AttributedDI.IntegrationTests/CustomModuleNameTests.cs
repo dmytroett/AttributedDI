@@ -14,7 +14,7 @@ public class CustomModuleNameTests
         services.AddMyAmazingCustomServices();
         using var provider = services.BuildServiceProvider();
 
-        AssertContainsService<AliasedAssemblyService, AliasedAssemblyService>(provider, ServiceLifetime.Scoped);
+        Resolves<AliasedAssemblyService, AliasedAssemblyService>(provider, ServiceLifetime.Scoped);
     }
 
     [Fact]
@@ -26,6 +26,6 @@ public class CustomModuleNameTests
         module.ConfigureServices(services);
         using var provider = services.BuildServiceProvider();
 
-        AssertContainsService<AliasedAssemblyService, AliasedAssemblyService>(provider, ServiceLifetime.Scoped);
+        Resolves<AliasedAssemblyService, AliasedAssemblyService>(provider, ServiceLifetime.Scoped);
     }
 }
