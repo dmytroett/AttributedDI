@@ -315,11 +315,6 @@ public class InterfaceGenerationTests
             .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
-        Assert.Contains("void Allowed()", output);
-        Assert.DoesNotContain("RefReturn", output);
-        Assert.DoesNotContain("InParameter", output);
-        Assert.DoesNotContain("OutParameter", output);
-        Assert.DoesNotContain("PrivateRefReturn", output);
         await Verify(output);
     }
 

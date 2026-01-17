@@ -124,8 +124,7 @@ public class BasicServicesRegistrationTests
             .RunAndGetOutput();
 
         Assert.Empty(diagnostics);
-        Assert.DoesNotContain("TestsModule", output);
-        Assert.DoesNotContain("AddTests", output);
+        Assert.DoesNotContain("RegularClass", output);
     }
 
     [Fact(Skip = "Pending diagnostics for conflicting lifetime attributes on a single type.")]
