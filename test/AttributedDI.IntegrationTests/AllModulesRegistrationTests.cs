@@ -12,8 +12,9 @@ public class AllModulesRegistrationTests
         ServiceCollection services = new();
 
         services.AddAttributedDi();
+        using var provider = services.BuildServiceProvider();
 
-        AssertContainsService<IMyAmazingService, MyAmazingService>(services, ServiceLifetime.Transient);
-        AssertContainsService<IInternalService, InternalService>(services, ServiceLifetime.Transient);
+        AssertContainsService<IMyAmazingService, MyAmazingService>(provider, ServiceLifetime.Transient);
+        AssertContainsService<IInternalService, InternalService>(provider, ServiceLifetime.Transient);
     }
 }

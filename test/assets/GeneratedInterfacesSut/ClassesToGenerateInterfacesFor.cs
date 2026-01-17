@@ -27,12 +27,10 @@ public partial class ShouldGenerateEmptyInterface : IDisposable, IAsyncDisposabl
 {
     public void Dispose()
     {
-        // Dispose resources
     }
 
     public ValueTask DisposeAsync()
     {
-        // Async dispose resources
         return ValueTask.CompletedTask;
     }
 }
@@ -64,7 +62,6 @@ public partial class ClassWithABunchOfKnownInterfaces :
 
     public void Dispose()
     {
-        throw new NotImplementedException();
     }
 
     public bool Equals(ClassWithABunchOfKnownInterfaces? other)

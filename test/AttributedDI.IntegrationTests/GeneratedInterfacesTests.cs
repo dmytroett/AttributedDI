@@ -16,12 +16,13 @@ public class GeneratedInterfacesTests
 
         // Act
         services.AddGeneratedInterfacesSut();
+        using var provider = services.BuildServiceProvider();
 
         // assert
-        AssertContainsService<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(services, ServiceLifetime.Transient);
-        AssertContainsService<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(services, ServiceLifetime.Scoped);
-        AssertContainsService<IShouldGenerateEmptyInterface, ShouldGenerateEmptyInterface>(services, ServiceLifetime.Transient);
-        AssertDoesNotContainService<GeneratesInterfaceButDoesntRegister>(services);
+        AssertContainsService<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(provider, ServiceLifetime.Transient);
+        AssertContainsService<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(provider, ServiceLifetime.Scoped);
+        AssertContainsService<IShouldGenerateEmptyInterface, ShouldGenerateEmptyInterface>(provider, ServiceLifetime.Transient);
+        AssertDoesNotContainService<GeneratesInterfaceButDoesntRegister>(provider);
 
         Assert.NotNull(typeof(IGeneratesInterfaceButDoesntRegister));
     }
@@ -34,9 +35,10 @@ public class GeneratedInterfacesTests
 
         // Act
         services.AddGeneratedInterfacesSut();
+        using var provider = services.BuildServiceProvider();
 
         // assert
-        AssertContainsService<IClassWithABunchOfKnownInterfaces, ClassWithABunchOfKnownInterfaces>(services, ServiceLifetime.Transient);
+        AssertContainsService<IClassWithABunchOfKnownInterfaces, ClassWithABunchOfKnownInterfaces>(provider, ServiceLifetime.Transient);
 
         var @interfaceType = typeof(IClassWithABunchOfKnownInterfaces);
 
@@ -61,9 +63,11 @@ public class GeneratedInterfacesTests
         // Act
         services.AddGeneratedInterfacesSut();
 
-        AssertContainsService<GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameter, CustomNamespaceViaParameter>(services, ServiceLifetime.Transient);
-        AssertContainsService<GeneratedInterfacesSut.Contracts.ICustomInterface1, CustomNamespaceViaFullyQualifiedName>(services, ServiceLifetime.Transient);
-        AssertContainsService<GeneratedInterfacesSut.Internal.ICustomInterface2, CustomNamespaceViaBoth>(services, ServiceLifetime.Transient);
+        using var provider = services.BuildServiceProvider();
+
+        AssertContainsService<GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameter, CustomNamespaceViaParameter>(provider, ServiceLifetime.Transient);
+        AssertContainsService<GeneratedInterfacesSut.Contracts.ICustomInterface1, CustomNamespaceViaFullyQualifiedName>(provider, ServiceLifetime.Transient);
+        AssertContainsService<GeneratedInterfacesSut.Internal.ICustomInterface2, CustomNamespaceViaBoth>(provider, ServiceLifetime.Transient);
     }
 
     [Fact]
