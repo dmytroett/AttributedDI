@@ -13,7 +13,7 @@ Favor a small number of representative scenarios; combine related assertions to 
 
 Avoid opening or reading `.received`/`.verified` files; rely on `dotnet test` output and VerifyException details only.
 
-Treat `scripts/accept-snapshot` and `scripts/accept-all-snapshots` as black boxes; do not open or inspect them.
+Treat `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot` and `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots` as black boxes; do not open or inspect them.
 
 # Workflow
 
@@ -24,8 +24,8 @@ Run targeted tests with `dotnet test --filter` and add `--no-build`/`--no-restor
 Inspect `dotnet test` output to decide whether the test logic is wrong or snapshots need updating; do not open raw snapshot files.
 
 Accept snapshots only when the behavior change is intended and clearly understood:
-- Use `scripts/accept-snapshot <TestClassName> <TestMethodName>` for a single test.
-- Use `scripts/accept-all-snapshots` for bulk updates.
+- Use `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot <TestClassName> <TestMethodName>` for a single test.
+- Use `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots` for bulk updates.
 - Skip these scripts for non-snapshot tests.
 
 Re-run tests and iterate until they pass.
@@ -35,9 +35,9 @@ Re-run tests and iterate until they pass.
 - Run a single test:
   - `dotnet test --filter "FullyQualifiedName~<TestClass>.<TestMethod>"`
 - Accept one snapshot:
-  - `scripts/accept-snapshot <TestClassName> <TestMethodName>`
+  - `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot <TestClassName> <TestMethodName>`
 - Accept all snapshots:
-  - `scripts/accept-all-snapshots`
+  - `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots`
 
 # Verify failure pattern
 
