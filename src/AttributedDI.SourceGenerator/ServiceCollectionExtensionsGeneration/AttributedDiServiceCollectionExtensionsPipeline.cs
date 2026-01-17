@@ -1,20 +1,51 @@
 using AttributedDI.SourceGenerator.ServiceModulesGeneration;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
-using System.Threading;
 
 namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
 
 internal static class AttributedDiServiceCollectionExtensionsPipeline
 {
+    private const string GenerateExtensionsPropertyName = "GenerateAttributedDIExtensions";
+
     public static IncrementalValueProvider<AttributedDiServiceCollectionExtensionsInfo> Collect(
         IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ServiceModuleToGenerate> moduleToGenerate)
     {
-        var isEntryPoint = context.CompilationProvider
-            .Select(static (compilation, _) => compilation.Options.OutputKind != OutputKind.DynamicallyLinkedLibrary);
+        var generateExtensionsOverride = context.AnalyzerConfigOptionsProvider
+            .Select(static (provider, _) =>
+            {
+                if (provider.GlobalOptions.TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value)
+                    && bool.TryParse(value, out var parsed))
+                {
+                    return (bool?)parsed;
+                }
+
+                return null;
+            });
+
+        var shouldGenerateExtensions = context.CompilationProvider
+            .Select(static (compilation, _) => compilation.Options.OutputKind)
+            .Combine(generateExtensionsOverride)
+            .Select(static (data, _) =>
+            {
+                var (outputKind, overrideValue) = data;
+
+                return overrideValue ?? outputKind != OutputKind.DynamicallyLinkedLibrary;
+            });
 
         var generatedModulesFromReferences = context.CompilationProvider
-            .Select(static (compilation, token) => CollectFromCompilation(compilation, token));
+            .Combine(shouldGenerateExtensions)
+            .Select(static (data, token) =>
+            {
+                var (compilation, shouldGenerate) = data;
+
+                if (!shouldGenerate)
+                {
+                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
+                }
+
+                return GeneratedModuleReferenceCollector.CollectGeneratedModulesFromReferences(compilation, token);
+            });
 
         var modulesToInclude = moduleToGenerate
             .Select(static (module, _) =>
@@ -30,14 +61,14 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
                 return (GeneratedModuleRegistrationInfo?)new GeneratedModuleRegistrationInfo(fullyQualifiedName);
             });
 
-        return isEntryPoint
+        return shouldGenerateExtensions
             .Combine(generatedModulesFromReferences)
             .Combine(modulesToInclude)
             .Select(static (data, _) =>
             {
-                var ((isEntryPoint, modulesFromReferences), currentModuleToInclude) = data;
+                var ((shouldGenerateExtensions, modulesFromReferences), currentModuleToInclude) = data;
 
-                if (!isEntryPoint)
+                if (!shouldGenerateExtensions)
                 {
                     return new AttributedDiServiceCollectionExtensionsInfo(
                         false,
@@ -49,24 +80,15 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
                     return new AttributedDiServiceCollectionExtensionsInfo(true, modulesFromReferences);
                 }
 
-                return new AttributedDiServiceCollectionExtensionsInfo(true, modulesFromReferences.Add(currentModuleToInclude));
+                return new AttributedDiServiceCollectionExtensionsInfo(
+                    true,
+                    modulesFromReferences.Add(currentModuleToInclude));
             });
-    }
-
-    private static ImmutableArray<GeneratedModuleRegistrationInfo> CollectFromCompilation(Compilation compilation, CancellationToken token)
-    {
-        // do not run the collection if current project is DLL.
-        if (compilation.Options.OutputKind == OutputKind.DynamicallyLinkedLibrary)
-        {
-            return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
-        }
-
-        return GeneratedModuleReferenceCollector.CollectGeneratedModulesFromReferences(compilation, token);
     }
 }
 
 internal sealed record GeneratedModuleRegistrationInfo(string FullyQualifiedTypeName);
 
 internal sealed record AttributedDiServiceCollectionExtensionsInfo(
-    bool IsEntryPoint,
+    bool ShouldGenerateExtensions,
     ImmutableArray<GeneratedModuleRegistrationInfo> ModuleTypes);

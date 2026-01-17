@@ -38,6 +38,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="AttributedDI.SourceGenProperties.props"
+          Pack="true"
+          PackagePath="buildTransitive/"
+          Visible="false"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
