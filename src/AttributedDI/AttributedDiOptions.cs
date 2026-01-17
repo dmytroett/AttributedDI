@@ -12,20 +12,20 @@ public sealed class AttributedDiOptions
 {
     private readonly HashSet<IServiceModule> modules = new(ModuleTypeComparer.Instance);
 
-    /// <summary>
-    /// Gets or sets whether deferred service support is enabled.
-    /// </summary>
-    public bool EnableDeferred { get; set; } = true;
+    // /// <summary>
+    // /// Gets or sets whether deferred service support is enabled.
+    // /// </summary>
+    // public bool EnableDeferred { get; set; } = true;
 
-    /// <summary>
-    /// Gets or sets whether owned service support is enabled.
-    /// </summary>
-    public bool EnableOwned { get; set; } = true;
+    // /// <summary>
+    // /// Gets or sets whether owned service support is enabled.
+    // /// </summary>
+    // public bool EnableOwned { get; set; } = true;
 
-    /// <summary>
-    /// Gets or sets whether factory delegate support is enabled.
-    /// </summary>
-    public bool EnableFactory { get; set; } = true;
+    // /// <summary>
+    // /// Gets or sets whether factory delegate support is enabled.
+    // /// </summary>
+    // public bool EnableFactory { get; set; } = true;
 
     /// <summary>
     /// Gets or sets whether generated service modules should be registered.
