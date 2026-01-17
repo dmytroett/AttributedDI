@@ -2,6 +2,7 @@ using GeneratedInterfacesSut;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace AttributedDI.IntegrationTests;
 
@@ -71,5 +72,26 @@ public class GeneratedInterfacesTests
         Assert.NotNull(typeof(GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameterG));
         Assert.NotNull(typeof(GeneratedInterfacesSut.Contracts.ICustomInterface1G));
         Assert.NotNull(typeof(GeneratedInterfacesSut.Internal.ICustomInterface2G));
+    }
+
+    [Fact]
+    public void ExcludedMembersHandledCorrectly()
+    {
+        var type = typeof(IWithExcludedMembers);
+
+        var members = type.GetMembers();
+        var memberNames = members.Select(x => x.Name).ToArray();
+
+        Assert.DoesNotContain(memberNames, name => name.Contains(nameof(WithExcludedMembers.ExcludedEvent)));
+        Assert.DoesNotContain(memberNames, name => name.Contains(nameof(WithExcludedMembers.ExcludedMethod)));
+
+        var indexers = members
+            .Where(x => x.MemberType == MemberTypes.Property)
+            .Cast<PropertyInfo>()
+            .Where(x => x.GetIndexParameters().Length > 0)
+            .ToArray();
+
+        // there are 2 indexers, one is ignored.
+        Assert.Single(indexers);
     }
 }
