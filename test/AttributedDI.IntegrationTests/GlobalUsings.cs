@@ -1,1 +1,1 @@
-global using static AttributedDI.IntegrationTests.Utils.ServiceProviderAssert;
+global using AttributedDI.IntegrationTests.Utils;

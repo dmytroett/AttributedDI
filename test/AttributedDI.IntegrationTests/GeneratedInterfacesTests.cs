@@ -19,10 +19,10 @@ public class GeneratedInterfacesTests
         using var provider = services.BuildServiceProvider();
 
         // assert
-        Resolves<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(provider, ServiceLifetime.Transient);
-        Resolves<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(provider, ServiceLifetime.Scoped);
-        Resolves<IShouldGenerateEmptyInterface, ShouldGenerateEmptyInterface>(provider, ServiceLifetime.Transient);
-        DoesNotResolve<GeneratesInterfaceButDoesntRegister>(provider);
+        ServiceProviderAssert.Resolves<IMyTransientClassToGenerateInterface, MyTransientClassToGenerateInterface>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<IMyScopedClassToGenerateInterface, MyScopedClassToGenerateInterface>(provider, ServiceLifetime.Scoped);
+        ServiceProviderAssert.Resolves<IShouldGenerateEmptyInterface, ShouldGenerateEmptyInterface>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.DoesNotResolve<GeneratesInterfaceButDoesntRegister>(provider);
 
         Assert.NotNull(typeof(IGeneratesInterfaceButDoesntRegister));
     }
@@ -38,7 +38,7 @@ public class GeneratedInterfacesTests
         using var provider = services.BuildServiceProvider();
 
         // assert
-        Resolves<IClassWithABunchOfKnownInterfaces, ClassWithABunchOfKnownInterfaces>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<IClassWithABunchOfKnownInterfaces, ClassWithABunchOfKnownInterfaces>(provider, ServiceLifetime.Transient);
 
         var @interfaceType = typeof(IClassWithABunchOfKnownInterfaces);
 
@@ -65,9 +65,9 @@ public class GeneratedInterfacesTests
 
         using var provider = services.BuildServiceProvider();
 
-        Resolves<GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameter, CustomNamespaceViaParameter>(provider, ServiceLifetime.Transient);
-        Resolves<GeneratedInterfacesSut.Contracts.ICustomInterface1, CustomNamespaceViaFullyQualifiedName>(provider, ServiceLifetime.Transient);
-        Resolves<GeneratedInterfacesSut.Internal.ICustomInterface2, CustomNamespaceViaBoth>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<GeneratedInterfacesSut.Abstractions.ICustomNamespaceViaParameter, CustomNamespaceViaParameter>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<GeneratedInterfacesSut.Contracts.ICustomInterface1, CustomNamespaceViaFullyQualifiedName>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<GeneratedInterfacesSut.Internal.ICustomInterface2, CustomNamespaceViaBoth>(provider, ServiceLifetime.Transient);
     }
 
     [Fact]

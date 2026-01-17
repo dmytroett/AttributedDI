@@ -14,7 +14,7 @@ public class AllModulesRegistrationTests
         services.AddAttributedDi();
         using var provider = services.BuildServiceProvider();
 
-        Resolves<IMyAmazingService, MyAmazingService>(provider, ServiceLifetime.Transient);
-        Resolves<IInternalService, InternalService>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<IMyAmazingService, MyAmazingService>(provider, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<IInternalService, InternalService>(provider, ServiceLifetime.Transient);
     }
 }
