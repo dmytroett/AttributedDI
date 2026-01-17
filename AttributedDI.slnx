@@ -18,6 +18,8 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
+    <Project Path="test/AttributedDI.GenerateExtensionsOptIn.IntegrationTests/AttributedDI.GenerateExtensionsOptIn.IntegrationTests.csproj" />
+    <Project Path="test/AttributedDI.GenerateExtensionsOptOut.IntegrationTests/AttributedDI.GenerateExtensionsOptOut.IntegrationTests.csproj" />
     <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
   </Folder>
   <Folder Name="/test/assets/">
@@ -26,6 +28,8 @@
     <Project Path="test/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
     <Project Path="test/assets/CustomModuleName/CustomModuleName.csproj" />
     <Project Path="test/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />
+    <Project Path="test/assets/GenerateExtensions.OptIn/GenerateExtensions.OptIn.csproj" />
+    <Project Path="test/assets/GenerateExtensions.OptOut/GenerateExtensions.OptOut.csproj" />
     <File Path="test/assets/.editorconfig" />
     <File Path="test/assets/Directory.Build.props" />
   </Folder>
