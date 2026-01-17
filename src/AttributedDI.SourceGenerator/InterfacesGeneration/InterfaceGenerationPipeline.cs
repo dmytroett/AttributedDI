@@ -46,12 +46,7 @@ internal static class InterfaceGenerationBuilder
             return null;
         }
 
-        if (!GeneratedInterfaceNamingResolver.TryResolve(typeSymbol, context.Attributes[0], out var naming) || naming is null)
-        {
-            return null;
-        }
-
-        var resolvedNaming = naming;
+        var resolvedNaming = GeneratedInterfaceNamingResolver.Resolve(typeSymbol, context.Attributes[0]);
         var interfaceName = StripTypeParameters(resolvedNaming.InterfaceName);
         var members = CollectMembers(typeSymbol, ct);
         var accessibility = ResolveAccessibility(typeSymbol.DeclaredAccessibility);

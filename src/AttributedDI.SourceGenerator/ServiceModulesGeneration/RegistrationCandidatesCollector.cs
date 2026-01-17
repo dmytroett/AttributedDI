@@ -178,12 +178,7 @@ internal static class RegistrationCandidatesCollector
         }
 
         var attribute = context.Attributes[0];
-        if (!GeneratedInterfaceNamingResolver.TryResolve(symbol, attribute, out var naming) || naming is null)
-        {
-            // TODO: emit diagnostic when generated interface naming cannot be resolved.
-            return ImmutableArray<RegistrationCandidate>.Empty;
-        }
-
+        var naming = GeneratedInterfaceNamingResolver.Resolve(symbol, attribute);
         var implementationTypeName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var isOpenGeneric = IsOpenGenericDefinition(symbol);
         var unboundImplementationTypeName = ResolveUnboundName(symbol, implementationTypeName, isOpenGeneric);

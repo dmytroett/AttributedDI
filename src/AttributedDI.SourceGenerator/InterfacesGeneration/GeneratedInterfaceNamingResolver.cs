@@ -5,10 +5,7 @@ namespace AttributedDI.SourceGenerator.InterfacesGeneration;
 
 internal static class GeneratedInterfaceNamingResolver
 {
-    internal static bool TryResolve(
-        INamedTypeSymbol typeSymbol,
-        AttributeData attribute,
-        out GeneratedInterfaceNaming? naming)
+    internal static GeneratedInterfaceNaming Resolve(INamedTypeSymbol typeSymbol, AttributeData attribute)
     {
         var interfaceNameArgument = GetOptionalStringArgument(attribute, position: 0, name: "InterfaceName");
         var interfaceNamespaceArgument = GetOptionalStringArgument(attribute, position: 1, name: "InterfaceNamespace");
@@ -22,10 +19,9 @@ internal static class GeneratedInterfaceNamingResolver
                 ? ParseInterfaceName(interfaceNameArgument!)
                 : (Name: defaultInterfaceName, Namespace: string.Empty);
 
-            naming = new GeneratedInterfaceNaming(
+            return new GeneratedInterfaceNaming(
                 parsed.Name,
                 NormalizeNamespace(interfaceNamespaceArgument));
-            return true;
         }
 
         if (!string.IsNullOrWhiteSpace(interfaceNameArgument))
@@ -35,12 +31,10 @@ internal static class GeneratedInterfaceNamingResolver
                 ? defaultNamespace
                 : NormalizeNamespace(parsed.Namespace);
 
-            naming = new GeneratedInterfaceNaming(parsed.Name, resolvedNamespace);
-            return true;
+            return new GeneratedInterfaceNaming(parsed.Name, resolvedNamespace);
         }
 
-        naming = new GeneratedInterfaceNaming(defaultInterfaceName, defaultNamespace);
-        return true;
+        return new GeneratedInterfaceNaming(defaultInterfaceName, defaultNamespace);
     }
 
     private static string? GetOptionalStringArgument(AttributeData attribute, int position, string name)
