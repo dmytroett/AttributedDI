@@ -76,21 +76,6 @@ namespace AttributedDI
                 }
             }
 
-            if (opts.EnableDeferred)
-            {
-                // TODO: Lazy<> support but without allocations
-            }
-
-            if (opts.EnableOwned)
-            {
-                // TODO: enable Owned<> support
-            }
-
-            if (opts.EnableFactory)
-            {
-                // TODO: add Func<> support.
-            }
-
             return services;
         }
     }

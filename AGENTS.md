@@ -9,6 +9,7 @@ This project is about building a library to simplify dependency registration in 
 - When uncertain about APIs, best practices, or modern implementation patterns, consult Microsoft documentation.
 - When usage is unclear, search GitHub source code for referenced open source projects.
 - Prefer the configured MCP servers (GitHub, Microsoft Docs) as your first reference sources.
+- For guidance on APIs, best practices, packaging/publishing, testing patterns, or other non-trivial design decisions, proactively consult Microsoft Docs or GitHub MCP before answering, unless the answer is fully local to this repo.
 
 ## Code Quality Guidelines
 

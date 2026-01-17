@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ public class SourceGeneratorTestFixture
 {
     private readonly List<MetadataReference> _extraReferences = [];
     private readonly List<IIncrementalGenerator> _generators = [];
+    private readonly Dictionary<string, string> _globalOptions = new(StringComparer.Ordinal);
     private string? _sourceCode;
     private string? _assemblyName;
     private OutputKind _outputKind = OutputKind.DynamicallyLinkedLibrary;
@@ -46,6 +48,12 @@ public class SourceGeneratorTestFixture
     public SourceGeneratorTestFixture WithOutputKind(OutputKind outputKind)
     {
         _outputKind = outputKind;
+        return this;
+    }
+
+    public SourceGeneratorTestFixture WithBuildProperty(string propertyName, string value)
+    {
+        _globalOptions[$"build_property.{propertyName}"] = value;
         return this;
     }
 
@@ -118,9 +126,19 @@ public class SourceGeneratorTestFixture
         // https://github.com/andrewlock/StronglyTypedId/blob/6bd17db4a4b700eaad9e209baf41478cc3f0bbe9/test/StronglyTypedIds.Tests/TestHelpers.cs#L31
 
         var originalTreeCount = compilation.SyntaxTrees.Length;
+        AnalyzerConfigOptionsProvider? optionsProvider = null;
+
+        if (_globalOptions.Count > 0)
+        {
+            optionsProvider = new TestAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
+        }
+
+        var sourceGenerators = _generators
+            .Select(static generator => generator.AsSourceGenerator())
+            .ToArray();
 
         GeneratorDriver driver = CSharpGeneratorDriver
-            .Create(_generators.ToArray())
+            .Create(sourceGenerators, optionsProvider: optionsProvider)
             .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var postGeneratorDiagnostics);
 
         AssertCodeCompiles(outputCompilation, "Post-generators");
@@ -164,6 +182,51 @@ public class SourceGeneratorTestFixture
         {
             string errorMessages = string.Join(Environment.NewLine, errors.Select(e => $"  {e.GetMessage(CultureInfo.InvariantCulture)}"));
             Assert.Fail($"{stageName} source code has compilation errors:{Environment.NewLine}{errorMessages}");
+        }
+    }
+
+    private sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    {
+        private static readonly AnalyzerConfigOptions EmptyOptions = new TestAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty);
+        private readonly AnalyzerConfigOptions _globalOptions;
+
+        public TestAnalyzerConfigOptionsProvider(ImmutableDictionary<string, string> globalOptions)
+        {
+            _globalOptions = new TestAnalyzerConfigOptions(globalOptions);
+        }
+
+        public override AnalyzerConfigOptions GlobalOptions => _globalOptions;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+        {
+            return EmptyOptions;
+        }
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+        {
+            return EmptyOptions;
+        }
+    }
+
+    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    {
+        private readonly ImmutableDictionary<string, string> _options;
+
+        public TestAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
+        {
+            _options = options;
+        }
+
+        public override bool TryGetValue(string key, out string value)
+        {
+            if (_options.TryGetValue(key, out var storedValue))
+            {
+                value = storedValue;
+                return true;
+            }
+
+            value = string.Empty;
+            return false;
         }
     }
 }

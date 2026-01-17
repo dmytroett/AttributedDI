@@ -8,7 +8,6 @@
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <IsPackable>true</IsPackable>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/dmytroett/AttributedDI</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dmytroett/AttributedDI</RepositoryUrl>
@@ -39,11 +38,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="AttributedDI.SourceGenProperties.props"
+          Pack="true"
+          PackagePath="buildTransitive/"
+          Visible="false"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

@@ -52,7 +52,7 @@ public class ServiceRegistrationGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(addAttributedDiExtensions, static (spc, info) =>
         {
-            if (!info.IsEntryPoint)
+            if (!info.ShouldGenerateExtensions)
             {
                 return;
             }
