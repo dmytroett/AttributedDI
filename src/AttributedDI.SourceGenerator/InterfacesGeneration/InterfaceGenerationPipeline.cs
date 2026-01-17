@@ -105,6 +105,11 @@ internal static class InterfaceGenerationBuilder
                 continue;
             }
 
+            if (IsExcludedFromInterface(member))
+            {
+                continue;
+            }
+
             switch (member)
             {
                 case IMethodSymbol method when ShouldIgnoreMethod(method):
@@ -144,6 +149,28 @@ internal static class InterfaceGenerationBuilder
         {
             membersBuilder.Add(signature);
         }
+    }
+
+    private static bool IsExcludedFromInterface(ISymbol member)
+    {
+        foreach (var attribute in member.GetAttributes())
+        {
+            var attributeClass = attribute.AttributeClass;
+            if (attributeClass is null)
+            {
+                continue;
+            }
+
+            if (string.Equals(
+                attributeClass.ToDisplayString(),
+                KnownAttributes.ExcludeInterfaceMemberAttribute,
+                StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool ShouldIgnoreMethod(IMethodSymbol method)

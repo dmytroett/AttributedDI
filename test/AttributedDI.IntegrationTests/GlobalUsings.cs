@@ -1,1 +1,1 @@
-global using static AttributedDI.IntegrationTests.Utils.AssertUtils;
+global using AttributedDI.IntegrationTests.Utils;

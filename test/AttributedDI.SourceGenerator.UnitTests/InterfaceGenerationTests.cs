@@ -318,6 +318,50 @@ public class InterfaceGenerationTests
         await Verify(output);
     }
 
+    [Fact]
+    public async Task ExcludesMembersMarkedWithExcludeInterfaceMember()
+    {
+        var code = """
+                   using AttributedDI;
+                   using System;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public partial class ExcludedMembersSample
+                       {
+                           public void Allowed() { }
+
+                           [ExcludeInterfaceMember]
+                           public void Ignored() { }
+
+                           public int Included { get; }
+
+                           [ExcludeInterfaceMember]
+                           public int IgnoredProperty { get; }
+
+                           public event EventHandler? Visible;
+
+                           [ExcludeInterfaceMember]
+                           public event EventHandler? Hidden;
+
+                           public int this[string name] => 0;
+
+                           [ExcludeInterfaceMember]
+                           public int this[int index] => 0;
+                       }
+                   }
+                   """;
+
+        var (output, diagnostics) = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .RunAndGetOutput();
+
+        Assert.Empty(diagnostics);
+        await Verify(output);
+    }
+
     [Fact(Skip = "Pending diagnostics for invalid GenerateInterface usage on non-class targets.")]
     public async Task GenerateInterfaceOnInterfaceEmitsDiagnostic()
     {

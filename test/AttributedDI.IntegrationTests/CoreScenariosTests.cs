@@ -11,34 +11,35 @@ public class CoreScenariosTests
         var services = new ServiceCollection();
 
         services.AddCompanyTeamNameProjectAPI();
+        using var provider = services.BuildServiceProvider();
 
         // RegisterAsSelf implicit transient
-        AssertContainsService<RegisterAsSelfTransientImplicitService, RegisterAsSelfTransientImplicitService>(services, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<RegisterAsSelfTransientImplicitService, RegisterAsSelfTransientImplicitService>(provider, ServiceLifetime.Transient);
 
         // RegisterAsSelf singleton
-        AssertContainsService<RegisterAsSelfSingletonService, RegisterAsSelfSingletonService>(services, ServiceLifetime.Singleton);
+        ServiceProviderAssert.Resolves<RegisterAsSelfSingletonService, RegisterAsSelfSingletonService>(provider, ServiceLifetime.Singleton);
 
         // RegisterAsSelf scoped
-        AssertContainsService<RegisterAsSelfScopedService, RegisterAsSelfScopedService>(services, ServiceLifetime.Scoped);
+        ServiceProviderAssert.Resolves<RegisterAsSelfScopedService, RegisterAsSelfScopedService>(provider, ServiceLifetime.Scoped);
 
         // RegisterAs interface
-        AssertContainsService<IRegisterAsInterfaceService, RegisterAsInterfaceScopedService>(services, ServiceLifetime.Scoped);
+        ServiceProviderAssert.Resolves<IRegisterAsInterfaceService, RegisterAsInterfaceScopedService>(provider, ServiceLifetime.Scoped);
 
         // RegisterAsImplementedInterfaces should register concrete but not IDisposable/IAsyncDisposable
-        AssertContainsService<IFirstService, MultiInterfaceSingletonService>(services, ServiceLifetime.Singleton);
-        AssertContainsService<ISecondService, MultiInterfaceSingletonService>(services, ServiceLifetime.Singleton);
-        AssertDoesNotContainService<IDisposable, MultiInterfaceSingletonService>(services);
-        AssertDoesNotContainService<IAsyncDisposable, MultiInterfaceSingletonService>(services);
+        ServiceProviderAssert.Resolves<IFirstService, MultiInterfaceSingletonService>(provider, ServiceLifetime.Singleton);
+        ServiceProviderAssert.Resolves<ISecondService, MultiInterfaceSingletonService>(provider, ServiceLifetime.Singleton);
+        ServiceProviderAssert.DoesNotResolve<IDisposable>(provider);
+        ServiceProviderAssert.DoesNotResolve<IAsyncDisposable>(provider);
 
         // Lifetime-only attribute registers as self
-        AssertContainsService<LifetimeOnlyTransientService, LifetimeOnlyTransientService>(services, ServiceLifetime.Transient);
+        ServiceProviderAssert.Resolves<LifetimeOnlyTransientService, LifetimeOnlyTransientService>(provider, ServiceLifetime.Transient);
 
         // Keyed services - RegisterAs<T> with key
-        AssertContainsKeyedService<IKeyedService, KeyedServiceOne>(services, "key1", ServiceLifetime.Singleton);
-        AssertContainsKeyedService<IKeyedService, KeyedServiceTwo>(services, "key2", ServiceLifetime.Singleton);
+        ServiceProviderAssert.ResolvesKeyed<IKeyedService, KeyedServiceOne>(provider, "key1", ServiceLifetime.Singleton);
+        ServiceProviderAssert.ResolvesKeyed<IKeyedService, KeyedServiceTwo>(provider, "key2", ServiceLifetime.Singleton);
 
         // Keyed services - RegisterAsSelf with key
-        AssertContainsKeyedService<RegisterAsSelfKeyedTransientService, RegisterAsSelfKeyedTransientService>(services, "transientKey", ServiceLifetime.Transient);
-        AssertContainsKeyedService<RegisterAsSelfKeyedSingletonService, RegisterAsSelfKeyedSingletonService>(services, "singletonKey", ServiceLifetime.Singleton);
+        ServiceProviderAssert.ResolvesKeyed<RegisterAsSelfKeyedTransientService, RegisterAsSelfKeyedTransientService>(provider, "transientKey", ServiceLifetime.Transient);
+        ServiceProviderAssert.ResolvesKeyed<RegisterAsSelfKeyedSingletonService, RegisterAsSelfKeyedSingletonService>(provider, "singletonKey", ServiceLifetime.Singleton);
     }
 }

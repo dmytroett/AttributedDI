@@ -27,12 +27,10 @@ public partial class ShouldGenerateEmptyInterface : IDisposable, IAsyncDisposabl
 {
     public void Dispose()
     {
-        // Dispose resources
     }
 
     public ValueTask DisposeAsync()
     {
-        // Async dispose resources
         return ValueTask.CompletedTask;
     }
 }
@@ -64,7 +62,6 @@ public partial class ClassWithABunchOfKnownInterfaces :
 
     public void Dispose()
     {
-        throw new NotImplementedException();
     }
 
     public bool Equals(ClassWithABunchOfKnownInterfaces? other)
@@ -150,3 +147,27 @@ public partial class CustomNamespaceViaFullyQualifiedNameG { }
 
 [GenerateInterface("ICustomInterface2G", "GeneratedInterfacesSut.Internal")]
 public partial class CustomNamespaceViaBothG { }
+
+[GenerateInterface]
+public partial class WithExcludedMembers
+{
+    public void IncludedMethod() { }
+
+    [ExcludeInterfaceMember]
+    public void ExcludedMethod() { }
+
+    public int IncludedProperty { get; set; }
+
+    [ExcludeInterfaceMember]
+    public int ExcludedProperty { get; set; }
+
+    public event EventHandler<EventArgs>? IncludedEvent;
+
+    [ExcludeInterfaceMember]
+    public event EventHandler<EventArgs>? ExcludedEvent;
+
+    public int this[int i] { get => 0; }
+
+    [ExcludeInterfaceMember]
+    public string this[string str] { get => string.Empty; }
+}
