@@ -150,3 +150,22 @@ public partial class CustomNamespaceViaFullyQualifiedNameG { }
 
 [GenerateInterface("ICustomInterface2G", "GeneratedInterfacesSut.Internal")]
 public partial class CustomNamespaceViaBothG { }
+
+[GenerateInterface]
+public partial class WithExcludedMembers
+{
+    public void IncludedMethod() { }
+
+    [ExcludeInterfaceMember]
+    public void ExcludedMethod() { }
+
+    public event EventHandler<EventArgs>? IncludedEvent;
+
+    [ExcludeInterfaceMember]
+    public event EventHandler<EventArgs>? ExcludedEvent;
+
+    public int this[int i] { get => 0; }
+
+    [ExcludeInterfaceMember]
+    public string this[string str] { get => string.Empty; }
+}
