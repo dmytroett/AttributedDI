@@ -9,6 +9,7 @@
     <IsTrimmable>true</IsTrimmable>
     <IsPackable>true</IsPackable>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/dmytroett/AttributedDI</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dmytroett/AttributedDI</RepositoryUrl>
     <PackageTags>dependencyinjection;di;AoP;sourcegenerator;aot</PackageTags>

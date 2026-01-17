@@ -32,14 +32,17 @@ internal static class GeneratedInterfacesCodeEmitter
         builder.AppendLine();
 
         var interfaceNamespace = NormalizeNamespace(interfaceInfo.InterfaceNamespace);
-        if (!string.IsNullOrWhiteSpace(interfaceNamespace))
+        var hasNamespace = !string.IsNullOrWhiteSpace(interfaceNamespace);
+        if (hasNamespace)
         {
-            builder.Append("namespace ").Append(interfaceNamespace).AppendLine(";");
-            builder.AppendLine();
+            builder.Append("namespace ").Append(interfaceNamespace).AppendLine();
+            builder.AppendLine("{");
         }
 
-        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
-        builder.Append(interfaceInfo.Accessibility)
+        var indent = hasNamespace ? "    " : string.Empty;
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, hasNamespace ? 1 : 0);
+        builder.Append(indent)
+            .Append(interfaceInfo.Accessibility)
             .Append(" interface ")
             .Append(interfaceInfo.InterfaceName)
             .Append(interfaceInfo.ClassTypeParameters)
@@ -47,14 +50,17 @@ internal static class GeneratedInterfacesCodeEmitter
 
         if (!string.IsNullOrWhiteSpace(interfaceInfo.TypeParameterConstraints))
         {
-            builder.Append(interfaceInfo.TypeParameterConstraints).AppendLine();
+            builder.Append(indent)
+                .Append(interfaceInfo.TypeParameterConstraints)
+                .AppendLine();
         }
 
-        builder.AppendLine("{");
+        builder.Append(indent).AppendLine("{");
 
+        var memberIndent = indent + "    ";
         foreach (var member in interfaceInfo.MemberSignatures)
         {
-            builder.Append("    ").Append(member);
+            builder.Append(memberIndent).Append(member);
             var needsSemicolon = !member.Contains("{", StringComparison.Ordinal) && !member.EndsWith(";", StringComparison.Ordinal);
             if (needsSemicolon)
             {
@@ -64,7 +70,11 @@ internal static class GeneratedInterfacesCodeEmitter
             builder.AppendLine();
         }
 
-        builder.AppendLine("}");
+        builder.Append(indent).AppendLine("}");
+        if (hasNamespace)
+        {
+            builder.AppendLine("}");
+        }
 
         return builder.ToString();
     }
@@ -77,17 +87,20 @@ internal static class GeneratedInterfacesCodeEmitter
         builder.AppendLine();
 
         var classNamespace = NormalizeNamespace(interfaceInfo.ClassNamespace);
-        if (!string.IsNullOrWhiteSpace(classNamespace))
+        var hasNamespace = !string.IsNullOrWhiteSpace(classNamespace);
+        if (hasNamespace)
         {
-            builder.Append("namespace ").Append(classNamespace).AppendLine(";");
-            builder.AppendLine();
+            builder.Append("namespace ").Append(classNamespace).AppendLine();
+            builder.AppendLine("{");
         }
 
-        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, 0);
+        var indent = hasNamespace ? "    " : string.Empty;
+        GeneratedCodeHelper.AppendGeneratedCodeAttribute(builder, hasNamespace ? 1 : 0);
         // Build the partial class declaration that implements the interface
         var fullyQualifiedInterfaceName = BuildFullyQualifiedName(interfaceInfo.InterfaceNamespace, interfaceInfo.InterfaceName);
 
-        builder.Append(interfaceInfo.Accessibility)
+        builder.Append(indent)
+            .Append(interfaceInfo.Accessibility)
             .Append(" partial class ")
             .Append(interfaceInfo.ClassName)
             .Append(interfaceInfo.ClassTypeParameters)
@@ -106,8 +119,12 @@ internal static class GeneratedInterfacesCodeEmitter
         }
 
         builder.AppendLine();
-        builder.AppendLine("{");
-        builder.AppendLine("}");
+        builder.Append(indent).AppendLine("{");
+        builder.Append(indent).AppendLine("}");
+        if (hasNamespace)
+        {
+            builder.AppendLine("}");
+        }
 
         return builder.ToString();
     }
