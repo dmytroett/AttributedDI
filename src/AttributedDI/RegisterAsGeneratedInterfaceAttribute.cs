@@ -22,6 +22,7 @@ namespace AttributedDI;
 /// <item><description>Non-public members.</description></item>
 /// <item><description>Static members and operators.</description></item>
 /// <item><description><c>ref</c> returns or <c>ref</c>/<c>in</c>/<c>out</c> parameters.</description></item>
+/// <item><description>Members annotated with <see cref="ExcludeInterfaceMemberAttribute"/>.</description></item>
 /// <item><description>Members excluded via conditional compilation.</description></item>
 /// </list>
 /// <para>

@@ -18,6 +18,7 @@ internal static class KnownAttributes
 
     // Interface generation attributes
     public const string GenerateInterfaceAttribute = "AttributedDI.GenerateInterfaceAttribute";
+    public const string ExcludeInterfaceMemberAttribute = "AttributedDI.ExcludeInterfaceMemberAttribute";
 
     // Assembly-level attributes
     public const string GeneratedModuleNameAttribute = "AttributedDI.GeneratedModuleNameAttribute";
