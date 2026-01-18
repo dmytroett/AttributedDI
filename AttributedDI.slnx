@@ -34,11 +34,11 @@
   </Folder>
   <Folder Name="/test/e2e/">    
     <Project Path="test/e2e/AllModulesRegistration.ConsumerTests/AllModulesRegistration.ConsumerTests.csproj" />
+    <File Path="test/e2e/Directory.Build.props" />
+    <File Path="test/e2e/Directory.Build.targets" />
+    <File Path="test/e2e/nuget.config" />
   </Folder>
   <Folder Name="/test/e2e/assets/">
     <Project Path="test/e2e/assets/AllModulesRegistration.ConsumerCore/AllModulesRegistration.ConsumerCore.csproj" />
-    <File Path="test/e2e/assets/Directory.Build.props" />
-    <File Path="test/e2e/assets/Directory.Build.targets" />
-    <File Path="test/e2e/assets/nuget.config" />
   </Folder>
 </Solution>
