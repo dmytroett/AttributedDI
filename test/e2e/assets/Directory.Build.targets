@@ -1,13 +1,6 @@
 <Project>
   <Target Name="PrepareE2EFeed" BeforeTargets="_GetRestoreSettings;Restore" Condition="'$(DesignTimeBuild)' != 'true'">
-    <PropertyGroup>
-      <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))</RepoRoot>
-      <AttributedDIPackProject>$(RepoRoot)\src\AttributedDI\AttributedDI.csproj</AttributedDIPackProject>
-    </PropertyGroup>
-
     <MakeDir Directories="$(E2ELocalFeed);$(E2EGlobalPackages)" />
-    <RemoveDir Directories="$(E2EGlobalPackages)\attributeddi\$(E2EPackageVersion)" />
-
     <Exec Command="dotnet pack &quot;$(AttributedDIPackProject)&quot; -c Release -o &quot;$(E2ELocalFeed)&quot; -p:PackageVersion=$(E2EPackageVersion)" />
   </Target>
 </Project>
