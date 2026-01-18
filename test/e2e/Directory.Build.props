@@ -5,7 +5,7 @@
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))</RepoRoot>
     <E2ELocalFeed>$(RepoRoot)\test\e2e\.nuget\feed</E2ELocalFeed>
     <E2EGlobalPackages>$(RepoRoot)\test\e2e\.nuget\packages</E2EGlobalPackages>
-    <RestoreConfigFile>$(RepoRoot)\test\e2e\assets\nuget.config</RestoreConfigFile>
+    <RestoreConfigFile>$(RepoRoot)\test\e2e\nuget.config</RestoreConfigFile>
     <E2EPackVersionPrefix Condition="'$(E2EPackVersionPrefix)' == ''">99.0.0-e2e</E2EPackVersionPrefix>
     <AttributedDIPackageVersion Condition="'$(AttributedDIPackageVersion)' == ''">$(E2EPackVersionPrefix).*</AttributedDIPackageVersion>
     <AttributedDIPackProject>$(RepoRoot)\src\AttributedDI\AttributedDI.csproj</AttributedDIPackProject>
