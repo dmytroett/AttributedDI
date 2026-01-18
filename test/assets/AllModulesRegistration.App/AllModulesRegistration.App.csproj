@@ -5,6 +5,7 @@
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,5 +17,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="[8.0.0,11.0.0)" />
   </ItemGroup>
+
+  <Import Project="..\..\..\src\AttributedDI\AttributedDI.SourceGenProperties.props"
+          Condition="Exists('..\..\..\src\AttributedDI\AttributedDI.SourceGenProperties.props')" />
 
 </Project>

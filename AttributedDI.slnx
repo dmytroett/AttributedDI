@@ -21,6 +21,7 @@
     <Project Path="test/AttributedDI.GenerateExtensionsOptIn.IntegrationTests/AttributedDI.GenerateExtensionsOptIn.IntegrationTests.csproj" />
     <Project Path="test/AttributedDI.GenerateExtensionsOptOut.IntegrationTests/AttributedDI.GenerateExtensionsOptOut.IntegrationTests.csproj" />
     <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
+    <Project Path="test/AttributedDI.E2ETests/AttributedDI.E2ETests.csproj" />
   </Folder>
   <Folder Name="/test/assets/">
     <Project Path="test/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
@@ -31,6 +32,5 @@
     <Project Path="test/assets/GenerateExtensions.OptIn/GenerateExtensions.OptIn.csproj" />
     <Project Path="test/assets/GenerateExtensions.OptOut/GenerateExtensions.OptOut.csproj" />
     <File Path="test/assets/.editorconfig" />
-    <File Path="test/assets/Directory.Build.props" />
   </Folder>
 </Solution>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AnalysisMode>Default</AnalysisMode>
+    <AttributedDIPackageVersion Condition="'$(AttributedDIPackageVersion)' == ''">0.0.0-local</AttributedDIPackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AttributedDI" Version="$(AttributedDIPackageVersion)" />
+  </ItemGroup>
+
+</Project>

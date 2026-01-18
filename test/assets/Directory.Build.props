@@ -1,9 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <!-- Ease the restrictions as these contain test code -->
-    <AnalysisMode>Default</AnalysisMode>
-  </PropertyGroup>
-
-  <Import Project="..\..\src\AttributedDI\AttributedDI.SourceGenProperties.props"
-          Condition="Exists('..\..\src\AttributedDI\AttributedDI.SourceGenProperties.props')" />
-</Project>
