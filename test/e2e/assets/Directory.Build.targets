@@ -1,6 +1,3 @@
 <Project>
-  <Target Name="PrepareE2EFeed" BeforeTargets="_GetRestoreSettings;Restore" Condition="'$(DesignTimeBuild)' != 'true'">
-    <MakeDir Directories="$(E2ELocalFeed);$(E2EGlobalPackages)" />
-    <Exec Command="dotnet pack &quot;$(AttributedDIPackProject)&quot; -c Release -o &quot;$(E2ELocalFeed)&quot; -p:PackageVersion=$(AttributedDIPackageVersion)" />
-  </Target>
+  <Import Project="..\Directory.Build.targets" />
 </Project>
