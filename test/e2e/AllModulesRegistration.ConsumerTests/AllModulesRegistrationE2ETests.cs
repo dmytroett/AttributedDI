@@ -1,4 +1,5 @@
 using AllModulesRegistration.ConsumerCore;
+using AttributedDI;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AllModulesRegistration.ConsumerTests;

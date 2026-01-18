@@ -15,7 +15,7 @@
       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <Import Project="..\..\..\src\AttributedDI\AttributedDI.SourceGenProperties.props"
-          Condition="Exists('..\..\..\src\AttributedDI\AttributedDI.SourceGenProperties.props')" />
+  <Import Project="..\..\..\src\AttributedDI\AttributedDI.props"
+          Condition="Exists('..\..\..\src\AttributedDI\AttributedDI.props')" />
 
 </Project>

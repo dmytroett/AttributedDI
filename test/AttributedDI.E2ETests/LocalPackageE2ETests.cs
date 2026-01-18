@@ -43,10 +43,17 @@ public class LocalPackageE2ETests
 
             await RunDotnetAsync(
                 repoRoot,
-                "test",
+                "restore",
                 consumerTestsProject,
                 "--configfile",
                 nugetConfig,
+                $"-p:AttributedDIPackageVersion={packageVersion}");
+
+            await RunDotnetAsync(
+                repoRoot,
+                "test",
+                consumerTestsProject,
+                "--no-restore",
                 "--framework",
                 GetCurrentTargetFramework(),
                 $"-p:AttributedDIPackageVersion={packageVersion}");

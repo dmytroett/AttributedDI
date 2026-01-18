@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="AttributedDI.SourceGenProperties.props"
+    <None Include="AttributedDI.props"
           Pack="true"
           PackagePath="buildTransitive/"
           Visible="false"/>
