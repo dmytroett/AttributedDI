@@ -8,10 +8,14 @@
     <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
+  <!-- AttributedDI references are handled in Directory.Build.props file -->
+
   <ItemGroup>
     <ProjectReference Include="..\AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
   </ItemGroup>
 
-  <!-- AttributedDI references are handled in Directory.Build.props file -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="[8.0.0,11.0.0)" />
+  </ItemGroup>
 
 </Project>
