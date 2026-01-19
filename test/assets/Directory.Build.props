@@ -4,13 +4,6 @@
     <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\AttributedDI\AttributedDI.csproj" />
-    <ProjectReference
-      Include="..\..\..\src\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj"
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="false" />
-  </ItemGroup>
-
   <Import Project="..\..\src\AttributedDI\AttributedDI.props" />
+
 </Project>
