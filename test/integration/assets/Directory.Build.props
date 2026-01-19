@@ -4,6 +4,6 @@
     <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
-  <Import Project="..\..\src\AttributedDI\AttributedDI.props" />
+  <Import Project="..\..\..\src\AttributedDI\AttributedDI.props" />
 
 </Project>
