@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "${script_dir}/../.." && pwd)"
+artifacts_dir="${repo_root}/artifacts"
+timestamp="$(date +%Y%m%d%H%S)"
+package_version="99.0.0-e2e.${timestamp}"
+
+mkdir -p "${artifacts_dir}"
+
+dotnet pack "${repo_root}/src/AttributedDI/AttributedDI.csproj" \
+  -c Release \
+  -o "${artifacts_dir}" \
+  -p:PackageVersion="${package_version}"
+
+echo "Packed AttributedDI ${package_version} to ${artifacts_dir}"

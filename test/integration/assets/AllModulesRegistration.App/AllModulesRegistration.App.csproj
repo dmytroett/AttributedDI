@@ -8,7 +8,7 @@
     <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(IsE2E)' != 'true'">
     <ProjectReference Include="..\..\..\..\src\AttributedDI\AttributedDI.csproj" />
     <ProjectReference
       Include="..\..\..\..\src\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj"

@@ -6,12 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(IsE2E)' != 'true'">
     <ProjectReference Include="..\..\..\..\src\AttributedDI\AttributedDI.csproj" />
     <ProjectReference
       Include="..\..\..\..\src\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj"
       OutputItemType="Analyzer"
       ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsE2E)' == 'true'">
+    <PackageReference Include="AttributedDI" Version="$(AttributedDIPackageVersion)" />
   </ItemGroup>
 
 </Project>
