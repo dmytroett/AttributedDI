@@ -10,15 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\AttributedDI\AttributedDI.csproj" />
-    <ProjectReference Include="..\..\..\src\AttributedDI.SourceGenerator\AttributedDI.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="[8.0.0,11.0.0)" />
-  </ItemGroup>
-
-  <Import Project="..\..\..\src\AttributedDI\AttributedDI.props"
-          Condition="Exists('..\..\..\src\AttributedDI\AttributedDI.props')" />
+  <!-- AttributedDI references are handled in Directory.Build.props file -->
 
 </Project>
