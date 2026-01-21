@@ -23,6 +23,7 @@
     <Project Path="test/integration/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
     <Project Path="test/integration/AttributedDI.GenerateExtensionsOptIn.IntegrationTests/AttributedDI.GenerateExtensionsOptIn.IntegrationTests.csproj" />
     <Project Path="test/integration/AttributedDI.GenerateExtensionsOptOut.IntegrationTests/AttributedDI.GenerateExtensionsOptOut.IntegrationTests.csproj" />
+    <File Path="test/integration/nuget.config" />
   </Folder>
   <Folder Name="/test/integration/assets/">
     <Project Path="test/integration/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
@@ -32,8 +33,7 @@
     <Project Path="test/integration/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />
     <Project Path="test/integration/assets/GenerateExtensions.OptIn/GenerateExtensions.OptIn.csproj" />
     <Project Path="test/integration/assets/GenerateExtensions.OptOut/GenerateExtensions.OptOut.csproj" />
-    <File Path="test/assets/.editorconfig" />
-    <File Path="test/assets/Directory.Build.props" />
-    <File Path="test/assets/nuget.config" />
+    <File Path="test/integration/assets/.editorconfig" />
+    <File Path="test/integration/assets/Directory.Build.props" />    
   </Folder>
 </Solution>
