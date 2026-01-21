@@ -11,55 +11,26 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
     public static IncrementalValueProvider<AttributedDiServiceCollectionExtensionsInfo> Collect(
         IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ServiceModuleToGenerate> moduleToGenerate)
     {
-        var shouldGenerateExtension = context.AnalyzerConfigOptionsProvider
+        var shouldGenerateExtensionMethodProvider = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
+                // TODO: emit diagnostic that the value should be either true or false
                 if (provider.GlobalOptions.TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value)
                     && bool.TryParse(value, out var parsed))
                 {
-                    return (bool?)parsed;
+                    return parsed;
                 }
 
-                return null;
+                return false;
             });
 
-        var hasRegistrations = moduleToGenerate
-            .Select(static (module, _) => !module.Registrations.IsDefaultOrEmpty);
-
-        var shouldGenerateExtensions = hasRegistrations
-            .Combine(shouldGenerateExtension)
-            .Select(static (data, _) =>
-            {
-                var (hasRegistrations, shouldGenerateExtensionValue) = data;
-
-                if (!hasRegistrations)
-                {
-                    return false;
-                }
-
-                return shouldGenerateExtensionValue ?? true;
-            });
-
-        var generatedModulesFromReferences = context.CompilationProvider
-            .Combine(shouldGenerateExtensions)
-            .Select(static (data, token) =>
-            {
-                var (compilation, shouldGenerate) = data;
-
-                if (!shouldGenerate)
-                {
-                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
-                }
-
-                return GeneratedModuleReferenceCollector.CollectGeneratedModulesFromReferences(compilation, token);
-            });
-
-        var modulesToInclude = moduleToGenerate
+        var currentProjectModule = moduleToGenerate
+            .Combine(shouldGenerateExtensionMethodProvider)
             .Select(static (module, _) =>
             {
-                var (registrationInfos, customNameInfo, _) = module;
+                var ((registrationInfos, customNameInfo, _), shouldGenerateExtensionMethod) = module;
 
-                if (registrationInfos.IsDefaultOrEmpty)
+                if (!shouldGenerateExtensionMethod || registrationInfos.IsDefaultOrEmpty)
                 {
                     return null;
                 }
@@ -68,28 +39,42 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
                 return (GeneratedModuleRegistrationInfo?)new GeneratedModuleRegistrationInfo(fullyQualifiedName);
             });
 
-        return shouldGenerateExtensions
-            .Combine(generatedModulesFromReferences)
-            .Combine(modulesToInclude)
+        var generatedModulesFromReferencesProvider = context.CompilationProvider
+            .Combine(shouldGenerateExtensionMethodProvider)
+            .Select(static (data, token) =>
+            {
+                var (compilation, shouldGenerateExtensionMethod) = data;
+
+                if (!shouldGenerateExtensionMethod)
+                {
+                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
+                }
+
+                return GeneratedModuleReferenceCollector.CollectGeneratedModulesFromReferences(compilation, token);
+            });
+
+        return shouldGenerateExtensionMethodProvider
+            .Combine(generatedModulesFromReferencesProvider)
+            .Combine(currentProjectModule)
             .Select(static (data, _) =>
             {
-                var ((shouldGenerateExtensions, modulesFromReferences), currentModuleToInclude) = data;
+                var ((shouldGenerateExtensionMethod, modulesFromReferences), currentModule) = data;
 
-                if (!shouldGenerateExtensions)
+                if (!shouldGenerateExtensionMethod)
                 {
                     return new AttributedDiServiceCollectionExtensionsInfo(
                         false,
                         ImmutableArray<GeneratedModuleRegistrationInfo>.Empty);
                 }
 
-                if (currentModuleToInclude == null)
+                if (currentModule == null)
                 {
                     return new AttributedDiServiceCollectionExtensionsInfo(true, modulesFromReferences);
                 }
 
                 return new AttributedDiServiceCollectionExtensionsInfo(
                     true,
-                    modulesFromReferences.Add(currentModuleToInclude));
+                    modulesFromReferences.Add(currentModule));
             });
     }
 }
