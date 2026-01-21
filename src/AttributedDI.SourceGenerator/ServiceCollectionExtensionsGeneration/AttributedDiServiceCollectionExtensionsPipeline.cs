@@ -11,7 +11,7 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
     public static IncrementalValueProvider<AttributedDiServiceCollectionExtensionsInfo> Collect(
         IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ServiceModuleToGenerate> moduleToGenerate)
     {
-        var generateExtensionsOverride = context.AnalyzerConfigOptionsProvider
+        var shouldGenerateExtension = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
                 if (provider.GlobalOptions.TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value)
@@ -23,14 +23,21 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
                 return null;
             });
 
-        var shouldGenerateExtensions = context.CompilationProvider
-            .Select(static (compilation, _) => compilation.Options.OutputKind)
-            .Combine(generateExtensionsOverride)
+        var hasRegistrations = moduleToGenerate
+            .Select(static (module, _) => !module.Registrations.IsDefaultOrEmpty);
+
+        var shouldGenerateExtensions = hasRegistrations
+            .Combine(shouldGenerateExtension)
             .Select(static (data, _) =>
             {
-                var (outputKind, overrideValue) = data;
+                var (hasRegistrations, shouldGenerateExtensionValue) = data;
 
-                return overrideValue ?? outputKind != OutputKind.DynamicallyLinkedLibrary;
+                if (!hasRegistrations)
+                {
+                    return false;
+                }
+
+                return shouldGenerateExtensionValue ?? true;
             });
 
         var generatedModulesFromReferences = context.CompilationProvider
