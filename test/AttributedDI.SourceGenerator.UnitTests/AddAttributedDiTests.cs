@@ -74,11 +74,16 @@ public class AddAttributedDiTests
                    }
                    """;
 
+        var referencedProject = new SourceGeneratorTestFixture()
+            .WithSourceCode(referencedSource)
+            .WithAssemblyName("ReferencedAssembly")
+            .AddGenerator<ServiceRegistrationGenerator>();
+
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithOutputKind(OutputKind.ConsoleApplication)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
-            .WithReferencedAssemblySource(referencedSource, "ReferencedAssembly")
+            .WithReferencedProject(referencedProject)
             .AddGenerator<ServiceRegistrationGenerator>()
             .RunAndGetOutput();
 

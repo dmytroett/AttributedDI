@@ -1,3 +1,4 @@
+using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -59,31 +60,39 @@ public class SourceGeneratorTestFixture
 
     public SourceGeneratorTestFixture WithReferencedAssemblySource(string sourceCode, string assemblyName)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
-        var compilation = CSharpCompilation.Create(
-            assemblyName,
-            [syntaxTree],
-            GetBaseReferences(),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var referencedProject = new SourceGeneratorTestFixture()
+            .WithSourceCode(sourceCode)
+            .WithAssemblyName(assemblyName)
+            .AddGenerator<ServiceRegistrationGenerator>();
 
-        AssertCodeCompiles(compilation, $"Reference assembly ({assemblyName})");
+        return WithReferencedProject(referencedProject);
+    }
 
-        using var stream = new MemoryStream();
-        var emitResult = compilation.Emit(stream);
-        if (!emitResult.Success)
-        {
-            string errorMessages = string.Join(
-                Environment.NewLine,
-                emitResult.Diagnostics
-                    .Where(d => d.Severity == DiagnosticSeverity.Error)
-                    .Select(d => $"  {d.GetMessage(CultureInfo.InvariantCulture)}"));
-            Assert.Fail($"Reference assembly ({assemblyName}) emit failed:{Environment.NewLine}{errorMessages}");
-        }
-
-        stream.Position = 0;
-        _extraReferences.Add(MetadataReference.CreateFromStream(stream));
-
+    public SourceGeneratorTestFixture WithReferencedProject(SourceGeneratorTestFixture referencedProject)
+    {
+        _extraReferences.Add(referencedProject.BuildReference());
         return this;
+    }
+
+    public CSharpCompilation BuildCompilation()
+    {
+        var compilation = CreateCompilation();
+        AssertCodeCompiles(compilation, "Pre-generators");
+        return compilation;
+    }
+
+    public CSharpCompilation BuildGeneratedCompilation()
+    {
+        var compilation = BuildCompilation();
+        var outputCompilation = RunGenerators(compilation, out _);
+        AssertCodeCompiles(outputCompilation, "Post-generators");
+        return outputCompilation;
+    }
+
+    public PortableExecutableReference BuildReference()
+    {
+        var outputCompilation = BuildGeneratedCompilation();
+        return EmitReference(outputCompilation, outputCompilation.AssemblyName);
     }
 
     public SourceGeneratorTestFixture AddGenerator<TGenerator>()
@@ -101,45 +110,13 @@ public class SourceGeneratorTestFixture
 
     public SourceGeneratorTestResult RunAndGetOutput()
     {
-        Debug.Assert(_sourceCode != null, $"{nameof(WithSourceCode)} has to be called to set source code");
-
-        // Parse the provided string into a C# syntax tree
-        var syntaxTree = CSharpSyntaxTree.ParseText(_sourceCode);
-
-        // Get all necessary assembly references
-        // The compilation needs basic runtime references to properly resolve assembly-level attributes.
-        // Without these, the source generator cannot read attributes like [assembly: RegistrationMethodName("...")]
-        // because the compilation lacks the metadata for System.Attribute and related types.
-        // See: https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md
-        List<MetadataReference> references = [.. GetBaseReferences(), .. _extraReferences];
-
-        // Create a Roslyn compilation for the syntax tree with references
-        var compilation = CSharpCompilation.Create(
-            _assemblyName ?? "Tests",
-            [syntaxTree],
-            references,
-            new CSharpCompilationOptions(_outputKind));
-
-        AssertCodeCompiles(compilation, "Pre-generators");
+        CSharpCompilation compilation = BuildCompilation();
 
         // Andrew Lock pioneered this approach in StronglyTypedID:
         // https://github.com/andrewlock/StronglyTypedId/blob/6bd17db4a4b700eaad9e209baf41478cc3f0bbe9/test/StronglyTypedIds.Tests/TestHelpers.cs#L31
 
         var originalTreeCount = compilation.SyntaxTrees.Length;
-        AnalyzerConfigOptionsProvider? optionsProvider = null;
-
-        if (_globalOptions.Count > 0)
-        {
-            optionsProvider = new TestAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
-        }
-
-        var sourceGenerators = _generators
-            .Select(static generator => generator.AsSourceGenerator())
-            .ToArray();
-
-        GeneratorDriver driver = CSharpGeneratorDriver
-            .Create(sourceGenerators, optionsProvider: optionsProvider)
-            .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var postGeneratorDiagnostics);
+        var outputCompilation = RunGenerators(compilation, out var postGeneratorDiagnostics);
 
         AssertCodeCompiles(outputCompilation, "Post-generators");
 
@@ -155,6 +132,72 @@ public class SourceGeneratorTestFixture
             .ToString();
 
         return new SourceGeneratorTestResult(output, postGeneratorDiagnostics);
+    }
+
+    private CSharpCompilation CreateCompilation()
+    {
+        Debug.Assert(_sourceCode != null, $"{nameof(WithSourceCode)} has to be called to set source code");
+
+        // Parse the provided string into a C# syntax tree
+        var syntaxTree = CSharpSyntaxTree.ParseText(_sourceCode);
+
+        // Get all necessary assembly references
+        // The compilation needs basic runtime references to properly resolve assembly-level attributes.
+        // Without these, the source generator cannot read attributes like [assembly: RegistrationMethodName("...")]
+        // because the compilation lacks the metadata for System.Attribute and related types.
+        // See: https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md
+        List<MetadataReference> references = [.. GetBaseReferences(), .. _extraReferences];
+
+        // Create a Roslyn compilation for the syntax tree with references
+        return CSharpCompilation.Create(
+            _assemblyName ?? "Tests",
+            [syntaxTree],
+            references,
+            new CSharpCompilationOptions(_outputKind));
+    }
+
+    private CSharpCompilation RunGenerators(CSharpCompilation compilation, out ImmutableArray<Diagnostic> postGeneratorDiagnostics)
+    {
+        AnalyzerConfigOptionsProvider? optionsProvider = null;
+
+        if (_globalOptions.Count > 0)
+        {
+            optionsProvider = new TestAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
+        }
+
+        var sourceGenerators = _generators
+            .Select(static generator => generator.AsSourceGenerator())
+            .ToArray();
+
+        if (sourceGenerators.Length == 0)
+        {
+            postGeneratorDiagnostics = ImmutableArray<Diagnostic>.Empty;
+            return compilation;
+        }
+
+        _ = CSharpGeneratorDriver
+            .Create(sourceGenerators, optionsProvider: optionsProvider)
+            .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out postGeneratorDiagnostics);
+
+        return (CSharpCompilation)outputCompilation;
+    }
+
+    private static PortableExecutableReference EmitReference(Compilation compilation, string? assemblyName)
+    {
+        using var stream = new MemoryStream();
+        var emitResult = compilation.Emit(stream);
+        if (!emitResult.Success)
+        {
+            string errorMessages = string.Join(
+                Environment.NewLine,
+                emitResult.Diagnostics
+                    .Where(d => d.Severity == DiagnosticSeverity.Error)
+                    .Select(d => $"  {d.GetMessage(CultureInfo.InvariantCulture)}"));
+            Assert.Fail($"Reference assembly ({assemblyName ?? "Unnamed"}) emit failed:{Environment.NewLine}{errorMessages}");
+        }
+
+        stream.Position = 0;
+        return MetadataReference.CreateFromStream(stream);
     }
 
     private static List<MetadataReference> GetBaseReferences()
