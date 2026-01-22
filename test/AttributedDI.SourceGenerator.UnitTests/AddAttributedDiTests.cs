@@ -75,7 +75,8 @@ public class AddAttributedDiTests
         var referencedProject = new SourceGeneratorTestFixture()
             .WithSourceCode(referencedSource)
             .WithAssemblyName("ReferencedAssembly")
-            .AddGenerator<ServiceRegistrationGenerator>();
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .BuildAndRunGenerators();
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
@@ -86,7 +87,9 @@ public class AddAttributedDiTests
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
 
-        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+        var output =
+            GeneratedCodeExtractor.ExtractGeneratedCode(referencedProject) +
+            GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }

@@ -54,16 +54,11 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public SourceGeneratorTestFixture WithReferencedProject(SourceGeneratorTestFixture referencedProject)
+    public SourceGeneratorTestFixture WithReferencedProject(CompilationResult referencedCompilation)
     {
-        _extraReferences.Add(referencedProject.BuildReference());
+        var reference = AssemblyEmitter.EmitReference(referencedCompilation.UpdatedCompilation, referencedCompilation.UpdatedCompilation.AssemblyName);
+        _extraReferences.Add(reference);
         return this;
-    }
-
-    public PortableExecutableReference BuildReference()
-    {
-        var outputCompilation = BuildAndRunGenerators();
-        return AssemblyEmitter.EmitReference(outputCompilation.UpdatedCompilation, outputCompilation.UpdatedCompilation.AssemblyName);
     }
 
     public SourceGeneratorTestFixture AddGenerator<TGenerator>()
