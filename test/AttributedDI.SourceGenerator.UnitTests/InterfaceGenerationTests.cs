@@ -117,7 +117,7 @@ public class InterfaceGenerationTests
             .WithSourceCode(code)
             .WithExtraReferences(typeof(INotifyPropertyChanged).Assembly)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -196,7 +196,7 @@ public class InterfaceGenerationTests
             .WithSourceCode(code)
             .WithExtraReferences(typeof(IServiceProvider).Assembly)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -312,7 +312,7 @@ public class InterfaceGenerationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
         await Verify(output);
@@ -356,7 +356,7 @@ public class InterfaceGenerationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
         await Verify(output);
@@ -381,7 +381,7 @@ public class InterfaceGenerationTests
         var (_, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.NotEmpty(diagnostics);
     }

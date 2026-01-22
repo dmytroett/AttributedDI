@@ -22,7 +22,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -52,7 +52,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -80,7 +80,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -114,7 +114,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -142,7 +142,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -165,7 +165,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -198,7 +198,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -227,7 +227,7 @@ public class KeyedServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 

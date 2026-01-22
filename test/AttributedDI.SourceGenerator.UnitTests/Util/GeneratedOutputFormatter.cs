@@ -1,16 +1,14 @@
-using Microsoft.CodeAnalysis.CSharp;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
-internal static class GeneratedOutputFormatter
+internal static class GeneratedCodeExtractor
 {
-    public static string FormatGeneratedTrees(CSharpCompilation compilation, int originalTreeCount)
+    public static string ExtractGeneratedCode(CompilationResult compilationResult)
     {
-        return compilation.SyntaxTrees
+        var originalTreeCount = compilationResult.OriginalCompilation.SyntaxTrees.Length;
+        return compilationResult.UpdatedCompilation.SyntaxTrees
             .Skip(originalTreeCount)
             .Aggregate(new StringBuilder(), (sb, tree) =>
             {

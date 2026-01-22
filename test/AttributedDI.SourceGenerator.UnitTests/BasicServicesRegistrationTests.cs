@@ -73,7 +73,7 @@ public class BasicServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -98,7 +98,7 @@ public class BasicServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
 
@@ -121,7 +121,7 @@ public class BasicServicesRegistrationTests
         var (output, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.Empty(diagnostics);
         Assert.DoesNotContain("RegularClass", output);
@@ -145,7 +145,7 @@ public class BasicServicesRegistrationTests
         var (_, diagnostics) = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
         Assert.NotEmpty(diagnostics);
     }

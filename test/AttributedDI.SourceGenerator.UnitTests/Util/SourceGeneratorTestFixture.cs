@@ -60,33 +60,10 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public CSharpCompilation BuildCompilation()
-    {
-        var compilation = CompilationFactory.CreateCompilation(
-            _sourceCode,
-            _assemblyName,
-            _outputKind,
-            _extraReferences);
-        CompilationAssertions.AssertCompiles(compilation, "Pre-generators");
-        return compilation;
-    }
-
-    public CSharpCompilation BuildGeneratedCompilation()
-    {
-        var compilation = BuildCompilation();
-        var outputCompilation = GeneratorRunner.RunGenerators(
-            compilation,
-            _generators,
-            GetOptionsProvider(),
-            out _);
-        CompilationAssertions.AssertCompiles(outputCompilation, "Post-generators");
-        return outputCompilation;
-    }
-
     public PortableExecutableReference BuildReference()
     {
-        var outputCompilation = BuildGeneratedCompilation();
-        return AssemblyEmitter.EmitReference(outputCompilation, outputCompilation.AssemblyName);
+        var outputCompilation = BuildAndRunGenerators();
+        return AssemblyEmitter.EmitReference(outputCompilation.UpdatedCompilation, outputCompilation.UpdatedCompilation.AssemblyName);
     }
 
     public SourceGeneratorTestFixture AddGenerator<TGenerator>()
@@ -102,14 +79,16 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public SourceGeneratorTestResult RunAndGetOutput()
+    public CompilationResult BuildAndRunGenerators()
     {
-        CSharpCompilation compilation = BuildCompilation();
+        var compilation = CompilationFactory.CreateCompilation(
+            _sourceCode,
+            _assemblyName,
+            _outputKind,
+            _extraReferences);
 
-        // Andrew Lock pioneered this approach in StronglyTypedID:
-        // https://github.com/andrewlock/StronglyTypedId/blob/6bd17db4a4b700eaad9e209baf41478cc3f0bbe9/test/StronglyTypedIds.Tests/TestHelpers.cs#L31
+        CompilationAssertions.AssertCompiles(compilation, "Pre-generators");
 
-        var originalTreeCount = compilation.SyntaxTrees.Length;
         var outputCompilation = GeneratorRunner.RunGenerators(
             compilation,
             _generators,
@@ -118,9 +97,7 @@ public class SourceGeneratorTestFixture
 
         CompilationAssertions.AssertCompiles(outputCompilation, "Post-generators");
 
-        var output = GeneratedOutputFormatter.FormatGeneratedTrees(outputCompilation, originalTreeCount);
-
-        return new SourceGeneratorTestResult(output, postGeneratorDiagnostics);
+        return new CompilationResult(compilation, outputCompilation, postGeneratorDiagnostics);
     }
 
     private AnalyzerConfigOptionsProvider? GetOptionsProvider()
@@ -134,8 +111,7 @@ public class SourceGeneratorTestFixture
     }
 }
 
-// public record CompilationResult(Compi)
-
-public record SourceGeneratorTestResult(
-    string Output,
-    ImmutableArray<Diagnostic> Diagnostics);
+public record CompilationResult(
+    CSharpCompilation OriginalCompilation,
+    CSharpCompilation UpdatedCompilation,
+    ImmutableArray<Diagnostic> SourceGeneratorDiagnostics);

@@ -1,6 +1,3 @@
-using Microsoft.CodeAnalysis;
-using System.Runtime.InteropServices;
-
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class AddAttributedDiTests
@@ -27,14 +24,15 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .WithOutputKind(OutputKind.ConsoleApplication)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -79,15 +77,16 @@ public class AddAttributedDiTests
             .WithAssemblyName("ReferencedAssembly")
             .AddGenerator<ServiceRegistrationGenerator>();
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .WithOutputKind(OutputKind.ConsoleApplication)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .WithReferencedProject(referencedProject)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -118,14 +117,15 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .WithOutputKind(OutputKind.ConsoleApplication)
             .WithBuildProperty("GenerateAttributedDIExtensions", value)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
