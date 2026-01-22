@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Using Include="Xunit"/>
+    <Using Include="AttributedDI.SourceGenerator.UnitTests.Util"/>
   </ItemGroup>
 
   <ItemGroup>
