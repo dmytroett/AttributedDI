@@ -100,7 +100,7 @@ public class SourceGeneratorTestFixture
         return new CompilationResult(compilation, outputCompilation, postGeneratorDiagnostics);
     }
 
-    private AnalyzerConfigOptionsProvider? GetOptionsProvider()
+    private FakeAnalyzerConfigOptionsProvider? GetOptionsProvider()
     {
         if (_globalOptions.Count == 0)
         {
