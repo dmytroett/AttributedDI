@@ -20,7 +20,7 @@ public class AddAttributedDiTests
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -47,7 +47,7 @@ public class AddAttributedDiTests
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -95,14 +95,14 @@ public class AddAttributedDiTests
         var referencedProject = new SourceGeneratorTestFixture()
             .WithSourceCode(referencedSource)
             .WithAssemblyName("ReferencedAssembly")
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .WithReferencedProject(referencedProject)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -143,7 +143,7 @@ public class AddAttributedDiTests
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", value)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);

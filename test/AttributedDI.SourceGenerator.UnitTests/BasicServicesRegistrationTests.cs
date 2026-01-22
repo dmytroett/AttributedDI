@@ -72,7 +72,7 @@ public class BasicServicesRegistrationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -99,7 +99,7 @@ public class BasicServicesRegistrationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -124,7 +124,7 @@ public class BasicServicesRegistrationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -151,7 +151,7 @@ public class BasicServicesRegistrationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.NotEmpty(result.SourceGeneratorDiagnostics);

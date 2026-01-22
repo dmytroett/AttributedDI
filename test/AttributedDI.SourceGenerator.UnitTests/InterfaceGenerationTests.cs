@@ -116,7 +116,7 @@ public class InterfaceGenerationTests
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(INotifyPropertyChanged).Assembly)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -197,7 +197,7 @@ public class InterfaceGenerationTests
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(IServiceProvider).Assembly)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -315,7 +315,7 @@ public class InterfaceGenerationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -362,7 +362,7 @@ public class InterfaceGenerationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.Empty(result.SourceGeneratorDiagnostics);
@@ -390,7 +390,7 @@ public class InterfaceGenerationTests
 
         var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
+            .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRunGenerators();
 
         Assert.NotEmpty(result.SourceGeneratorDiagnostics);

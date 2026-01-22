@@ -13,7 +13,7 @@ namespace AttributedDI.SourceGenerator;
 ///     modules.
 /// </summary>
 [Generator]
-public class ServiceRegistrationGenerator : IIncrementalGenerator
+public class AttributedDiSourceGenerator : IIncrementalGenerator
 {
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
