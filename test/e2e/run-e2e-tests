@@ -9,9 +9,11 @@ package_version="99.0.0-e2e.${timestamp}"
 
 mkdir -p "${artifacts_dir}"
 
-dotnet pack "${repo_root}/src/AttributedDI/AttributedDI.csproj" \
-  -c Release \
-  -o "${artifacts_dir}" \
-  -p:PackageVersion="${package_version}"
+# dotnet pack "${repo_root}/src/AttributedDI/AttributedDI.csproj" \
+#   -c Release \
+#   -o "${artifacts_dir}" \
+#   -p:PackageVersion="${package_version}"
 
 echo "Packed AttributedDI ${package_version} to ${artifacts_dir}"
+
+dotnet test "${repo_root}/AttributedDI.slnx" -p:IsE2E=true
