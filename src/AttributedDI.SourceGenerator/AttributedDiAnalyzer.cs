@@ -1,24 +1,22 @@
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator.Analyzers;
+namespace AttributedDI.SourceGenerator;
 
-/// <summary>Reports diagnostics for invalid AttributedDI registration usage.</summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class RegistrationDiagnosticsAnalyzer : DiagnosticAnalyzer
+public class AttributedDiAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor ConflictingLifetimes = new(
-        id: "ATTDI001",
-        title: "Conflicting lifetime attributes",
-        messageFormat: "Type '{0}' has multiple lifetime attributes, use only one",
-        category: "AttributedDI",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+            id: "ATTDI001",
+            title: "Conflicting lifetime attributes",
+            messageFormat: "Type '{0}' has multiple lifetime attributes, use only one",
+            category: "AttributedDI",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 
     /// <summary>Gets the diagnostics supported by this analyzer.</summary>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        => ImmutableArray.Create(ConflictingLifetimes);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [ConflictingLifetimes];
 
     /// <summary>Registers analysis actions.</summary>
     public override void Initialize(AnalysisContext context)

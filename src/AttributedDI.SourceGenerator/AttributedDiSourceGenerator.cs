@@ -2,9 +2,7 @@ using AttributedDI.SourceGenerator.InterfacesGeneration;
 using AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
 using AttributedDI.SourceGenerator.ServiceModulesGeneration;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System.Linq;
-using System.Text;
 
 namespace AttributedDI.SourceGenerator;
 
