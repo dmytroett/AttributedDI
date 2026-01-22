@@ -9,11 +9,24 @@ package_version="99.0.0-e2e.${timestamp}"
 
 mkdir -p "${artifacts_dir}"
 
-# dotnet pack "${repo_root}/src/AttributedDI/AttributedDI.csproj" \
-#   -c Release \
-#   -o "${artifacts_dir}" \
-#   -p:PackageVersion="${package_version}"
+dotnet pack "${repo_root}/src/AttributedDI/AttributedDI.csproj" \
+  -c Release \
+  -o "${artifacts_dir}" \
+  -p:PackageVersion="${package_version}"
 
 echo "Packed AttributedDI ${package_version} to ${artifacts_dir}"
+
+props_file="${repo_root}/test/integration/assets/Directory.Build.props"
+tmp_file="$(mktemp)"
+sed -E "s#(<AttributedDIPackageVersion[^>]*>)[^<]*(</AttributedDIPackageVersion>)#\\1${package_version}\\2#" \
+  "${props_file}" > "${tmp_file}"
+mv "${tmp_file}" "${props_file}"
+
+if ! grep -q "<AttributedDIPackageVersion" "${props_file}" || ! grep -q "${package_version}" "${props_file}"; then
+  echo "Failed to update ${props_file} (pattern not found)." >&2
+  exit 1
+fi
+
+echo "Updated ${props_file} to use ${package_version}"
 
 dotnet test "${repo_root}/AttributedDI.slnx" -p:IsE2E=true
