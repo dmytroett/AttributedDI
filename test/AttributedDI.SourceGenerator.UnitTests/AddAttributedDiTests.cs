@@ -3,7 +3,7 @@ namespace AttributedDI.SourceGenerator.UnitTests;
 public class AddAttributedDiTests
 {
     [Fact]
-    public async Task GeneratesAddAttributedDiForEntryPoint()
+    public async Task GeneratesAddAttributedDiWhenBuildPropertyIsSet()
     {
         var code = """
                    using AttributedDI;
@@ -15,10 +15,30 @@ public class AddAttributedDiTests
                        {
                        }
                    }
+                   """;
 
-                   public static class Program
+        var result = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "true")
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .BuildAndRunGenerators();
+
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task GeneratesAddAttributedDiWhenNoRegisteredServicesExist()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
                    {
-                       public static void Main()
+                       public class MyService
                        {
                        }
                    }
