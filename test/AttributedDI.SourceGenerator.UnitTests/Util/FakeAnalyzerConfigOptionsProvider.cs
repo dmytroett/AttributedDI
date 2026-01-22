@@ -4,14 +4,14 @@ using System.Collections.Immutable;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
-internal sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+internal sealed class FakeAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
 {
-    private static readonly AnalyzerConfigOptions EmptyOptions = new TestAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty);
+    private static readonly AnalyzerConfigOptions EmptyOptions = new FakeAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty);
     private readonly AnalyzerConfigOptions _globalOptions;
 
-    public TestAnalyzerConfigOptionsProvider(ImmutableDictionary<string, string> globalOptions)
+    public FakeAnalyzerConfigOptionsProvider(ImmutableDictionary<string, string> globalOptions)
     {
-        _globalOptions = new TestAnalyzerConfigOptions(globalOptions);
+        _globalOptions = new FakeAnalyzerConfigOptions(globalOptions);
     }
 
     public override AnalyzerConfigOptions GlobalOptions => _globalOptions;
@@ -27,11 +27,11 @@ internal sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsP
     }
 }
 
-internal sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+internal sealed class FakeAnalyzerConfigOptions : AnalyzerConfigOptions
 {
     private readonly ImmutableDictionary<string, string> _options;
 
-    public TestAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
+    public FakeAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
     {
         _options = options;
     }

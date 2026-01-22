@@ -54,16 +54,6 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public SourceGeneratorTestFixture WithReferencedAssemblySource(string sourceCode, string assemblyName)
-    {
-        var referencedProject = new SourceGeneratorTestFixture()
-            .WithSourceCode(sourceCode)
-            .WithAssemblyName(assemblyName)
-            .AddGenerator<ServiceRegistrationGenerator>();
-
-        return WithReferencedProject(referencedProject);
-    }
-
     public SourceGeneratorTestFixture WithReferencedProject(SourceGeneratorTestFixture referencedProject)
     {
         _extraReferences.Add(referencedProject.BuildReference());
@@ -140,9 +130,11 @@ public class SourceGeneratorTestFixture
             return null;
         }
 
-        return new TestAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
+        return new FakeAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
     }
 }
+
+// public record CompilationResult(Compi)
 
 public record SourceGeneratorTestResult(
     string Output,

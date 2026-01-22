@@ -1,8 +1,5 @@
 using Microsoft.CodeAnalysis;
-using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
