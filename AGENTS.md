@@ -18,23 +18,6 @@ This project is about building a library to simplify dependency registration in 
 - Do not overuse comments; place them only where they add real value.
 - Minimize public surface area: Use `private` or `internal` access modifiers by default unless the API is intentionally designed to be public. A smaller public API is easier to maintain and reduces breaking change concerns in future versions.
 
-## Code Style & Formatting
-
-When done with code generation or modification, you must:
-
-1. Run `dotnet format --include <list-of-changed-files>`
-2. Ensure no formatting issues remain
-
-Example:
-```
-dotnet format --include src/AttributedDI/MyClass.cs
-```
-
-For multiple files:
-```
-dotnet format --include src/AttributedDI/File1.cs src/AttributedDI/File2.cs
-```
-
 ## Public API Documentation
 
 This is a library. **All** public methods, properties, classes, and interfaces in library code **must** have XML documentation (///).
