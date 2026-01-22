@@ -35,9 +35,9 @@ Re-run tests and iterate until they pass.
 - Run a single test:
   - `dotnet test --filter "FullyQualifiedName~<TestClass>.<TestMethod>"`
 - Accept one snapshot:
-  - `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot <TestClassName> <TestMethodName>`
+  - `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
 - Accept all snapshots:
-  - `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots`
+  - `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots.ps1`
 
 # Verify failure pattern
 

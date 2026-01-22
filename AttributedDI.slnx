@@ -38,6 +38,6 @@
     <File Path="test/integration/assets/Directory.Build.props" />
   </Folder>
   <Folder Name="/test/e2e/">
-    <File Path="test/e2e/run-e2e-tests" />
+    <File Path="test/e2e/run-e2e-tests.ps1" />
   </Folder>
 </Solution>

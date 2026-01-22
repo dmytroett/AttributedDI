@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsE2E Condition="'$(IsE2E)' == ''">false</IsE2E>
     <!-- <IsE2E>true</IsE2E> -->
-    <AttributedDIPackageVersion Condition="'$(IsE2E)' == 'true'">99.0.0-e2e.202601220814</AttributedDIPackageVersion>
+    <AttributedDIPackageVersion Condition="'$(IsE2E)' == 'true'">99.0.0-e2e.20260122094630</AttributedDIPackageVersion>
     <!-- Ease the restrictions as these contain test code -->
     <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
