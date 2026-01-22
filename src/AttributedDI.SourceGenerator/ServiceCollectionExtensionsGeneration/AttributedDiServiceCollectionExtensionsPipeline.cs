@@ -14,7 +14,6 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
         var shouldGenerateExtensionMethodProvider = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
-                // TODO: emit diagnostic that the value should be either true or false
                 if (provider.GlobalOptions.TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value)
                     && bool.TryParse(value, out var parsed))
                 {

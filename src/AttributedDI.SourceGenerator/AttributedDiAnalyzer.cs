@@ -7,16 +7,19 @@ namespace AttributedDI.SourceGenerator;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AttributedDiAnalyzer : DiagnosticAnalyzer
 {
+    private const string GenerateExtensionsPropertyName = "GenerateAttributedDIExtensions";
+
     private static readonly DiagnosticDescriptor ConflictingLifetimes = new(
             id: "ATTDI001",
             title: "Conflicting lifetime attributes",
             messageFormat: "Type '{0}' has multiple lifetime attributes, use only one",
-            category: "AttributedDI",
+            category: "Usage",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
     /// <summary>Gets the diagnostics supported by this analyzer.</summary>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [ConflictingLifetimes];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        [ConflictingLifetimes, AttributedDiDiagnostics.InvalidMsBuildPropertyValue];
 
     /// <summary>Registers analysis actions.</summary>
     public override void Initialize(AnalysisContext context)
@@ -26,19 +29,45 @@ public class AttributedDiAnalyzer : DiagnosticAnalyzer
 
         context.RegisterCompilationStartAction(startContext =>
         {
+            ReportInvalidMsBuildPropertyValue(startContext);
+
             var transientAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.TransientAttribute");
             var scopedAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.ScopedAttribute");
             var singletonAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.SingletonAttribute");
 
-            if (transientAttr is null || scopedAttr is null || singletonAttr is null)
-            {
-                return;
-            }
-
             startContext.RegisterSymbolAction(
-                symbolContext => AnalyzeNamedType(symbolContext, transientAttr, scopedAttr, singletonAttr),
+                symbolContext =>
+                {
+                    if (transientAttr is null || scopedAttr is null || singletonAttr is null)
+                    {
+                        return;
+                    }
+
+                    AnalyzeNamedType(symbolContext, transientAttr, scopedAttr, singletonAttr);
+                },
                 SymbolKind.NamedType);
         });
+    }
+
+    private static void ReportInvalidMsBuildPropertyValue(CompilationStartAnalysisContext context)
+    {
+        if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions
+            .TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value))
+        {
+            return;
+        }
+
+        if (bool.TryParse(value, out _))
+        {
+            return;
+        }
+
+        var diagnostic = Diagnostic.Create(
+            AttributedDiDiagnostics.InvalidMsBuildPropertyValue,
+            Location.None,
+            GenerateExtensionsPropertyName,
+            value);
+        context.ReportDiagnostic(diagnostic);
     }
 
     private static void AnalyzeNamedType(

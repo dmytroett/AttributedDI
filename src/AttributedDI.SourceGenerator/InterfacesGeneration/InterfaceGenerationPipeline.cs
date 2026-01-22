@@ -58,8 +58,6 @@ internal static class InterfaceGenerationBuilder
         var typeParameterConstraints = BuildTypeParameterConstraintsString(typeSymbol);
         var typeParameterCount = typeSymbol.TypeParameters.Length;
 
-        // TODO: Add diagnostic when class is not marked as partial
-
         return new GeneratedInterfaceInfo(
             interfaceName,
             resolvedNaming.InterfaceNamespace,
