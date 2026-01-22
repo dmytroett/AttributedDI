@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="AttributedDI.IntegrationTests.Utils" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,9 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\assets\AllModulesRegistration.App\AllModulesRegistration.App.csproj" />
+    <ProjectReference
+      Include="..\assets\AllModulesRegistration.App\AllModulesRegistration.App.csproj" />
     <ProjectReference Include="..\assets\CustomModuleName\CustomModuleName.csproj" />
-    <ProjectReference Include="..\assets\Company.TeamName.Project.API\Company.TeamName.Project.API.csproj" />
+    <ProjectReference
+      Include="..\assets\Company.TeamName.Project.API\Company.TeamName.Project.API.csproj" />
     <ProjectReference Include="..\assets\GeneratedInterfacesSut\GeneratedInterfacesSut.csproj" />
   </ItemGroup>
 
