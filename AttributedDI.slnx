@@ -16,24 +16,28 @@
     <Project Path="src/AttributedDI.SourceGenerator/AttributedDI.SourceGenerator.csproj" />
     <Project Path="src/AttributedDI/AttributedDI.csproj" />
   </Folder>
-  <Folder Name="/test/">    
-    <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
+  <Folder Name="/test/">
+    <Project
+      Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
   </Folder>
   <Folder Name="/test/integration/">
-    <Project Path="test/integration/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
-    <Project Path="test/integration/AttributedDI.GenerateExtensionsOptIn.IntegrationTests/AttributedDI.GenerateExtensionsOptIn.IntegrationTests.csproj" />
-    <Project Path="test/integration/AttributedDI.GenerateExtensionsOptOut.IntegrationTests/AttributedDI.GenerateExtensionsOptOut.IntegrationTests.csproj" />
+    <Project
+      Path="test/integration/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
     <File Path="test/integration/nuget.config" />
   </Folder>
   <Folder Name="/test/integration/assets/">
-    <Project Path="test/integration/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
-    <Project Path="test/integration/assets/AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
-    <Project Path="test/integration/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
+    <Project
+      Path="test/integration/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
+    <Project
+      Path="test/integration/assets/AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
+    <Project
+      Path="test/integration/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
     <Project Path="test/integration/assets/CustomModuleName/CustomModuleName.csproj" />
     <Project Path="test/integration/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />
-    <Project Path="test/integration/assets/GenerateExtensions.OptIn/GenerateExtensions.OptIn.csproj" />
-    <Project Path="test/integration/assets/GenerateExtensions.OptOut/GenerateExtensions.OptOut.csproj" />
     <File Path="test/integration/assets/.editorconfig" />
-    <File Path="test/integration/assets/Directory.Build.props" />    
+    <File Path="test/integration/assets/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/test/e2e/">
+    <File Path="test/e2e/prep-e2e-tests" />
   </Folder>
 </Solution>

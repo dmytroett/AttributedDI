@@ -10,6 +10,9 @@ indent_style = space
 [*.{csproj,props}]
 indent_size = 2
 
+[*.slnx]
+max_line_length = 500
+
 # C# files
 [*.cs]
 
