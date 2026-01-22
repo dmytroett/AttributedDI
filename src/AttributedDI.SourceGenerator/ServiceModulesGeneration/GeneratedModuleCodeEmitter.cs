@@ -2,7 +2,6 @@ using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Text;
 
 namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
@@ -181,7 +180,7 @@ internal static class GeneratedModuleCodeEmitter
         EmitClosedSelfRegistration(sb, fullTypeName, lifetime, isKeyed, registration.Key);
     }
 
-    private static void EmitClosedGenericRegistration(StringBuilder sb, string serviceType, string implementationType, string lifetime, bool isKeyed, object? key)
+    private static void EmitClosedGenericRegistration(StringBuilder sb, string serviceType, string implementationType, string lifetime, bool isKeyed, KeyExpression? key)
     {
         if (!isKeyed)
         {
@@ -193,7 +192,7 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{serviceType}, {implementationType}>({keyLiteral});");
     }
 
-    private static void EmitClosedSelfRegistration(StringBuilder sb, string implementationType, string lifetime, bool isKeyed, object? key)
+    private static void EmitClosedSelfRegistration(StringBuilder sb, string implementationType, string lifetime, bool isKeyed, KeyExpression? key)
     {
         if (!isKeyed)
         {
@@ -205,7 +204,7 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine($"            services.AddKeyed{lifetime}<{implementationType}>({keyLiteral});");
     }
 
-    private static void EmitOpenGenericRegistration(StringBuilder sb, string? serviceType, string implementationType, string lifetime, bool isKeyed, object? key)
+    private static void EmitOpenGenericRegistration(StringBuilder sb, string? serviceType, string implementationType, string lifetime, bool isKeyed, KeyExpression? key)
     {
         if (serviceType is string)
         {
@@ -235,17 +234,12 @@ internal static class GeneratedModuleCodeEmitter
     /// </summary>
     /// <param name="key">The key value to format.</param>
     /// <returns>A string representation of the key suitable for code generation.</returns>
-    private static string FormatKeyLiteral(object? key)
+    private static string FormatKeyLiteral(KeyExpression? key)
     {
         return key switch
         {
-            KeyLiteral literal => literal.Literal,
             null => "null",
-            string s => $"\"{s.Replace("\"", "\\\"")}\"",
-            int i => i.ToString(CultureInfo.InvariantCulture),
-            long l => $"{l}L",
-            bool b => b ? "true" : "false",
-            _ => $"\"{key}\""
+            _ => key.Code
         };
     }
 }

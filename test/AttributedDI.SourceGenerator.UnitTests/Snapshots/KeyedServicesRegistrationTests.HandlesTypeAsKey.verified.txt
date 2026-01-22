@@ -45,7 +45,7 @@ namespace Tests
         /// <param name="services">The service collection to configure.</param>
         public virtual void ConfigureServices(IServiceCollection services)
         {
-            services.AddKeyedTransient<global::MyApp.Service1>("MyApp.Service2");
+            services.AddKeyedTransient<global::MyApp.Service1>(typeof(global::MyApp.Service2));
         }
     }
 }

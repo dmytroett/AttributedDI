@@ -106,12 +106,12 @@ internal static class ServicesRegistrationsCollector
 /// <param name="FullyQualifiedTypeName">The fully qualified name of the implementation type.</param>
 /// <param name="ServiceTypeFullName">The fully qualified name of the service type, or null for self-registration.</param>
 /// <param name="Lifetime">The service lifetime (Transient, Scoped, or Singleton).</param>
-/// <param name="Key">The service key, if this is a keyed registration.</param>
+/// <param name="Key">The service key expression, if this is a keyed registration.</param>
 internal sealed record RegistrationInfo(
     string FullyQualifiedTypeName,
     string? ServiceTypeFullName,
     string Lifetime,
-    object? Key,
+    KeyExpression? Key,
     bool IsOpenGeneric,
     string UnboundImplementationTypeName,
     string? UnboundServiceTypeFullName);
@@ -122,7 +122,7 @@ internal sealed record RegistrationCandidate(
     bool IsOpenGeneric,
     string UnboundImplementationTypeName,
     string? UnboundServiceTypeFullName,
-    object? Key);
+    KeyExpression? Key);
 
 internal sealed record LifetimeInfo(
     string FullyQualifiedTypeName,

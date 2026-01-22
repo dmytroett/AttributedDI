@@ -1,7 +1,9 @@
 using AttributedDI.SourceGenerator.InterfacesGeneration;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 
@@ -239,7 +241,7 @@ internal static class RegistrationCandidatesCollector
         return name.StartsWith("global::", StringComparison.Ordinal) ? name : $"global::{name}";
     }
 
-    private static object? ExtractKey(AttributeData attribute)
+    private static KeyExpression? ExtractKey(AttributeData attribute)
     {
         var ctor = attribute.AttributeConstructor;
         if (ctor is { Parameters.Length: > 0 })
@@ -256,11 +258,17 @@ internal static class RegistrationCandidatesCollector
         return ExtractKeyValue(keyNamedArg.Value);
     }
 
-    private static object? ExtractKeyValue(TypedConstant keyConstant)
+    private static KeyExpression? ExtractKeyValue(TypedConstant keyConstant)
     {
         if (keyConstant.IsNull)
         {
             return null;
+        }
+
+        if (keyConstant.Kind == TypedConstantKind.Type && keyConstant.Value is ITypeSymbol typeSymbol)
+        {
+            var typeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            return new KeyExpression($"typeof({AddGlobalAlias(typeName)})");
         }
 
         if (keyConstant.Type is { TypeKind: TypeKind.Enum } enumType)
@@ -272,10 +280,10 @@ internal static class RegistrationCandidatesCollector
             }
         }
 
-        return keyConstant.Value;
+        return FormatPrimitiveLiteral(keyConstant);
     }
 
-    private static KeyLiteral? ResolveEnumLiteral(ITypeSymbol enumType, object? value)
+    private static KeyExpression? ResolveEnumLiteral(ITypeSymbol enumType, object? value)
     {
         if (value is null)
         {
@@ -292,7 +300,7 @@ internal static class RegistrationCandidatesCollector
             if (Equals(member.ConstantValue, value))
             {
                 var typeName = enumType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                return new KeyLiteral($"{AddGlobalAlias(typeName)}.{member.Name}");
+                return new KeyExpression($"{AddGlobalAlias(typeName)}.{member.Name}");
             }
         }
 
@@ -311,6 +319,44 @@ internal static class RegistrationCandidatesCollector
 
         return -1;
     }
+
+    private static KeyExpression? FormatPrimitiveLiteral(TypedConstant keyConstant)
+    {
+        if (keyConstant.Kind != TypedConstantKind.Primitive)
+        {
+            return keyConstant.Value is null
+                ? null
+                : new KeyExpression(SymbolDisplay.FormatLiteral(keyConstant.Value.ToString(), quote: true));
+        }
+
+        if (keyConstant.Type is null)
+        {
+            return keyConstant.Value is null
+                ? null
+                : new KeyExpression(SymbolDisplay.FormatLiteral(keyConstant.Value.ToString(), quote: true));
+        }
+
+        return keyConstant.Type.SpecialType switch
+        {
+            SpecialType.System_String => new KeyExpression(SymbolDisplay.FormatLiteral((string)keyConstant.Value!, quote: true)),
+            SpecialType.System_Char => new KeyExpression(SymbolDisplay.FormatLiteral((char)keyConstant.Value!, quote: true)),
+            SpecialType.System_Boolean => new KeyExpression((bool)keyConstant.Value! ? "true" : "false"),
+            SpecialType.System_Int32 => new KeyExpression(((int)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)),
+            SpecialType.System_Int64 => new KeyExpression($"{((long)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}L"),
+            SpecialType.System_UInt32 => new KeyExpression($"{((uint)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}U"),
+            SpecialType.System_UInt64 => new KeyExpression($"{((ulong)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}UL"),
+            SpecialType.System_Int16 => new KeyExpression($"(short){((short)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}"),
+            SpecialType.System_UInt16 => new KeyExpression($"(ushort){((ushort)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}"),
+            SpecialType.System_Byte => new KeyExpression($"(byte){((byte)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}"),
+            SpecialType.System_SByte => new KeyExpression($"(sbyte){((sbyte)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}"),
+            SpecialType.System_Single => new KeyExpression($"{((float)keyConstant.Value!).ToString("R", CultureInfo.InvariantCulture)}f"),
+            SpecialType.System_Double => new KeyExpression($"{((double)keyConstant.Value!).ToString("R", CultureInfo.InvariantCulture)}d"),
+            SpecialType.System_Decimal => new KeyExpression($"{((decimal)keyConstant.Value!).ToString(CultureInfo.InvariantCulture)}m"),
+            _ => keyConstant.Value is null
+                ? null
+                : new KeyExpression(SymbolDisplay.FormatLiteral(keyConstant.Value.ToString(), quote: true))
+        };
+    }
 }
 
-internal sealed record KeyLiteral(string Literal);
+internal sealed record KeyExpression(string Code);
