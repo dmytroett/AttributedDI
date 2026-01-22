@@ -70,12 +70,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -95,12 +97,14 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -118,12 +122,15 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
         Assert.DoesNotContain("RegularClass", output);
     }
 
@@ -142,11 +149,11 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var (_, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.NotEmpty(diagnostics);
+        Assert.NotEmpty(result.SourceGeneratorDiagnostics);
     }
 }

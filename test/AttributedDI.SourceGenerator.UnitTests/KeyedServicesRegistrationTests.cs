@@ -19,12 +19,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -49,12 +51,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -77,12 +81,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -111,12 +117,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
         Assert.Contains("services.AddKeyedTransient<global::MyApp.EnumKeyedSelf>(global::MyApp.ServiceKey.Secondary);", output);
@@ -139,12 +147,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -162,12 +172,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -195,12 +207,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -224,12 +238,14 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }

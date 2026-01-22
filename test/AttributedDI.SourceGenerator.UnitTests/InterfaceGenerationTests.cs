@@ -113,13 +113,15 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(INotifyPropertyChanged).Assembly)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -192,13 +194,15 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(IServiceProvider).Assembly)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -309,12 +313,15 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
         await Verify(output);
     }
 
@@ -353,12 +360,15 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
         await Verify(output);
     }
 
@@ -378,11 +388,11 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var (_, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.NotEmpty(diagnostics);
+        Assert.NotEmpty(result.SourceGeneratorDiagnostics);
     }
 }

@@ -1,13 +1,10 @@
+using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Reflection;
-using System.Text;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
@@ -57,32 +54,10 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public SourceGeneratorTestFixture WithReferencedAssemblySource(string sourceCode, string assemblyName)
+    public SourceGeneratorTestFixture WithReferencedProject(CompilationResult referencedCompilation)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
-        var compilation = CSharpCompilation.Create(
-            assemblyName,
-            [syntaxTree],
-            GetBaseReferences(),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        AssertCodeCompiles(compilation, $"Reference assembly ({assemblyName})");
-
-        using var stream = new MemoryStream();
-        var emitResult = compilation.Emit(stream);
-        if (!emitResult.Success)
-        {
-            string errorMessages = string.Join(
-                Environment.NewLine,
-                emitResult.Diagnostics
-                    .Where(d => d.Severity == DiagnosticSeverity.Error)
-                    .Select(d => $"  {d.GetMessage(CultureInfo.InvariantCulture)}"));
-            Assert.Fail($"Reference assembly ({assemblyName}) emit failed:{Environment.NewLine}{errorMessages}");
-        }
-
-        stream.Position = 0;
-        _extraReferences.Add(MetadataReference.CreateFromStream(stream));
-
+        var reference = AssemblyEmitter.EmitReference(referencedCompilation.UpdatedCompilation, referencedCompilation.UpdatedCompilation.AssemblyName);
+        _extraReferences.Add(reference);
         return this;
     }
 
@@ -99,138 +74,39 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public SourceGeneratorTestResult RunAndGetOutput()
+    public CompilationResult BuildAndRunGenerators()
     {
-        Debug.Assert(_sourceCode != null, $"{nameof(WithSourceCode)} has to be called to set source code");
+        var compilation = CompilationFactory.CreateCompilation(
+            _sourceCode,
+            _assemblyName,
+            _outputKind,
+            _extraReferences);
 
-        // Parse the provided string into a C# syntax tree
-        var syntaxTree = CSharpSyntaxTree.ParseText(_sourceCode);
+        CompilationAssertions.AssertCompiles(compilation, "Pre-generators");
 
-        // Get all necessary assembly references
-        // The compilation needs basic runtime references to properly resolve assembly-level attributes.
-        // Without these, the source generator cannot read attributes like [assembly: RegistrationMethodName("...")]
-        // because the compilation lacks the metadata for System.Attribute and related types.
-        // See: https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md
-        List<MetadataReference> references = [.. GetBaseReferences(), .. _extraReferences];
+        var outputCompilation = GeneratorRunner.RunGenerators(
+            compilation,
+            _generators,
+            GetOptionsProvider(),
+            out var postGeneratorDiagnostics);
 
-        // Create a Roslyn compilation for the syntax tree with references
-        var compilation = CSharpCompilation.Create(
-            _assemblyName ?? "Tests",
-            [syntaxTree],
-            references,
-            new CSharpCompilationOptions(_outputKind));
+        CompilationAssertions.AssertCompiles(outputCompilation, "Post-generators");
 
-        AssertCodeCompiles(compilation, "Pre-generators");
-
-        // Andrew Lock pioneered this approach in StronglyTypedID:
-        // https://github.com/andrewlock/StronglyTypedId/blob/6bd17db4a4b700eaad9e209baf41478cc3f0bbe9/test/StronglyTypedIds.Tests/TestHelpers.cs#L31
-
-        var originalTreeCount = compilation.SyntaxTrees.Length;
-        AnalyzerConfigOptionsProvider? optionsProvider = null;
-
-        if (_globalOptions.Count > 0)
-        {
-            optionsProvider = new TestAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
-        }
-
-        var sourceGenerators = _generators
-            .Select(static generator => generator.AsSourceGenerator())
-            .ToArray();
-
-        GeneratorDriver driver = CSharpGeneratorDriver
-            .Create(sourceGenerators, optionsProvider: optionsProvider)
-            .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var postGeneratorDiagnostics);
-
-        AssertCodeCompiles(outputCompilation, "Post-generators");
-
-        var output = outputCompilation.SyntaxTrees
-            .Skip(originalTreeCount)
-            .Aggregate(new StringBuilder(), (sb, tree) =>
-            {
-                sb.AppendLine(CultureInfo.InvariantCulture, $"File name: {Path.GetFileName(tree.FilePath)}");
-                sb.AppendLine(tree.ToString());
-
-                return sb;
-            })
-            .ToString();
-
-        return new SourceGeneratorTestResult(output, postGeneratorDiagnostics);
+        return new CompilationResult(compilation, outputCompilation, postGeneratorDiagnostics);
     }
 
-    private static List<MetadataReference> GetBaseReferences()
+    private FakeAnalyzerConfigOptionsProvider? GetOptionsProvider()
     {
-        return
-        [
-            // System.Private.CoreLib - provides System.Attribute
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            // AttributedDI assembly
-            MetadataReference.CreateFromFile(typeof(RegisterAsSelfAttribute).Assembly.Location), 
-            // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location), 
-            // System.Runtime - required for attribute metadata resolution
-            MetadataReference.CreateFromFile(
-                AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "System.Runtime").Location),
-        ];
-    }
-
-    private static void AssertCodeCompiles(Compilation compilation, string stageName)
-    {
-        var diagnostics = compilation.GetDiagnostics();
-        var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
-
-        if (errors.Count > 0)
+        if (_globalOptions.Count == 0)
         {
-            string errorMessages = string.Join(Environment.NewLine, errors.Select(e => $"  {e.GetMessage(CultureInfo.InvariantCulture)}"));
-            Assert.Fail($"{stageName} source code has compilation errors:{Environment.NewLine}{errorMessages}");
-        }
-    }
-
-    private sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
-    {
-        private static readonly AnalyzerConfigOptions EmptyOptions = new TestAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty);
-        private readonly AnalyzerConfigOptions _globalOptions;
-
-        public TestAnalyzerConfigOptionsProvider(ImmutableDictionary<string, string> globalOptions)
-        {
-            _globalOptions = new TestAnalyzerConfigOptions(globalOptions);
+            return null;
         }
 
-        public override AnalyzerConfigOptions GlobalOptions => _globalOptions;
-
-        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-        {
-            return EmptyOptions;
-        }
-
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-        {
-            return EmptyOptions;
-        }
-    }
-
-    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
-    {
-        private readonly ImmutableDictionary<string, string> _options;
-
-        public TestAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
-        {
-            _options = options;
-        }
-
-        public override bool TryGetValue(string key, out string value)
-        {
-            if (_options.TryGetValue(key, out var storedValue))
-            {
-                value = storedValue;
-                return true;
-            }
-
-            value = string.Empty;
-            return false;
-        }
+        return new FakeAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
     }
 }
 
-public record SourceGeneratorTestResult(
-    string Output,
-    ImmutableArray<Diagnostic> Diagnostics);
+public record CompilationResult(
+    CSharpCompilation OriginalCompilation,
+    CSharpCompilation UpdatedCompilation,
+    ImmutableArray<Diagnostic> SourceGeneratorDiagnostics);

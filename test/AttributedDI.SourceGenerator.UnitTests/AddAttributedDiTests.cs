@@ -1,11 +1,9 @@
-using Microsoft.CodeAnalysis;
-
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class AddAttributedDiTests
 {
     [Fact]
-    public async Task GeneratesAddAttributedDiForEntryPoint()
+    public async Task GeneratesAddAttributedDiWhenBuildPropertyIsSet()
     {
         var code = """
                    using AttributedDI;
@@ -17,22 +15,44 @@ public class AddAttributedDiTests
                        {
                        }
                    }
+                   """;
 
-                   public static class Program
+        var result = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "true")
+            .AddGenerator<ServiceRegistrationGenerator>()
+            .BuildAndRunGenerators();
+
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task GeneratesAddAttributedDiWhenNoRegisteredServicesExist()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
                    {
-                       public static void Main()
+                       public class MyService
                        {
                        }
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .WithOutputKind(OutputKind.ConsoleApplication)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
@@ -43,32 +63,23 @@ public class AddAttributedDiTests
         var referencedSource = """
                                using System;
                                using AttributedDI;
-                               using Microsoft.Extensions.DependencyInjection;
-
-                               namespace AttributedDI.Generated.Internal
-                               {
-                                   [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-                                   internal sealed class GeneratedModuleAttribute : Attribute
-                                   {
-                                   }
-                               }
 
                                namespace ReferencedAssembly
                                {
-                                   [AttributedDI.Generated.Internal.GeneratedModuleAttribute]
-                                   public class ReferencedModule : IServiceModule
+                                   [RegisterAsSelf]
+                                   public class FromReferenced
                                    {
-                                       public void ConfigureServices(IServiceCollection services)
-                                       {
-                                       }
                                    }
                                }
                                """;
 
         var code = """
+                   using AttributedDI;
+
                    namespace MyApp
                    {
-                       public class Dummy
+                       [RegisterAsSelf]
+                       public class FromSelf
                        {
                        }
                    }
@@ -81,47 +92,34 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .WithOutputKind(OutputKind.ConsoleApplication)
-            .WithReferencedAssemblySource(referencedSource, "ReferencedAssembly")
+        var referencedProject = new SourceGeneratorTestFixture()
+            .WithSourceCode(referencedSource)
+            .WithAssemblyName("ReferencedAssembly")
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
-
-        await Verify(output);
-    }
-
-    [Fact]
-    public async Task GeneratesAddAttributedDiForLibraryWhenEnabled()
-    {
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       [RegisterAsSelf]
-                       public class MyService
-                       {
-                       }
-                   }
-                   """;
-
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
+            .WithReferencedProject(referencedProject)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output =
+            GeneratedCodeExtractor.ExtractGeneratedCode(referencedProject) +
+            GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
 
-    [Fact]
-    public async Task DoesNotGenerateAddAttributedDiWhenDisabled()
+    [Theory]
+    [InlineData("false")]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("")]
+    public async Task DoesNotGenerateAddAttributedDiWhenDisabledOrIncorrectValue(string value)
     {
         var code = """
                    using AttributedDI;
@@ -142,14 +140,15 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var (output, diagnostics) = new SourceGeneratorTestFixture()
+        var result = new SourceGeneratorTestFixture()
             .WithSourceCode(code)
-            .WithOutputKind(OutputKind.ConsoleApplication)
-            .WithBuildProperty("GenerateAttributedDIExtensions", "false")
+            .WithBuildProperty("GenerateAttributedDIExtensions", value)
             .AddGenerator<ServiceRegistrationGenerator>()
-            .RunAndGetOutput();
+            .BuildAndRunGenerators();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
