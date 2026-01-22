@@ -10,5 +10,6 @@ internal static class AttributedDiDiagnostics
         messageFormat: "MSBuild property '{0}' has invalid value '{1}'. Expected 'true' or 'false'.",
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        customTags: ["CompilationEnd"]);
 }

@@ -27,9 +27,11 @@ public class AttributedDiAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
+        context.RegisterCompilationAction(ReportInvalidMsBuildPropertyValue);
+
         context.RegisterCompilationStartAction(startContext =>
         {
-            ReportInvalidMsBuildPropertyValue(startContext);
+            var optionsProvider = startContext.Options.AnalyzerConfigOptionsProvider;
 
             var transientAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.TransientAttribute");
             var scopedAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.ScopedAttribute");
@@ -49,15 +51,17 @@ public class AttributedDiAnalyzer : DiagnosticAnalyzer
         });
     }
 
-    private static void ReportInvalidMsBuildPropertyValue(CompilationStartAnalysisContext context)
+    private static void ReportInvalidMsBuildPropertyValue(CompilationAnalysisContext context)
     {
-        if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions
+        var optionsProvider = context.Options.AnalyzerConfigOptionsProvider;
+
+        if (!optionsProvider.GlobalOptions
             .TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value))
         {
             return;
         }
 
-        if (bool.TryParse(value, out _))
+        if (string.IsNullOrEmpty(value) || bool.TryParse(value, out _))
         {
             return;
         }

@@ -249,4 +249,31 @@ public class KeyedServicesRegistrationTests
 
         await Verify(output);
     }
+
+    [Fact]
+    public async Task HandlesTypeAsKey()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf(typeof(Service2))]
+                       public class Service1 { }
+
+                       public class Service2 { }
+                   }
+                   """;
+
+        var result = new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRunGenerators();
+
+        Assert.Empty(result.SourceGeneratorDiagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
+        await Verify(output);
+    }
 }
