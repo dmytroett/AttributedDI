@@ -48,7 +48,7 @@ public class AttributedDiSourceGenerator : IIncrementalGenerator
                 return;
             }
 
-            AttributedDiServiceCollectionExtensionsEmitter.EmitExtensionMethods(spc, info.ModuleTypes);
+            AttributedDiServiceCollectionExtensionsEmitter.EmitExtensionMethod(spc, info.ModuleTypes);
         });
 
         context.RegisterSourceOutput(generatedInterfaces.Collect(), static (spc, interfaces) =>

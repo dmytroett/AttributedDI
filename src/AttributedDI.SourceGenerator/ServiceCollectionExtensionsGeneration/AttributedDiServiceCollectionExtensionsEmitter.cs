@@ -6,7 +6,7 @@ namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
 
 internal static class AttributedDiServiceCollectionExtensionsEmitter
 {
-    public static void EmitExtensionMethods(
+    public static void EmitExtensionMethod(
         SourceProductionContext context,
         ImmutableArray<GeneratedModuleRegistrationInfo> moduleTypes)
     {
