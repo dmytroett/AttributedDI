@@ -8,12 +8,6 @@
 - Discover exported extension methods by scanning assembly-level attributes only.
 - Replace `GeneratedModuleNameAttribute` with a new attribute that matches the new semantics.
 
-## Final Decisions
-
-- Use a **non-generic** export attribute to avoid C# language version requirements in consuming projects.
-- Remove `GeneratedModuleNameAttribute` entirely and replace it with a new attribute.
-- No customization hooks for now (no partial module class / no virtual method overrides).
-
 ## New/Updated Public API
 
 - New assembly-level naming attribute (replaces old `GeneratedModuleNameAttribute`):
