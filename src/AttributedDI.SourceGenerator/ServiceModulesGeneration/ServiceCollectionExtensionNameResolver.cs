@@ -41,7 +41,7 @@ internal static class ServiceCollectionExtensionNameResolver
             return (defaultClassName, namespaceName);
         }
 
-        string normalized = extensionClassName;
+        string normalized = extensionClassName!;
         const string globalPrefix = "global::";
         if (normalized.StartsWith(globalPrefix, System.StringComparison.Ordinal))
         {

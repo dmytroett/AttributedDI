@@ -5,17 +5,6 @@ namespace AttributedDI;
 /// <summary>
 /// Assembly-level attribute that customizes the generated service-collection extension class and method.
 /// </summary>
-/// <remarks>
-/// <para>
-/// <paramref name="extensionClassName"/> may be a simple class name or a fully qualified name
-/// (for example, <c>My.Namespace.MyExtensions</c>). When a fully qualified name is provided,
-/// <paramref name="extensionNamespace"/> is ignored.
-/// </para>
-/// <para>
-/// <paramref name="methodName"/> fully replaces the default method name. The default is
-/// <c>Add&lt;AssemblyName&gt;</c>.
-/// </para>
-/// </remarks>
 /// <example>
 /// <code>
 /// // Customize class, method, and namespace

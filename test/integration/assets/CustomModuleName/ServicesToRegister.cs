@@ -1,6 +1,6 @@
 ﻿using AttributedDI;
 
-[assembly: GeneratedModuleName(methodName: "AddMyAmazingCustomServices", moduleName: "MyIncredibleCustomModule", moduleNamespace: "MyUnbelievableNamespace")]
+[assembly: ServiceCollectionExtension(methodName: "AddMyAmazingCustomServices", extensionClassName: "MyIncredibleCustomModule", extensionNamespace: "MyUnbelievableNamespace")]
 
 namespace CustomRegistrationMethodName;
 

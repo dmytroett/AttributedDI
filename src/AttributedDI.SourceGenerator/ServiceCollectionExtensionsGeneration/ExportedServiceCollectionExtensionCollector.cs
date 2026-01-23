@@ -62,7 +62,7 @@ internal static class ExportedServiceCollectionExtensionCollector
                 continue;
             }
 
-            string key = $"{info.FullyQualifiedTypeName}|{info.MethodName}";
+            string key = $"{info!.FullyQualifiedTypeName}|{info.MethodName}";
             if (seen.Add(key))
             {
                 results.Add(info);
@@ -70,7 +70,7 @@ internal static class ExportedServiceCollectionExtensionCollector
         }
     }
 
-    private static bool TryCreateExport(AttributeData attribute, out ExportedServiceCollectionExtensionInfo info)
+    private static bool TryCreateExport(AttributeData attribute, out ExportedServiceCollectionExtensionInfo? info)
     {
         info = default;
 
