@@ -2,13 +2,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator;
+namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class AttributedDiAnalyzer : DiagnosticAnalyzer
+public class ConflictinglifetimeAnalyzer : DiagnosticAnalyzer
 {
-    private const string GenerateExtensionsPropertyName = "GenerateAttributedDIExtensions";
-
     private static readonly DiagnosticDescriptor ConflictingLifetimes = new(
             id: "ATTDI001",
             title: "Conflicting lifetime attributes",
@@ -18,16 +16,13 @@ public class AttributedDiAnalyzer : DiagnosticAnalyzer
             isEnabledByDefault: true);
 
     /// <summary>Gets the diagnostics supported by this analyzer.</summary>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [ConflictingLifetimes, AttributedDiDiagnostics.InvalidMsBuildPropertyValue];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = [ConflictingLifetimes];
 
     /// <summary>Registers analysis actions.</summary>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-
-        context.RegisterCompilationAction(ReportInvalidMsBuildPropertyValue);
 
         context.RegisterCompilationStartAction(startContext =>
         {
@@ -49,29 +44,6 @@ public class AttributedDiAnalyzer : DiagnosticAnalyzer
                 },
                 SymbolKind.NamedType);
         });
-    }
-
-    private static void ReportInvalidMsBuildPropertyValue(CompilationAnalysisContext context)
-    {
-        var optionsProvider = context.Options.AnalyzerConfigOptionsProvider;
-
-        if (!optionsProvider.GlobalOptions
-            .TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value))
-        {
-            return;
-        }
-
-        if (string.IsNullOrEmpty(value) || bool.TryParse(value, out _))
-        {
-            return;
-        }
-
-        var diagnostic = Diagnostic.Create(
-            AttributedDiDiagnostics.InvalidMsBuildPropertyValue,
-            Location.None,
-            GenerateExtensionsPropertyName,
-            value);
-        context.ReportDiagnostic(diagnostic);
     }
 
     private static void AnalyzeNamedType(
