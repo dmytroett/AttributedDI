@@ -7,36 +7,37 @@ using System.Text;
 namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
 
 /// <summary>
-/// Emits the final generated registration module and extension method code.
+/// Emits the final generated service-collection extension code.
 /// </summary>
-internal static class GeneratedModuleCodeEmitter
+internal static class ServiceCollectionExtensionCodeEmitter
 {
     /// <summary>
-    /// Generates a complete registration module file with IServiceModule implementation and extension method in separate files.
+    /// Generates a complete service-collection extension file with direct registrations.
     /// </summary>
     /// <param name="context">The source production context for adding generated files.</param>
-    /// <param name="moduleName">The name of the module class (e.g., "MyAssemblyModule").</param>
-    /// <param name="methodName">The name of the registration method (e.g., "AddMyAssembly").</param>
+    /// <param name="extensionClassName">The name of the extension class.</param>
+    /// <param name="methodName">The name of the registration method.</param>
+    /// <param name="namespaceName">The namespace for the generated extension class.</param>
     /// <param name="assemblyName">The name of the assembly being registered.</param>
     /// <param name="registrations">Service registrations to include.</param>
-    public static void EmitRegistrationModule(
+    public static void EmitServiceCollectionExtension(
         SourceProductionContext context,
-        string moduleName,
+        string extensionClassName,
         string methodName,
         string namespaceName,
         string assemblyName,
         ImmutableArray<RegistrationInfo> registrations)
     {
-        // Emit module class
-        string moduleSource = EmitModuleClass(moduleName, namespaceName, assemblyName, registrations);
-        context.AddSource(CreateHintName(namespaceName, moduleName), moduleSource);
-
-        // Emit extension methods
-        string extensionSource = EmitExtensionMethod(moduleName, methodName, namespaceName, assemblyName);
-        context.AddSource(CreateHintName(namespaceName, $"{moduleName}ServiceCollectionExtensions"), extensionSource);
+        string extensionSource = EmitExtensionMethod(extensionClassName, methodName, namespaceName, assemblyName, registrations);
+        context.AddSource(CreateHintName(namespaceName, extensionClassName), extensionSource);
     }
 
-    private static string EmitModuleClass(string moduleName, string namespaceName, string assemblyName, ImmutableArray<RegistrationInfo> registrations)
+    private static string EmitExtensionMethod(
+        string extensionClassName,
+        string methodName,
+        string namespaceName,
+        string assemblyName,
+        ImmutableArray<RegistrationInfo> registrations)
     {
         var sb = new StringBuilder();
 
@@ -46,56 +47,24 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine();
         _ = sb.AppendLine("using System;");
         _ = sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-        _ = sb.AppendLine("using AttributedDI;");
         _ = sb.AppendLine();
 
-        _ = sb.AppendLine($"namespace {namespaceName}");
-        _ = sb.AppendLine("{");
+        string fullyQualifiedTypeName = BuildFullyQualifiedTypeName(namespaceName, extensionClassName);
+        _ = sb.AppendLine(
+            $"[assembly: global::AttributedDI.Generated.Internal.ExportsServiceCollectionExtensionAttribute(typeof({fullyQualifiedTypeName}), \"{methodName}\")]");
+        _ = sb.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(namespaceName) && !string.Equals(namespaceName, "<global namespace>", StringComparison.Ordinal))
+        {
+            _ = sb.AppendLine($"namespace {namespaceName}");
+            _ = sb.AppendLine("{");
+        }
+
         _ = sb.AppendLine("    /// <summary>");
-        _ = sb.AppendLine($"    /// Service registration module for the {assemblyName} assembly.");
-        _ = sb.AppendLine("    /// This module registers all services marked with AttributedDI attributes.");
+        _ = sb.AppendLine($"    /// Extension methods for registering services from the {assemblyName} assembly.");
         _ = sb.AppendLine("    /// </summary>");
         GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
-        _ = sb.AppendLine("    [global::AttributedDI.Generated.Internal.GeneratedModuleAttribute]");
-        _ = sb.AppendLine($"    public partial class {moduleName} : IServiceModule");
-        _ = sb.AppendLine("    {");
-        _ = sb.AppendLine("        /// <summary>");
-        _ = sb.AppendLine("        /// Configures services in the dependency injection container.");
-        _ = sb.AppendLine("        /// </summary>");
-        _ = sb.AppendLine("        /// <param name=\"services\">The service collection to configure.</param>");
-        _ = sb.AppendLine("        public virtual void ConfigureServices(IServiceCollection services)");
-        _ = sb.AppendLine("        {");
-
-        // Generate service registrations
-        GenerateCode(sb, registrations);
-
-        _ = sb.AppendLine("        }");
-        _ = sb.AppendLine("    }");
-        _ = sb.AppendLine("}");
-
-        return sb.ToString();
-    }
-
-    private static string EmitExtensionMethod(string moduleName, string methodName, string namespaceName, string assemblyName)
-    {
-        var sb = new StringBuilder();
-
-        // File header
-        _ = sb.AppendLine("// <auto-generated/>");
-        _ = sb.AppendLine("#nullable enable");
-        _ = sb.AppendLine();
-        _ = sb.AppendLine("using System;");
-        _ = sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-        _ = sb.AppendLine("using AttributedDI;");
-        _ = sb.AppendLine();
-
-        _ = sb.AppendLine($"namespace {namespaceName}");
-        _ = sb.AppendLine("{");
-        _ = sb.AppendLine("    /// <summary>");
-        _ = sb.AppendLine($"    /// Extension methods for registering services from the {moduleName} module.");
-        _ = sb.AppendLine("    /// </summary>");
-        GeneratedCodeHelper.AppendGeneratedCodeAttribute(sb, 1);
-        _ = sb.AppendLine($"    public static partial class {moduleName}ServiceCollectionExtensions");
+        _ = sb.AppendLine($"    public static partial class {extensionClassName}");
         _ = sb.AppendLine("    {");
         _ = sb.AppendLine("        /// <summary>");
         _ = sb.AppendLine($"        /// Registers all services from the {assemblyName} assembly that are marked with registration attributes.");
@@ -104,10 +73,20 @@ internal static class GeneratedModuleCodeEmitter
         _ = sb.AppendLine("        /// <returns>The service collection for chaining.</returns>");
         _ = sb.AppendLine($"        public static IServiceCollection {methodName}(this IServiceCollection services)");
         _ = sb.AppendLine("        {");
-        _ = sb.AppendLine($"            return services.AddModule<{moduleName}>();");
+        _ = sb.AppendLine("            ArgumentNullException.ThrowIfNull(services);");
+        _ = sb.AppendLine();
+
+        // Generate service registrations
+        GenerateCode(sb, registrations);
+
+        _ = sb.AppendLine();
+        _ = sb.AppendLine("            return services;");
         _ = sb.AppendLine("        }");
         _ = sb.AppendLine("    }");
-        _ = sb.AppendLine("}");
+        if (!string.IsNullOrWhiteSpace(namespaceName) && !string.Equals(namespaceName, "<global namespace>", StringComparison.Ordinal))
+        {
+            _ = sb.AppendLine("}");
+        }
 
         return sb.ToString();
     }
@@ -139,6 +118,16 @@ internal static class GeneratedModuleCodeEmitter
         return namespaceValue!.StartsWith(prefix, StringComparison.Ordinal)
             ? namespaceValue.Substring(prefix.Length)
             : namespaceValue;
+    }
+
+    private static string BuildFullyQualifiedTypeName(string namespaceName, string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceName) || string.Equals(namespaceName, "<global namespace>", StringComparison.Ordinal))
+        {
+            return $"global::{typeName}";
+        }
+
+        return $"global::{namespaceName}.{typeName}";
     }
 
     /// <summary>

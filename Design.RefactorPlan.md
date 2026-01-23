@@ -56,8 +56,8 @@ Replace module naming with extension naming:
 
 Locations:
 
-- `src/AttributedDI.SourceGenerator/ServiceModulesGeneration/GeneratedModuleNameCollector.cs` (rename / rework)
-- `src/AttributedDI.SourceGenerator/ServiceModulesGeneration/GeneratedModuleNameResolver.cs` (rename / rework)
+- `src/AttributedDI.SourceGenerator/ServiceModulesGeneration/ServiceCollectionExtensionNameCollector.cs` (rename / rework)
+- `src/AttributedDI.SourceGenerator/ServiceModulesGeneration/ServiceCollectionExtensionNameResolver.cs` (rename / rework)
 - `src/AttributedDI.SourceGenerator/KnownAttributes.cs` (replace old attribute name)
 
 ### 3) Extension method generation
@@ -72,7 +72,7 @@ Stop emitting module class. Generate extension method with direct registrations:
 
 Locations:
 
-- `src/AttributedDI.SourceGenerator/ServiceModulesGeneration/GeneratedModuleCodeEmitter.cs`
+- `src/AttributedDI.SourceGenerator/ServiceModulesGeneration/ServiceCollectionExtensionCodeEmitter.cs`
 
 ### 4) Export attribute emission
 
@@ -95,7 +95,7 @@ Replace reference scan by type with attribute scan:
 
 Locations:
 
-- `src/AttributedDI.SourceGenerator/ServiceCollectionExtensionsGeneration/GeneratedModuleReferenceCollector.cs` (replace)
+- `src/AttributedDI.SourceGenerator/ServiceCollectionExtensionsGeneration/ExportedServiceCollectionExtensionCollector.cs` (replace)
 - `src/AttributedDI.SourceGenerator/ServiceCollectionExtensionsGeneration/AttributedDiServiceCollectionExtensionsPipeline.cs`
 - `src/AttributedDI.SourceGenerator/ServiceCollectionExtensionsGeneration/AttributedDiServiceCollectionExtensionsEmitter.cs`
 

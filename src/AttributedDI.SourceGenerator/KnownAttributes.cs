@@ -21,8 +21,9 @@ internal static class KnownAttributes
     public const string ExcludeInterfaceMemberAttribute = "AttributedDI.ExcludeInterfaceMemberAttribute";
 
     // Assembly-level attributes
-    public const string GeneratedModuleNameAttribute = "AttributedDI.GeneratedModuleNameAttribute";
+    public const string ServiceCollectionExtensionAttribute = "AttributedDI.ServiceCollectionExtensionAttribute";
 
-    // Generated module marker attribute
-    public const string GeneratedModuleAttribute = "AttributedDI.Generated.Internal.GeneratedModuleAttribute";
+    // Generated export attribute
+    public const string ExportsServiceCollectionExtensionAttribute =
+        "AttributedDI.Generated.Internal.ExportsServiceCollectionExtensionAttribute";
 }

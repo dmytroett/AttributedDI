@@ -16,26 +16,26 @@ public class AttributedDiSourceGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // generates and embeds marker attributes (such as GeneratedModuleAttribute for example).
+        // Generates and embeds marker attributes used by the generator.
         GeneratedAttributesInitializer.EmbedGeneratedAttributes(context);
 
         // Phase 1: locate the attributes & extract structured info for code generation.        
-        var moduleToGenerate = ModuleGenerationPipeline.Collect(context);
+        var extensionToGenerate = ServiceCollectionExtensionGenerationPipeline.Collect(context);
         var generatedInterfaces = InterfaceGenerationPipeline.Collect(context);
-        var addAttributedDiExtensions = AttributedDiServiceCollectionExtensionsPipeline.Collect(context, moduleToGenerate);
+        var addAttributedDiExtensions = AttributedDiServiceCollectionExtensionsPipeline.Collect(context, extensionToGenerate);
 
         // Phase 2: Generate code based on collected data
-        context.RegisterSourceOutput(moduleToGenerate, static (spc, data) =>
+        context.RegisterSourceOutput(extensionToGenerate, static (spc, data) =>
         {
-            var (registrationInfos, customNameInfo, assemblyName) = data;
+            var (registrationInfos, extensionNames, assemblyName) = data;
 
             if (registrationInfos.Any())
             {
-                GeneratedModuleCodeEmitter.EmitRegistrationModule(
+                ServiceCollectionExtensionCodeEmitter.EmitServiceCollectionExtension(
                     spc,
-                    customNameInfo.ModuleName,
-                    customNameInfo.MethodName,
-                    customNameInfo.Namespace,
+                    extensionNames.ExtensionClassName,
+                    extensionNames.MethodName,
+                    extensionNames.Namespace,
                     assemblyName,
                     registrationInfos);
             }
@@ -48,7 +48,7 @@ public class AttributedDiSourceGenerator : IIncrementalGenerator
                 return;
             }
 
-            AttributedDiServiceCollectionExtensionsEmitter.EmitExtensionMethod(spc, info.ModuleTypes);
+            AttributedDiServiceCollectionExtensionsEmitter.EmitExtensionMethod(spc, info.Extensions);
         });
 
         context.RegisterSourceOutput(generatedInterfaces.Collect(), static (spc, interfaces) =>
