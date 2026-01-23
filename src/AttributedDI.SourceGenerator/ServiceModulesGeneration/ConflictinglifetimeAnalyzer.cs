@@ -28,9 +28,9 @@ public class ConflictinglifetimeAnalyzer : DiagnosticAnalyzer
         {
             var optionsProvider = startContext.Options.AnalyzerConfigOptionsProvider;
 
-            var transientAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.TransientAttribute");
-            var scopedAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.ScopedAttribute");
-            var singletonAttr = startContext.Compilation.GetTypeByMetadataName("AttributedDI.SingletonAttribute");
+            var transientAttr = startContext.Compilation.GetTypeByMetadataName(KnownAttributes.TransientAttribute);
+            var scopedAttr = startContext.Compilation.GetTypeByMetadataName(KnownAttributes.ScopedAttribute);
+            var singletonAttr = startContext.Compilation.GetTypeByMetadataName(KnownAttributes.SingletonAttribute);
 
             startContext.RegisterSymbolAction(
                 symbolContext =>
