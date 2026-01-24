@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
@@ -68,5 +69,5 @@ if (-not (Test-Path $outputDir)) {
     New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
 }
 
-$content = ($section -join "`n").TrimEnd() + "`n"
+$content = ($section -join "`n").TrimEnd()
 Set-Content -Path $outputFullPath -Value $content -Encoding utf8
