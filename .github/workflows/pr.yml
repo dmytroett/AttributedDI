@@ -2,7 +2,9 @@ name: Pull Request Validation
 
 on:
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - hotfix/*
   workflow_dispatch:
 
 permissions:
