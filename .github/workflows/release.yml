@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NUGET_USER: ${{ secrets.NUGET_USER }}
+      ACTIONS_STEP_DEBUG: ${{ vars.ACTIONS_STEP_DEBUG }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,6 +36,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           pwsh scripts/extract-changelog.ps1 -Version $version -OutputPath artifacts/release-notes.md
           Write-Host "Release notes written to artifacts/release-notes.md"
+          if ($env:ACTIONS_STEP_DEBUG -eq 'true') {
+            Write-Host "Release notes content:"
+            Get-Content -Path artifacts/release-notes.md
+          }
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -44,25 +49,11 @@ jobs:
       - name: E2E Tests
         run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx
       - name: Pack
-        shell: pwsh
-        run: |
-          $version = "${{ steps.release.outputs.version }}"
-          $releaseNotes = Get-Content -Path artifacts/release-notes.md -Raw
-          $releaseNotes = ($releaseNotes -replace "`r?`n", "; ").Replace('`', "'").Trim()
-          $args = @(
-            "pack",
-            "src/AttributedDI/AttributedDI.csproj",
-            "--no-build",
-            "--no-restore",
-            "-c",
-            "Release",
-            "-o",
-            "artifacts",
-            "-p:PackageVersion=$version",
-            "-p:PackageReleaseNotes=$releaseNotes",
-            "-p:ContinuousIntegrationBuild=true"
-          )
-          & dotnet @args
+        run: >
+          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts
+          -p:PackageVersion="${{ steps.release.outputs.version }}"
+          -p:PackageReleaseNotes="https://github.com/dmytroett/AttributedDI/blob/main/CHANGELOG.md"
+          -p:ContinuousIntegrationBuild=true
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
