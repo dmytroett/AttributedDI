@@ -46,11 +46,22 @@ jobs:
       - name: Pack
         shell: pwsh
         run: |
+          $version = "${{ steps.release.outputs.version }}"
           $releaseNotes = Get-Content -Path artifacts/release-notes.md -Raw
-          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts `
-            -p:PackageVersion="${{ steps.release.outputs.version }}" `
-            -p:PackageReleaseNotes=$releaseNotes `
-            -p:ContinuousIntegrationBuild=true
+          $args = @(
+            "pack",
+            "src/AttributedDI/AttributedDI.csproj",
+            "--no-build",
+            "--no-restore",
+            "-c",
+            "Release",
+            "-o",
+            "artifacts",
+            "-p:PackageVersion=$version",
+            "-p:PackageReleaseNotes=$releaseNotes",
+            "-p:ContinuousIntegrationBuild=true"
+          )
+          & dotnet @args
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
