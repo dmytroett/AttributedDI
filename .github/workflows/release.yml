@@ -24,11 +24,17 @@ jobs:
           dotnet-version: 10.0.x
       - name: Resolve version and release notes
         id: release
+        shell: pwsh
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          mkdir -p artifacts
-          pwsh scripts/extract-changelog.ps1 -Version "$VERSION" -OutputPath artifacts/release-notes.md
+          $version = ($env:GITHUB_REF_NAME ?? '').TrimStart('v')
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Could not resolve version from GITHUB_REF_NAME."
+          }
+          Write-Host "Resolved version: $version"
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          pwsh scripts/extract-changelog.ps1 -Version $version -OutputPath artifacts/release-notes.md
+          Write-Host "Release notes written to artifacts/release-notes.md"
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -38,10 +44,12 @@ jobs:
       - name: E2E Tests
         run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx
       - name: Pack
+        shell: pwsh
         run: |
-          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts \
-            -p:PackageVersion="${{ steps.release.outputs.version }}" \
-            -p:PackageReleaseNotes="$(cat artifacts/release-notes.md)" \
+          $releaseNotes = Get-Content -Path artifacts/release-notes.md -Raw
+          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts `
+            -p:PackageVersion="${{ steps.release.outputs.version }}" `
+            -p:PackageReleaseNotes=$releaseNotes `
             -p:ContinuousIntegrationBuild=true
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -59,13 +67,13 @@ jobs:
         with:
           name: symbols
           path: artifacts/*.snupkg
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: artifacts/release-notes.md
-          files: |
-            artifacts/*.nupkg
-            artifacts/*.snupkg
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     body_path: artifacts/release-notes.md
+      #     files: |
+      #       artifacts/*.nupkg
+      #       artifacts/*.snupkg
       - name: NuGet Login (Trusted Publishing)
         if: ${{ env.NUGET_USER != '' }}
         id: nuget_login
