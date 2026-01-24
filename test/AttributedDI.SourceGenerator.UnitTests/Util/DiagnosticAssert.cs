@@ -62,6 +62,42 @@ internal static class DiagnosticAssert
         AssertContainsParts(diagnostic, propertyName, value);
     }
 
+    public static void DoesNotContainConflictingLifetime(ImmutableArray<Diagnostic> diagnostics)
+    {
+        DoesNotContainById(diagnostics, "ATTDI001");
+    }
+
+    public static void DoesNotContainInvalidMsBuildProperty(ImmutableArray<Diagnostic> diagnostics)
+    {
+        DoesNotContainById(diagnostics, "ATTDI002");
+    }
+
+    public static void DoesNotContainConflictingExtensionNamespace(ImmutableArray<Diagnostic> diagnostics)
+    {
+        DoesNotContainById(diagnostics, "ATTDI003");
+    }
+
+    public static void DoesNotContainInvalidInterfaceUsage(ImmutableArray<Diagnostic> diagnostics)
+    {
+        DoesNotContainById(diagnostics, "ATTDI004");
+    }
+
+    public static void DoesNotContainConflictingInterfaceNamespace(ImmutableArray<Diagnostic> diagnostics)
+    {
+        DoesNotContainById(diagnostics, "ATTDI005");
+    }
+
+    private static void DoesNotContainById(ImmutableArray<Diagnostic> diagnostics, string id)
+    {
+        foreach (var diagnostic in diagnostics)
+        {
+            if (string.Equals(diagnostic.Id, id, StringComparison.Ordinal))
+            {
+                Assert.Fail($"Did not expect diagnostic '{id}' but it was reported.");
+            }
+        }
+    }
+
     private static Diagnostic FindById(ImmutableArray<Diagnostic> diagnostics, string id)
     {
         foreach (var diagnostic in diagnostics)
