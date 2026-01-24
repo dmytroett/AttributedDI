@@ -48,6 +48,7 @@ jobs:
         run: |
           $version = "${{ steps.release.outputs.version }}"
           $releaseNotes = Get-Content -Path artifacts/release-notes.md -Raw
+          $releaseNotes = $releaseNotes.Replace("`r", "").Replace("`n", "; ").Replace("`", "'").Trim()
           $args = @(
             "pack",
             "src/AttributedDI/AttributedDI.csproj",
