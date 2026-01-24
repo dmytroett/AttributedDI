@@ -1,46 +1,71 @@
-name: Publish to nuget
+name: Publish
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
 
 jobs:
-  buildAndPublish:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Get release version
-      id: get_release_version
-      uses: battila7/get-version-action@v2.2.1       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore -c Release
-    - name: Test
-      run: dotnet test --no-build --no-restore -c Release --verbosity normal --logger trx --results-directory TestResults   
-    - name: Build nupkg
-      run: dotnet pack --no-build --no-restore -c Release --output nupkgs -p:PackageVersion="${{ steps.get_release_version.outputs.version-without-v }}"
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v2
-      with:
-        name: tests
-        path: TestResults
-      if: ${{ always() }}
-    - name: Upload nugets
-      uses: actions/upload-artifact@v2
-      with:
-        name: nupkgs
-        path: nupkgs
-    - name: Upload release assets
-      uses: svenstaro/upload-release-action@2.2.1
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref }}
-        file: nupkgs/*.nupkg
-        file_glob: true
-        overwrite: true
-    # - name: Publish nupkg
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Resolve version and release notes
+        id: release
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          mkdir -p artifacts
+          pwsh scripts/extract-changelog.ps1 -Version "$VERSION" -OutputPath artifacts/release-notes.md
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore -c Release
+      - name: Test
+        run: dotnet test --no-build --no-restore -c Release --verbosity normal --logger trx --results-directory TestResults
+      - name: E2E Tests
+        run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx
+      - name: Pack
+        run: |
+          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts \
+            -p:PackageVersion="${{ steps.release.outputs.version }}" \
+            -p:PackageReleaseNotes="$(cat artifacts/release-notes.md)" \
+            -p:ContinuousIntegrationBuild=true
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: tests
+          path: TestResults
+      - name: Upload NuGet Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/*.nupkg
+      - name: Upload Symbol Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols
+          path: artifacts/*.snupkg
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: artifacts/release-notes.md
+          files: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+      - name: Publish to NuGet
+        if: ${{ secrets.NUGET_API_KEY != '' }}
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Publish symbols to NuGet
+        if: ${{ secrets.NUGET_API_KEY != '' }}
+        run: dotnet nuget push "artifacts/*.snupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
