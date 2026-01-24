@@ -19,6 +19,7 @@
   <Folder Name="/test/">
     <Project
       Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
+    <File Path="test/.editorconfig" />
   </Folder>
   <Folder Name="/test/integration/">
     <Project
@@ -34,7 +35,6 @@
       Path="test/integration/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
     <Project Path="test/integration/assets/CustomModuleName/CustomModuleName.csproj" />
     <Project Path="test/integration/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />
-    <File Path="test/integration/assets/.editorconfig" />
     <File Path="test/integration/assets/Directory.Build.props" />
   </Folder>
   <Folder Name="/test/e2e/">
