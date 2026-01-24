@@ -113,7 +113,7 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(INotifyPropertyChanged).Assembly)
             .AddGenerator<AttributedDiSourceGenerator>()
@@ -194,7 +194,7 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(IServiceProvider).Assembly)
             .AddGenerator<AttributedDiSourceGenerator>()
@@ -313,7 +313,7 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -360,7 +360,7 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -388,7 +388,7 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();

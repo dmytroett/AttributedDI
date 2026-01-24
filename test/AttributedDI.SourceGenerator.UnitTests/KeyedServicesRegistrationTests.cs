@@ -19,7 +19,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -51,7 +51,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -81,7 +81,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -117,7 +117,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -147,7 +147,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -172,7 +172,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -207,7 +207,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -238,7 +238,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -265,7 +265,7 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();

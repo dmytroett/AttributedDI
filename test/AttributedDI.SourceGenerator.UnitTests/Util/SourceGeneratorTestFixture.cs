@@ -1,14 +1,12 @@
-using AttributedDI.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Immutable;
 using System.Reflection;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
-public class SourceGeneratorTestFixture
+public class CompilationTestFixture
 {
     private readonly List<MetadataReference> _extraReferences = [];
     private readonly List<IIncrementalGenerator> _generators = [];
@@ -18,71 +16,71 @@ public class SourceGeneratorTestFixture
     private string? _assemblyName;
     private OutputKind _outputKind = OutputKind.DynamicallyLinkedLibrary;
 
-    public SourceGeneratorTestFixture WithExtraReferences(params MetadataReference[] references)
+    public CompilationTestFixture WithExtraReferences(params MetadataReference[] references)
     {
         _extraReferences.AddRange(references);
         return this;
     }
 
-    public SourceGeneratorTestFixture WithExtraReferences(params Assembly[] assemblies)
+    public CompilationTestFixture WithExtraReferences(params Assembly[] assemblies)
     {
         var references = assemblies.Select(a => MetadataReference.CreateFromFile(a.Location));
         _extraReferences.AddRange(references);
         return this;
     }
 
-    public SourceGeneratorTestFixture WithSourceCode(string sourceCode)
+    public CompilationTestFixture WithSourceCode(string sourceCode)
     {
         _sourceCode = sourceCode;
         return this;
     }
 
-    public SourceGeneratorTestFixture WithAssemblyName(string assemblyName)
+    public CompilationTestFixture WithAssemblyName(string assemblyName)
     {
         _assemblyName = assemblyName;
         return this;
     }
 
-    public SourceGeneratorTestFixture WithOutputKind(OutputKind outputKind)
+    public CompilationTestFixture WithOutputKind(OutputKind outputKind)
     {
         _outputKind = outputKind;
         return this;
     }
 
-    public SourceGeneratorTestFixture WithBuildProperty(string propertyName, string value)
+    public CompilationTestFixture WithBuildProperty(string propertyName, string value)
     {
         _globalOptions[$"build_property.{propertyName}"] = value;
         return this;
     }
 
-    public SourceGeneratorTestFixture WithReferencedProject(CompilationResult referencedCompilation)
+    public CompilationTestFixture WithReferencedProject(CompilationResult referencedCompilation)
     {
         var reference = AssemblyEmitter.EmitReference(referencedCompilation.UpdatedCompilation, referencedCompilation.UpdatedCompilation.AssemblyName);
         _extraReferences.Add(reference);
         return this;
     }
 
-    public SourceGeneratorTestFixture AddGenerator<TGenerator>()
+    public CompilationTestFixture AddGenerator<TGenerator>()
         where TGenerator : IIncrementalGenerator, new()
     {
         _generators.Add(new TGenerator());
         return this;
     }
 
-    public SourceGeneratorTestFixture AddGenerators(params IIncrementalGenerator[] generators)
+    public CompilationTestFixture AddGenerators(params IIncrementalGenerator[] generators)
     {
         _generators.AddRange(generators);
         return this;
     }
 
-    public SourceGeneratorTestFixture AddAnalyzer<TAnalyzer>()
+    public CompilationTestFixture AddAnalyzer<TAnalyzer>()
         where TAnalyzer : DiagnosticAnalyzer, new()
     {
         _analyzers.Add(new TAnalyzer());
         return this;
     }
 
-    public SourceGeneratorTestFixture AddAnalyzers(params DiagnosticAnalyzer[] analyzers)
+    public CompilationTestFixture AddAnalyzers(params DiagnosticAnalyzer[] analyzers)
     {
         _analyzers.AddRange(analyzers);
         return this;

@@ -1,3 +1,5 @@
+using AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
+
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class BasicServicesRegistrationTests
@@ -70,7 +72,7 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -97,7 +99,7 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -122,7 +124,7 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
@@ -132,28 +134,5 @@ public class BasicServicesRegistrationTests
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         Assert.DoesNotContain("RegularClass", output);
-    }
-
-    [Fact]
-    public async Task ConflictingLifetimeAttributesEmitDiagnostics()
-    {
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       [RegisterAsSelf]
-                       [Singleton]
-                       [Scoped]
-                       public class ConflictingLifetimes { }
-                   }
-                   """;
-
-        var result = await new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<AttributedDiSourceGenerator>()
-            .BuildAndRun();
-
-        Assert.NotEmpty(result.Diagnostics);
     }
 }

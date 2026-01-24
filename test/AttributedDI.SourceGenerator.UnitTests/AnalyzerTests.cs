@@ -23,7 +23,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
@@ -49,7 +49,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
@@ -75,7 +75,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
@@ -99,7 +99,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddAnalyzer<ConflictinglifetimeAnalyzer>()
             .BuildAndRun();
@@ -123,7 +123,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .AddAnalyzer<ConflictinglifetimeAnalyzer>()
             .BuildAndRun();
@@ -143,7 +143,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "notabool")
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
@@ -165,7 +165,7 @@ public class AnalyzerTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()

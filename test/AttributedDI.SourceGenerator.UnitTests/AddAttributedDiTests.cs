@@ -17,7 +17,7 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .AddGenerator<AttributedDiSourceGenerator>()
@@ -44,7 +44,7 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .AddGenerator<AttributedDiSourceGenerator>()
@@ -92,13 +92,13 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var referencedProject = await new SourceGeneratorTestFixture()
+        var referencedProject = await new CompilationTestFixture()
             .WithSourceCode(referencedSource)
             .WithAssemblyName("ReferencedAssembly")
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .WithReferencedProject(referencedProject)
@@ -140,7 +140,7 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var result = await new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", value)
             .AddGenerator<AttributedDiSourceGenerator>()
