@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 
 /// <summary>
 /// Collects custom service-collection extension naming information from assembly-level attributes.

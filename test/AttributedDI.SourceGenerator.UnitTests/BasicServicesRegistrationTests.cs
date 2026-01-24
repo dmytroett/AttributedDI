@@ -88,7 +88,7 @@ public class BasicServicesRegistrationTests
         var code = """
                    using AttributedDI;
 
-                   [assembly: GeneratedModuleName(moduleName: "MyModule", methodName: "AddTheModule", moduleNamespace: "Custom.Namespace")]
+                   [assembly: ServiceCollectionExtension(extensionClassName: "MyModule", methodName: "AddTheModule", extensionNamespace: "Custom.Namespace")]
 
                    namespace MyApp
                    {

@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 
 internal static class LifetimeInfoCollector
 {

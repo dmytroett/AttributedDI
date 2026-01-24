@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 
 /// <summary>
 /// Resolves generated service-collection extension names from assembly names and custom naming information.

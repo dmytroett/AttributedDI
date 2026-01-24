@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
+namespace AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
 
 internal static class AttributedDiServiceCollectionExtensionsEmitter
 {

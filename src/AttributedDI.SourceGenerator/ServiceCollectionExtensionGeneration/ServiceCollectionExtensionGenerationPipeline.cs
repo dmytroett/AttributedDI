@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 
 internal static class ServiceCollectionExtensionGenerationPipeline
 {

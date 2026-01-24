@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace AttributedDI.SourceGenerator.ServiceModulesGeneration;
+namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 
 /// <summary>
 /// Emits the final generated service-collection extension code.

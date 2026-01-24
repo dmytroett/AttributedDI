@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
+namespace AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
 
 internal static class ExportedServiceCollectionExtensionCollector
 {

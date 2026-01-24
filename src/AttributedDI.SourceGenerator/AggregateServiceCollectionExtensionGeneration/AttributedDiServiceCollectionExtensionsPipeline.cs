@@ -1,8 +1,8 @@
-using AttributedDI.SourceGenerator.ServiceModulesGeneration;
+using AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
+namespace AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
 
 internal static class AttributedDiServiceCollectionExtensionsPipeline
 {

@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
+namespace AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class InvalidOptInMsbuildPropertyAnalyzer : DiagnosticAnalyzer
