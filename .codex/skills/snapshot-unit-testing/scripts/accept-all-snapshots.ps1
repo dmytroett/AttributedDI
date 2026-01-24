@@ -38,7 +38,8 @@ foreach ($receivedFile in $receivedFiles) {
 
     if ($fileName -match '^(?<base>.+)\.DotNet\d+_\d+\.received\.') {
         $baseName = $Matches['base']
-    } elseif ($fileName -like '*.received.*') {
+    }
+    elseif ($fileName -like '*.received.*') {
         $baseName = $fileName -replace '\.received\..*$', ''
     }
 

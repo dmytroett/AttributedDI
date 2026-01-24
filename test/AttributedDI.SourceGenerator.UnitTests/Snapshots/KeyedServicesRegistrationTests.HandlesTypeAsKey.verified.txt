@@ -56,9 +56,7 @@ namespace Tests
         {
             ArgumentNullException.ThrowIfNull(services);
 
-            services.AddKeyedTransient<global::MyApp.IService, global::MyApp.ServiceImpl>("primary");
-            services.AddKeyedSingleton<global::MyApp.IService, global::MyApp.MultiImpl>("multi");
-            services.AddKeyedSingleton<global::MyApp.IRepository, global::MyApp.MultiImpl>("multi");
+            services.AddKeyedTransient<global::MyApp.Service1>(typeof(global::MyApp.Service2));
 
             return services;
         }

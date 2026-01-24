@@ -1,20 +1,19 @@
-using AttributedDI.SourceGenerator.ServiceModulesGeneration;
+using AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
-namespace AttributedDI.SourceGenerator.ServiceCollectionExtensionsGeneration;
+namespace AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
 
 internal static class AttributedDiServiceCollectionExtensionsPipeline
 {
     private const string GenerateExtensionsPropertyName = "GenerateAttributedDIExtensions";
 
     public static IncrementalValueProvider<AttributedDiServiceCollectionExtensionsInfo> Collect(
-        IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ServiceModuleToGenerate> moduleToGenerate)
+        IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ServiceCollectionExtensionToGenerate> extensionToGenerate)
     {
         var shouldGenerateExtensionMethodProvider = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
-                // TODO: emit diagnostic that the value should be either true or false
                 if (provider.GlobalOptions.TryGetValue($"build_property.{GenerateExtensionsPropertyName}", out var value)
                     && bool.TryParse(value, out var parsed))
                 {
@@ -24,7 +23,7 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
                 return false;
             });
 
-        var currentProjectModule = moduleToGenerate
+        var currentProjectExtension = extensionToGenerate
             .Combine(shouldGenerateExtensionMethodProvider)
             .Select(static (module, _) =>
             {
@@ -35,11 +34,13 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
                     return null;
                 }
 
-                var fullyQualifiedName = $"global::{customNameInfo.Namespace}.{customNameInfo.ModuleName}";
-                return (GeneratedModuleRegistrationInfo?)new GeneratedModuleRegistrationInfo(fullyQualifiedName);
+                var fullyQualifiedName = BuildFullyQualifiedTypeName(customNameInfo.Namespace, customNameInfo.ExtensionClassName);
+                return (ExportedServiceCollectionExtensionInfo?)new ExportedServiceCollectionExtensionInfo(
+                    fullyQualifiedName,
+                    customNameInfo.MethodName);
             });
 
-        var generatedModulesFromReferencesProvider = context.CompilationProvider
+        var exportedExtensionsFromReferencesProvider = context.CompilationProvider
             .Combine(shouldGenerateExtensionMethodProvider)
             .Select(static (data, token) =>
             {
@@ -47,40 +48,50 @@ internal static class AttributedDiServiceCollectionExtensionsPipeline
 
                 if (!shouldGenerateExtensionMethod)
                 {
-                    return ImmutableArray<GeneratedModuleRegistrationInfo>.Empty;
+                    return ImmutableArray<ExportedServiceCollectionExtensionInfo>.Empty;
                 }
 
-                return GeneratedModuleReferenceCollector.CollectGeneratedModulesFromReferences(compilation, token);
+                return ExportedServiceCollectionExtensionCollector.CollectFromReferences(compilation, token);
             });
 
         return shouldGenerateExtensionMethodProvider
-            .Combine(generatedModulesFromReferencesProvider)
-            .Combine(currentProjectModule)
+            .Combine(exportedExtensionsFromReferencesProvider)
+            .Combine(currentProjectExtension)
             .Select(static (data, _) =>
             {
-                var ((shouldGenerateExtensionMethod, modulesFromReferences), currentModule) = data;
+                var ((shouldGenerateExtensionMethod, extensionsFromReferences), currentExtension) = data;
 
                 if (!shouldGenerateExtensionMethod)
                 {
                     return new AttributedDiServiceCollectionExtensionsInfo(
                         false,
-                        ImmutableArray<GeneratedModuleRegistrationInfo>.Empty);
+                        ImmutableArray<ExportedServiceCollectionExtensionInfo>.Empty);
                 }
 
-                if (currentModule == null)
+                if (currentExtension == null)
                 {
-                    return new AttributedDiServiceCollectionExtensionsInfo(true, modulesFromReferences);
+                    return new AttributedDiServiceCollectionExtensionsInfo(true, extensionsFromReferences);
                 }
 
                 return new AttributedDiServiceCollectionExtensionsInfo(
                     true,
-                    modulesFromReferences.Add(currentModule));
+                    extensionsFromReferences.Add(currentExtension));
             });
+    }
+
+    private static string BuildFullyQualifiedTypeName(string namespaceName, string className)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceName) || namespaceName == "<global namespace>")
+        {
+            return $"global::{className}";
+        }
+
+        return $"global::{namespaceName}.{className}";
     }
 }
 
-internal sealed record GeneratedModuleRegistrationInfo(string FullyQualifiedTypeName);
+internal sealed record ExportedServiceCollectionExtensionInfo(string FullyQualifiedTypeName, string MethodName);
 
 internal sealed record AttributedDiServiceCollectionExtensionsInfo(
     bool ShouldGenerateExtensions,
-    ImmutableArray<GeneratedModuleRegistrationInfo> ModuleTypes);
+    ImmutableArray<ExportedServiceCollectionExtensionInfo> Extensions);

@@ -16,16 +16,4 @@ public class CustomModuleNameTests
 
         ServiceProviderAssert.Resolves<AliasedAssemblyService, AliasedAssemblyService>(provider, ServiceLifetime.Scoped);
     }
-
-    [Fact]
-    public void DirectModuleRegistration()
-    {
-        var services = new ServiceCollection();
-
-        var module = new MyIncredibleCustomModule();
-        module.ConfigureServices(services);
-        using var provider = services.BuildServiceProvider();
-
-        ServiceProviderAssert.Resolves<AliasedAssemblyService, AliasedAssemblyService>(provider, ServiceLifetime.Scoped);
-    }
 }

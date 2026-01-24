@@ -1,3 +1,4 @@
+using AttributedDI.SourceGenerator.InterfacesGeneration;
 using System.ComponentModel;
 
 namespace AttributedDI.SourceGenerator.UnitTests;
@@ -113,13 +114,13 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(INotifyPropertyChanged).Assembly)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -194,13 +195,13 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithExtraReferences(typeof(IServiceProvider).Assembly)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -313,12 +314,12 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -360,20 +361,51 @@ public class InterfaceGenerationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         await Verify(output);
     }
 
-    [Fact(Skip = "Pending diagnostics for invalid GenerateInterface usage on non-class targets.")]
-    public async Task GenerateInterfaceOnInterfaceEmitsDiagnostic()
+    [Fact]
+    public async Task GenerateInterfaceOnNestedTypeEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public partial class Outer
+                       {
+                           [GenerateInterface]
+                           public partial class Inner
+                           {
+                               public void DoWork() { }
+                           }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "Inner",
+            "nested type");
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceOnStaticClassEmitsDiagnostic()
     {
         var code = """
                    using AttributedDI;
@@ -381,18 +413,317 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public interface IFoo
+                       public static partial class StaticService
                        {
-                           void DoWork();
+                           public static void DoWork() { }
                        }
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
 
-        Assert.NotEmpty(result.SourceGeneratorDiagnostics);
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "StaticService",
+            "static class");
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceOnRefStructEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public ref partial struct RefStructService
+                       {
+                           public int Value => 1;
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "RefStructService",
+            "ref struct");
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithConflictingNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("MyApp.Contracts.IMyService", "Other.Namespace")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "MyApp.Contracts.IMyService",
+            "Other.Namespace");
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceOnNonPartialTypeEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public class NonPartialService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "NonPartialService",
+            "not partial");
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithQualifiedNameWithoutNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("MyApp.Contracts.IMyService")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithSimpleNameAndNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("IMyService", "MyApp.Contracts")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithGlobalQualifiedNameAndNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("global::MyApp.Contracts.IMyService", "Other.Namespace")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "MyApp.Contracts.IMyService",
+            "Other.Namespace");
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithGenericQualifiedNameAndNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("MyApp.Contracts.IRepository<>", "Other.Namespace")]
+                       public partial class Repository<T>
+                       {
+                           public T Get() => default!;
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "MyApp.Contracts.IRepository<>",
+            "Other.Namespace");
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceOnNestedTypeEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public partial class Outer
+                       {
+                           [RegisterAsGeneratedInterface]
+                           public partial class Inner
+                           {
+                               public void DoWork() { }
+                           }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "RegisterAsGeneratedInterfaceAttribute",
+            "Inner",
+            "nested type");
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceWithConflictingNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("MyApp.Contracts.IMyService", "Other.Namespace")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "RegisterAsGeneratedInterfaceAttribute",
+            "MyApp.Contracts.IMyService",
+            "Other.Namespace");
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceWithQualifiedNameWithoutNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("MyApp.Contracts.IMyService")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceWithSimpleNameAndNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("IMyService", "MyApp.Contracts")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
     }
 }

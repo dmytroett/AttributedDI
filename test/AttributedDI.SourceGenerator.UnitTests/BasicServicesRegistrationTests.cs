@@ -1,3 +1,5 @@
+using AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
+
 namespace AttributedDI.SourceGenerator.UnitTests;
 
 public class BasicServicesRegistrationTests
@@ -70,12 +72,12 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -88,7 +90,7 @@ public class BasicServicesRegistrationTests
         var code = """
                    using AttributedDI;
 
-                   [assembly: GeneratedModuleName(moduleName: "MyModule", methodName: "AddTheModule", moduleNamespace: "Custom.Namespace")]
+                   [assembly: ServiceCollectionExtension(extensionClassName: "MyModule", methodName: "AddTheModule", extensionNamespace: "Custom.Namespace")]
 
                    namespace MyApp
                    {
@@ -97,12 +99,12 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -110,7 +112,7 @@ public class BasicServicesRegistrationTests
     }
 
     [Fact]
-    public void HandlesEmptyAssembly()
+    public async Task HandlesEmptyAssembly()
     {
         // Tests: No services to register (should generate nothing)
         var code = """
@@ -122,38 +124,15 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
         Assert.DoesNotContain("RegularClass", output);
-    }
-
-    [Fact(Skip = "Pending diagnostics for conflicting lifetime attributes on a single type.")]
-    public async Task ConflictingLifetimeAttributesEmitDiagnostics()
-    {
-        var code = """
-                   using AttributedDI;
-
-                   namespace MyApp
-                   {
-                       [RegisterAsSelf]
-                       [Singleton]
-                       [Scoped]
-                       public class ConflictingLifetimes { }
-                   }
-                   """;
-
-        var result = new SourceGeneratorTestFixture()
-            .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
-
-        Assert.NotEmpty(result.SourceGeneratorDiagnostics);
     }
 }

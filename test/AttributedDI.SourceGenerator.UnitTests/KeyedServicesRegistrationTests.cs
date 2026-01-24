@@ -19,12 +19,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -51,12 +51,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -81,12 +81,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -117,12 +117,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -147,12 +147,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -172,12 +172,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -207,12 +207,12 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -238,12 +238,39 @@ public class KeyedServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
+
+        var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
+
+        await Verify(output);
+    }
+
+    [Fact]
+    public async Task HandlesTypeAsKey()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsSelf(typeof(Service2))]
+                       public class Service1 { }
+
+                       public class Service2 { }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 

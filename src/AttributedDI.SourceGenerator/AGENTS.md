@@ -3,6 +3,7 @@
 Best practices for developing incremental source generators, based on official Roslyn documentation.
 
 References:
+
 - Incremental Generators Design: https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md
 - Incremental Generators Cookbook: https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.cookbook.md
 
@@ -20,12 +21,14 @@ Source generators must build value-equatable pipelines to enable incremental com
 - Use `ImmutableArray<T>` instead of `List<T>` or `T[]` in models
 
 Example anti-pattern to avoid:
+
 ```csharp
 // DON'T do this - ISymbol prevents garbage collection
 private record ServiceInfo(INamedTypeSymbol Symbol, string Name);
 ```
 
 Correct pattern:
+
 ```csharp
 // DO this - extract what you need as strings
 private record ServiceInfo(string Namespace, string Name, string FullyQualifiedName);
@@ -43,6 +46,7 @@ This is much more efficient than `CreateSyntaxProvider`.
   - `transform`: Runs on all matching nodes to capture semantic information
 
 Example:
+
 ```csharp
 var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
     fullyQualifiedMetadataName: "AttributedDI.RegisterAsAttribute",
@@ -55,6 +59,10 @@ var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
     });
 ```
 
+### Issuing diagnostics
+
+It is not recommended issuing diagnostics within generators. It is very hard to do so without breaking incrementality. Prefer separate analyzer for reporting diagnostics.
+
 ## Performance Best Practices
 
 ### Combine Order Matters
@@ -62,11 +70,13 @@ var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
 Extract information from expensive sources (like `CompilationProvider`) before combining.
 
 Inefficient:
+
 ```csharp
 var combined = texts.Combine(context.CompilationProvider);
 ```
 
 Efficient:
+
 ```csharp
 var assemblyName = context.CompilationProvider
     .Select(static (c, _) => c.AssemblyName);
@@ -100,6 +110,7 @@ Break operations into small transformation steps to maximize cache hit opportuni
 - More transformations = more opportunities to cache
 
 Example:
+
 ```csharp
 var names = items.Select(static i => i.Name);
 var prefixed = names.Select(static n => "prefix_" + n);

@@ -56,14 +56,15 @@ $selectedTfm = ''
 
 if ($tfms) {
     $selectedTfm = $tfms |
-        Sort-Object {
-            if ($_ -match '^DotNet(?<major>\d+)_(?<minor>\d+)$') {
-                [int]$Matches['major'] * 1000 + [int]$Matches['minor']
-            } else {
-                -1
-            }
-        } -Descending |
-        Select-Object -First 1
+    Sort-Object {
+        if ($_ -match '^DotNet(?<major>\d+)_(?<minor>\d+)$') {
+            [int]$Matches['major'] * 1000 + [int]$Matches['minor']
+        }
+        else {
+            -1
+        }
+    } -Descending |
+    Select-Object -First 1
 
     if ($selectedTfm) {
         $selectedFiles = @(Get-ReceivedFilesForTfm $selectedTfm)
@@ -83,7 +84,8 @@ foreach ($receivedFile in $selectedFiles) {
     $fileName = $receivedFile.Name
     if ($selectedTfm) {
         $verifiedName = $fileName.Replace(".$selectedTfm.received.", '.verified.')
-    } else {
+    }
+    else {
         $verifiedName = $fileName.Replace('.received.', '.verified.')
     }
 

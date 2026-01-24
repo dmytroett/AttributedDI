@@ -17,13 +17,13 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -44,13 +44,13 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -92,20 +92,20 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var referencedProject = new SourceGeneratorTestFixture()
+        var referencedProject = await new CompilationTestFixture()
             .WithSourceCode(referencedSource)
             .WithAssemblyName("ReferencedAssembly")
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
             .WithReferencedProject(referencedProject)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output =
             GeneratedCodeExtractor.ExtractGeneratedCode(referencedProject) +
@@ -140,13 +140,13 @@ public class AddAttributedDiTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", value)
-            .AddGenerator<ServiceRegistrationGenerator>()
-            .BuildAndRunGenerators();
+            .AddGenerator<AttributedDiSourceGenerator>()
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
