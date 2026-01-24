@@ -2,29 +2,34 @@ name: Pull Request Validation
 
 on:
   pull_request:
-    branches: [ master ]
-  workflow_dispatch:    
+    branches:
+      - main
+      - hotfix/*
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore -c Release
-    - name: Test
-      run: dotnet test --no-build --no-restore -c Release --verbosity normal --logger trx --results-directory TestResults
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v2
-      with:
-        name: tests
-        path: TestResults
-      if: ${{ always() }}
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore -c Release
+      - name: Test
+        run: dotnet test --no-build --no-restore -c Release --verbosity normal --logger trx --results-directory TestResults
+      - name: E2E Tests
+        run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: tests
+          path: TestResults

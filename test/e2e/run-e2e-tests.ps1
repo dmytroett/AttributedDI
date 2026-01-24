@@ -1,4 +1,10 @@
 #!/usr/bin/env pwsh
+param(
+  [string]$ResultsDirectory,
+  [string]$Logger = "trx",
+  [switch]$NoRestoreProps
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -25,7 +31,27 @@ if ($updatedText -eq $propsText) {
   throw "Failed to update $propsFile (pattern not found)."
 }
 
-Set-Content -Path $propsFile -Value $updatedText
-Write-Host "Updated $propsFile to use $packageVersion"
+try {
+  Set-Content -Path $propsFile -Value $updatedText
+  Write-Host "Updated $propsFile to use $packageVersion"
 
-dotnet test (Join-Path $repoRoot "AttributedDI.slnx") -p:IsE2E=true
+  $solutionPath = Join-Path $repoRoot "AttributedDI.slnx"
+
+  if ([string]::IsNullOrWhiteSpace($ResultsDirectory)) {
+    dotnet test $solutionPath -p:IsE2E=true
+  } else {
+    $resultsPath = Join-Path $repoRoot $ResultsDirectory
+    New-Item -ItemType Directory -Force -Path $resultsPath | Out-Null
+
+    dotnet test $solutionPath `
+      -p:IsE2E=true `
+      --logger $Logger `
+      --results-directory $resultsPath
+  }
+}
+finally {
+  if (-not $NoRestoreProps) {
+    Set-Content -Path $propsFile -Value $propsText
+    Write-Host "Restored $propsFile"
+  }
+}

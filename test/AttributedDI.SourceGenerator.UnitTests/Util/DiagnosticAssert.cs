@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 
 namespace AttributedDI.SourceGenerator.UnitTests.Util;
 
@@ -114,7 +115,8 @@ internal static class DiagnosticAssert
 
     private static void AssertContainsParts(Diagnostic diagnostic, params string[] fragments)
     {
-        var message = diagnostic.GetMessage();
+        var message = diagnostic.GetMessage(CultureInfo.InvariantCulture);
+
         foreach (var fragment in fragments)
         {
             Assert.Contains(fragment, message, StringComparison.Ordinal);
