@@ -134,7 +134,7 @@ public class BasicServicesRegistrationTests
         Assert.DoesNotContain("RegularClass", output);
     }
 
-    [Fact(Skip = "Pending diagnostics for conflicting lifetime attributes on a single type.")]
+    [Fact]
     public async Task ConflictingLifetimeAttributesEmitDiagnostics()
     {
         var code = """

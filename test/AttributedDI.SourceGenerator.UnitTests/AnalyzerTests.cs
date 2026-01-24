@@ -33,6 +33,51 @@ public class AnalyzerTests
     }
 
     [Fact]
+    public async Task ConflictingExtensionNamespaceAnalyzer_DoesNotReportWhenNamespaceIsMissing()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   [assembly: ServiceCollectionExtension(
+                       extensionClassName: "MyApp.Generated.MyExtensions")]
+
+                   namespace MyApp
+                   {
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var diagnostics = await GetDiagnosticsAsync(code, new ConflictingExtensionNamespaceAnalyzer());
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task ConflictingExtensionNamespaceAnalyzer_DoesNotReportWhenClassNameIsNotQualified()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   [assembly: ServiceCollectionExtension(
+                       extensionClassName: "MyExtensions",
+                       extensionNamespace: "MyApp.Generated")]
+
+                   namespace MyApp
+                   {
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var diagnostics = await GetDiagnosticsAsync(code, new ConflictingExtensionNamespaceAnalyzer());
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task ConflictingLifetimeAnalyzer_ReportsConflict()
     {
         var code = """
@@ -52,6 +97,26 @@ public class AnalyzerTests
 
         Assert.Single(diagnostics);
         Assert.Equal("ATTDI001", diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task ConflictingLifetimeAnalyzer_DoesNotReportWhenSingleLifetime()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [Singleton]
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var diagnostics = await GetDiagnosticsAsync(code, new ConflictinglifetimeAnalyzer());
+
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
@@ -79,6 +144,32 @@ public class AnalyzerTests
 
         Assert.Single(diagnostics);
         Assert.Equal("ATTDI002", diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task InvalidOptInMsbuildPropertyAnalyzer_DoesNotReportForValidValue()
+    {
+        var code = """
+                   namespace MyApp
+                   {
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var optionsProvider = new FakeAnalyzerConfigOptionsProvider(
+            ImmutableDictionary.CreateRange(
+            [
+                new KeyValuePair<string, string>("build_property.GenerateAttributedDIExtensions", "true"),
+            ]));
+
+        var diagnostics = await GetDiagnosticsAsync(
+            code,
+            new InvalidOptInMsbuildPropertyAnalyzer(),
+            optionsProvider);
+
+        Assert.Empty(diagnostics);
     }
 
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
