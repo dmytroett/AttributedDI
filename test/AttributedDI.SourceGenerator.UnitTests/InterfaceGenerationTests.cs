@@ -397,8 +397,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "Inner",
+            "nested type");
     }
 
     [Fact]
@@ -422,8 +425,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "StaticService",
+            "static class");
     }
 
     [Fact]
@@ -447,8 +453,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "RefStructService",
+            "ref struct");
     }
 
     [Fact]
@@ -472,8 +481,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "MyApp.Contracts.IMyService",
+            "Other.Namespace");
     }
 
     [Fact]
@@ -497,8 +509,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "NonPartialService",
+            "not partial");
     }
 
     [Fact]
@@ -570,8 +585,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "MyApp.Contracts.IMyService",
+            "Other.Namespace");
     }
 
     [Fact]
@@ -595,8 +613,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "GenerateInterfaceAttribute",
+            "MyApp.Contracts.IRepository<>",
+            "Other.Namespace");
     }
 
     [Fact]
@@ -623,8 +644,11 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsInvalidInterfaceUsage(
+            result.Diagnostics,
+            "RegisterAsGeneratedInterfaceAttribute",
+            "Inner",
+            "nested type");
     }
 
     [Fact]
@@ -648,7 +672,58 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsConflictingInterfaceNamespace(
+            result.Diagnostics,
+            "RegisterAsGeneratedInterfaceAttribute",
+            "MyApp.Contracts.IMyService",
+            "Other.Namespace");
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceWithQualifiedNameWithoutNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("MyApp.Contracts.IMyService")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceWithSimpleNameAndNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("IMyService", "MyApp.Contracts")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
     }
 }

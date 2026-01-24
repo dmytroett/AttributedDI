@@ -28,8 +28,10 @@ public class AnalyzerTests
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI003", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsConflictingExtensionNamespace(
+            result.Diagnostics,
+            "MyApp.Generated.MyExtensions",
+            "MyApp.Extensions");
     }
 
     [Fact]
@@ -37,9 +39,6 @@ public class AnalyzerTests
     {
         var code = """
                    using AttributedDI;
-
-                   [assembly: ServiceCollectionExtension(
-                       extensionClassName: "MyApp.Generated.MyExtensions")]
 
                    namespace MyApp
                    {
@@ -84,6 +83,31 @@ public class AnalyzerTests
     }
 
     [Fact]
+    public async Task ConflictingExtensionNamespaceAnalyzer_DoesNotReportWhenQualifiedNameHasNoNamespaceOverride()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   [assembly: ServiceCollectionExtension(
+                       extensionClassName: "MyApp.Generated.MyExtensions")]
+
+                   namespace MyApp
+                   {
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
     public async Task ConflictingLifetimeAnalyzer_ReportsConflict()
     {
         var code = """
@@ -104,8 +128,7 @@ public class AnalyzerTests
             .AddAnalyzer<ConflictinglifetimeAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI001", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsConflictingLifetime(result.Diagnostics, "MyService");
     }
 
     [Fact]
@@ -149,8 +172,7 @@ public class AnalyzerTests
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
             .BuildAndRun();
 
-        Assert.Single(result.Diagnostics);
-        Assert.Equal("ATTDI002", result.Diagnostics[0].Id);
+        DiagnosticAssert.ContainsInvalidMsBuildProperty(result.Diagnostics, "GenerateAttributedDIExtensions", "notabool");
     }
 
     [Fact]
@@ -168,6 +190,47 @@ public class AnalyzerTests
         var result = await new CompilationTestFixture()
             .WithSourceCode(code)
             .WithBuildProperty("GenerateAttributedDIExtensions", "true")
+            .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task InvalidOptInMsbuildPropertyAnalyzer_DoesNotReportWhenPropertyMissing()
+    {
+        var code = """
+                   namespace MyApp
+                   {
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task InvalidOptInMsbuildPropertyAnalyzer_DoesNotReportForEmptyValue()
+    {
+        var code = """
+                   namespace MyApp
+                   {
+                       public class MyService
+                       {
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .WithBuildProperty("GenerateAttributedDIExtensions", string.Empty)
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
             .BuildAndRun();
 
