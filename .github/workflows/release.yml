@@ -7,10 +7,13 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    env:
+      NUGET_USER: ${{ secrets.NUGET_USER }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,9 +66,15 @@ jobs:
           files: |
             artifacts/*.nupkg
             artifacts/*.snupkg
+      - name: NuGet Login (Trusted Publishing)
+        if: ${{ env.NUGET_USER != '' }}
+        id: nuget_login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ env.NUGET_USER }}
       - name: Publish to NuGet
-        if: ${{ secrets.NUGET_API_KEY != '' }}
-        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        if: ${{ env.NUGET_USER != '' }}
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
       - name: Publish symbols to NuGet
-        if: ${{ secrets.NUGET_API_KEY != '' }}
-        run: dotnet nuget push "artifacts/*.snupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        if: ${{ env.NUGET_USER != '' }}
+        run: dotnet nuget push "artifacts/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
