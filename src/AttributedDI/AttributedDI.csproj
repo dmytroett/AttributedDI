@@ -8,6 +8,8 @@
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <IsPackable>true</IsPackable>
+    <Description>Attribute-driven DI registration with source-generated wiring and optional interface generation.</Description>
+    <Authors>Dmytro Ett</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/dmytroett/AttributedDI</PackageProjectUrl>
@@ -15,12 +17,17 @@
     <PackageTags>dependencyinjection;di;AoP;sourcegenerator;aot</PackageTags>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Reference version range [8.0.0, 11.0.0) - allows v8, v9, v10 but prevents v11+ if breaking changes introduced
          Developers can use any version in this range without forced upgrades or downgrades -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[8.0.0,11.0.0)"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
