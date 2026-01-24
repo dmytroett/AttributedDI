@@ -12,6 +12,7 @@ public class SourceGeneratorTestFixture
 {
     private readonly List<MetadataReference> _extraReferences = [];
     private readonly List<IIncrementalGenerator> _generators = [];
+    private readonly List<DiagnosticAnalyzer> _analyzers = [];
     private readonly Dictionary<string, string> _globalOptions = new(StringComparer.Ordinal);
     private string? _sourceCode;
     private string? _assemblyName;
@@ -74,7 +75,20 @@ public class SourceGeneratorTestFixture
         return this;
     }
 
-    public CompilationResult BuildAndRunGenerators()
+    public SourceGeneratorTestFixture AddAnalyzer<TAnalyzer>()
+        where TAnalyzer : DiagnosticAnalyzer, new()
+    {
+        _analyzers.Add(new TAnalyzer());
+        return this;
+    }
+
+    public SourceGeneratorTestFixture AddAnalyzers(params DiagnosticAnalyzer[] analyzers)
+    {
+        _analyzers.AddRange(analyzers);
+        return this;
+    }
+
+    public async Task<CompilationResult> BuildAndRun()
     {
         var compilation = CompilationFactory.CreateCompilation(
             _sourceCode,
@@ -84,15 +98,22 @@ public class SourceGeneratorTestFixture
 
         CompilationAssertions.AssertCompiles(compilation, "Pre-generators");
 
+        var optionsProvider = GetOptionsProvider();
         var outputCompilation = GeneratorRunner.RunGenerators(
             compilation,
             _generators,
-            GetOptionsProvider(),
+            optionsProvider,
             out var postGeneratorDiagnostics);
 
         CompilationAssertions.AssertCompiles(outputCompilation, "Post-generators");
 
-        return new CompilationResult(compilation, outputCompilation, postGeneratorDiagnostics);
+        var analyzerDiagnostics = await RunAnalyzersAsync(outputCompilation, optionsProvider);
+        var combinedDiagnostics = postGeneratorDiagnostics.AddRange(analyzerDiagnostics);
+
+        return new CompilationResult(
+            compilation,
+            outputCompilation,
+            combinedDiagnostics);
     }
 
     private FakeAnalyzerConfigOptionsProvider? GetOptionsProvider()
@@ -104,9 +125,29 @@ public class SourceGeneratorTestFixture
 
         return new FakeAnalyzerConfigOptionsProvider(_globalOptions.ToImmutableDictionary());
     }
+
+    private async Task<ImmutableArray<Diagnostic>> RunAnalyzersAsync(
+        CSharpCompilation compilation,
+        AnalyzerConfigOptionsProvider? optionsProvider)
+    {
+        if (_analyzers.Count == 0)
+        {
+            return ImmutableArray<Diagnostic>.Empty;
+        }
+
+        var analyzerOptions = optionsProvider is null
+            ? new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty)
+            : new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, optionsProvider);
+
+        var compilationWithAnalyzers = compilation.WithAnalyzers(
+            ImmutableArray.CreateRange(_analyzers),
+            analyzerOptions);
+
+        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+    }
 }
 
 public record CompilationResult(
     CSharpCompilation OriginalCompilation,
     CSharpCompilation UpdatedCompilation,
-    ImmutableArray<Diagnostic> SourceGeneratorDiagnostics);
+    ImmutableArray<Diagnostic> Diagnostics);

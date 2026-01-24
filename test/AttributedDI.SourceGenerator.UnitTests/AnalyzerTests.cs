@@ -1,8 +1,5 @@
 using AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
 using AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Immutable;
 
 namespace AttributedDI.SourceGenerator.UnitTests;
 
@@ -26,10 +23,13 @@ public class AnalyzerTests
                    }
                    """;
 
-        var diagnostics = await GetDiagnosticsAsync(code, new ConflictingExtensionNamespaceAnalyzer());
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
+            .BuildAndRun();
 
-        Assert.Single(diagnostics);
-        Assert.Equal("ATTDI003", diagnostics[0].Id);
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI003", result.Diagnostics[0].Id);
     }
 
     [Fact]
@@ -49,9 +49,12 @@ public class AnalyzerTests
                    }
                    """;
 
-        var diagnostics = await GetDiagnosticsAsync(code, new ConflictingExtensionNamespaceAnalyzer());
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
+            .BuildAndRun();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -72,9 +75,12 @@ public class AnalyzerTests
                    }
                    """;
 
-        var diagnostics = await GetDiagnosticsAsync(code, new ConflictingExtensionNamespaceAnalyzer());
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
+            .BuildAndRun();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -93,10 +99,13 @@ public class AnalyzerTests
                    }
                    """;
 
-        var diagnostics = await GetDiagnosticsAsync(code, new ConflictinglifetimeAnalyzer());
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<ConflictinglifetimeAnalyzer>()
+            .BuildAndRun();
 
-        Assert.Single(diagnostics);
-        Assert.Equal("ATTDI001", diagnostics[0].Id);
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI001", result.Diagnostics[0].Id);
     }
 
     [Fact]
@@ -114,9 +123,12 @@ public class AnalyzerTests
                    }
                    """;
 
-        var diagnostics = await GetDiagnosticsAsync(code, new ConflictinglifetimeAnalyzer());
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<ConflictinglifetimeAnalyzer>()
+            .BuildAndRun();
 
-        Assert.Empty(diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -131,19 +143,14 @@ public class AnalyzerTests
                    }
                    """;
 
-        var optionsProvider = new FakeAnalyzerConfigOptionsProvider(
-            ImmutableDictionary.CreateRange(
-            [
-                new KeyValuePair<string, string>("build_property.GenerateAttributedDIExtensions", "notabool"),
-            ]));
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "notabool")
+            .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
+            .BuildAndRun();
 
-        var diagnostics = await GetDiagnosticsAsync(
-            code,
-            new InvalidOptInMsbuildPropertyAnalyzer(),
-            optionsProvider);
-
-        Assert.Single(diagnostics);
-        Assert.Equal("ATTDI002", diagnostics[0].Id);
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI002", result.Diagnostics[0].Id);
     }
 
     [Fact]
@@ -158,39 +165,12 @@ public class AnalyzerTests
                    }
                    """;
 
-        var optionsProvider = new FakeAnalyzerConfigOptionsProvider(
-            ImmutableDictionary.CreateRange(
-            [
-                new KeyValuePair<string, string>("build_property.GenerateAttributedDIExtensions", "true"),
-            ]));
+        var result = await new SourceGeneratorTestFixture()
+            .WithSourceCode(code)
+            .WithBuildProperty("GenerateAttributedDIExtensions", "true")
+            .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
+            .BuildAndRun();
 
-        var diagnostics = await GetDiagnosticsAsync(
-            code,
-            new InvalidOptInMsbuildPropertyAnalyzer(),
-            optionsProvider);
-
-        Assert.Empty(diagnostics);
-    }
-
-    private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
-        string sourceCode,
-        DiagnosticAnalyzer analyzer,
-        AnalyzerConfigOptionsProvider? optionsProvider = null)
-    {
-        var compilation = CompilationFactory.CreateCompilation(
-            sourceCode,
-            assemblyName: "Tests",
-            OutputKind.DynamicallyLinkedLibrary,
-            extraReferences: Array.Empty<MetadataReference>());
-
-        var analyzerOptions = optionsProvider is null
-            ? new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty)
-            : new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, optionsProvider);
-
-        var compilationWithAnalyzers = compilation.WithAnalyzers(
-            ImmutableArray.Create(analyzer),
-            analyzerOptions);
-
-        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+        Assert.Empty(result.Diagnostics);
     }
 }

@@ -70,12 +70,12 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
-            .BuildAndRunGenerators();
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -97,12 +97,12 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
-            .BuildAndRunGenerators();
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -110,7 +110,7 @@ public class BasicServicesRegistrationTests
     }
 
     [Fact]
-    public void HandlesEmptyAssembly()
+    public async Task HandlesEmptyAssembly()
     {
         // Tests: No services to register (should generate nothing)
         var code = """
@@ -122,12 +122,12 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
-            .BuildAndRunGenerators();
+            .BuildAndRun();
 
-        Assert.Empty(result.SourceGeneratorDiagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -149,11 +149,11 @@ public class BasicServicesRegistrationTests
                    }
                    """;
 
-        var result = new SourceGeneratorTestFixture()
+        var result = await new SourceGeneratorTestFixture()
             .WithSourceCode(code)
             .AddGenerator<AttributedDiSourceGenerator>()
-            .BuildAndRunGenerators();
+            .BuildAndRun();
 
-        Assert.NotEmpty(result.SourceGeneratorDiagnostics);
+        Assert.NotEmpty(result.Diagnostics);
     }
 }
