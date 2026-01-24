@@ -1,3 +1,4 @@
+using AttributedDI.SourceGenerator.InterfacesGeneration;
 using System.ComponentModel;
 
 namespace AttributedDI.SourceGenerator.UnitTests;
@@ -372,8 +373,36 @@ public class InterfaceGenerationTests
         await Verify(output);
     }
 
-    [Fact(Skip = "Pending diagnostics for invalid GenerateInterface usage on non-class targets.")]
-    public async Task GenerateInterfaceOnInterfaceEmitsDiagnostic()
+    [Fact]
+    public async Task GenerateInterfaceOnNestedTypeEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public partial class Outer
+                       {
+                           [GenerateInterface]
+                           public partial class Inner
+                           {
+                               public void DoWork() { }
+                           }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceOnStaticClassEmitsDiagnostic()
     {
         var code = """
                    using AttributedDI;
@@ -381,18 +410,69 @@ public class InterfaceGenerationTests
                    namespace MyApp
                    {
                        [GenerateInterface]
-                       public interface IFoo
+                       public static partial class StaticService
                        {
-                           void DoWork();
+                           public static void DoWork() { }
                        }
                    }
                    """;
 
         var result = await new CompilationTestFixture()
             .WithSourceCode(code)
-            .AddGenerator<AttributedDiSourceGenerator>()
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        Assert.NotEmpty(result.Diagnostics);
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceOnRefStructEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public ref partial struct RefStructService
+                       {
+                           public int Value => 1;
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithConflictingNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("MyApp.Contracts.IMyService", "Other.Namespace")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
     }
 }
