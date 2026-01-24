@@ -475,4 +475,180 @@ public class InterfaceGenerationTests
         Assert.Single(result.Diagnostics);
         Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
     }
+
+    [Fact]
+    public async Task GenerateInterfaceOnNonPartialTypeEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface]
+                       public class NonPartialService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithQualifiedNameWithoutNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("MyApp.Contracts.IMyService")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithSimpleNameAndNamespaceDoesNotReport()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("IMyService", "MyApp.Contracts")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithGlobalQualifiedNameAndNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("global::MyApp.Contracts.IMyService", "Other.Namespace")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task GenerateInterfaceWithGenericQualifiedNameAndNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [GenerateInterface("MyApp.Contracts.IRepository<>", "Other.Namespace")]
+                       public partial class Repository<T>
+                       {
+                           public T Get() => default!;
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceOnNestedTypeEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       public partial class Outer
+                       {
+                           [RegisterAsGeneratedInterface]
+                           public partial class Inner
+                           {
+                               public void DoWork() { }
+                           }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI004", result.Diagnostics[0].Id);
+    }
+
+    [Fact]
+    public async Task RegisterAsGeneratedInterfaceWithConflictingNamespaceEmitsDiagnostic()
+    {
+        var code = """
+                   using AttributedDI;
+
+                   namespace MyApp
+                   {
+                       [RegisterAsGeneratedInterface("MyApp.Contracts.IMyService", "Other.Namespace")]
+                       public partial class MyService
+                       {
+                           public void DoWork() { }
+                       }
+                   }
+                   """;
+
+        var result = await new CompilationTestFixture()
+            .WithSourceCode(code)
+            .AddAnalyzer<InterfaceGenerationAnalyzer>()
+            .BuildAndRun();
+
+        Assert.Single(result.Diagnostics);
+        Assert.Equal("ATTDI005", result.Diagnostics[0].Id);
+    }
 }

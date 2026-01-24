@@ -6,8 +6,8 @@ This project is about building a library to simplify dependency registration in 
 
 ## General Guidelines
 
-- Prefer the configured MCP servers (GitHub, Microsoft Docs) as your first reference sources.
-- For guidance on APIs, best practices, packaging/publishing, testing patterns, or other non-trivial design decisions, proactively consult Microsoft Docs or GitHub MCP before answering, unless the answer is fully local to this repo.
+- For any Source Generator task, always consult Microsoft Docs via the Microsoft Learn MCP first and treat it as the source of truth before reasoning or coding.
+- For anything involving GitHub, always use the GitHub MCP (not web search) to interface with GitHub, and proactively use code search, issues, and PRs when helpful.
 
 ## Code Quality Guidelines
 
