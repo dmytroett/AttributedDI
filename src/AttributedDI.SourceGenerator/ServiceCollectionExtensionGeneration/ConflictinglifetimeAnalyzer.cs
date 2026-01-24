@@ -26,20 +26,18 @@ public class ConflictinglifetimeAnalyzer : DiagnosticAnalyzer
 
         context.RegisterCompilationStartAction(startContext =>
         {
-            var optionsProvider = startContext.Options.AnalyzerConfigOptionsProvider;
-
             var transientAttr = startContext.Compilation.GetTypeByMetadataName(KnownAttributes.TransientAttribute);
             var scopedAttr = startContext.Compilation.GetTypeByMetadataName(KnownAttributes.ScopedAttribute);
             var singletonAttr = startContext.Compilation.GetTypeByMetadataName(KnownAttributes.SingletonAttribute);
 
+            if (transientAttr is null || scopedAttr is null || singletonAttr is null)
+            {
+                return;
+            }
+
             startContext.RegisterSymbolAction(
                 symbolContext =>
                 {
-                    if (transientAttr is null || scopedAttr is null || singletonAttr is null)
-                    {
-                        return;
-                    }
-
                     AnalyzeNamedType(symbolContext, transientAttr, scopedAttr, singletonAttr);
                 },
                 SymbolKind.NamedType);
