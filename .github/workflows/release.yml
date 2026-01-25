@@ -70,22 +70,22 @@ jobs:
         with:
           name: symbols
           path: artifacts/release/*.snupkg
-      # - name: Create GitHub Release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     body_path: artifacts/release-notes.md
-      #     files: |
-      #       artifacts/release/*.nupkg
-      #       artifacts/release/*.snupkg
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: artifacts/release-notes.md
+          files: |
+            artifacts/release/*.nupkg
+            artifacts/release/*.snupkg
       - name: NuGet Login (Trusted Publishing)
         if: ${{ env.NUGET_USER != '' }}
         id: nuget_login
         uses: NuGet/login@v1
         with:
           user: ${{ env.NUGET_USER }}
-      # - name: Publish to NuGet
-      #   if: ${{ env.NUGET_USER != '' }}
-      #   run: dotnet nuget push "artifacts/release/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
-      # - name: Publish symbols to NuGet
-      #   if: ${{ env.NUGET_USER != '' }}
-      #   run: dotnet nuget push "artifacts/release/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Publish to NuGet
+        if: ${{ env.NUGET_USER != '' }}
+        run: dotnet nuget push "artifacts/release/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Publish symbols to NuGet
+        if: ${{ env.NUGET_USER != '' }}
+        run: dotnet nuget push "artifacts/release/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
