@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NUGET_USER: ${{ secrets.NUGET_USER }}
+      ACTIONS_STEP_DEBUG: ${{ vars.ACTIONS_STEP_DEBUG }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,11 +25,21 @@ jobs:
           dotnet-version: 10.0.x
       - name: Resolve version and release notes
         id: release
+        shell: pwsh
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          mkdir -p artifacts
-          pwsh scripts/extract-changelog.ps1 -Version "$VERSION" -OutputPath artifacts/release-notes.md
+          $version = ($env:GITHUB_REF_NAME ?? '').TrimStart('v')
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Could not resolve version from GITHUB_REF_NAME."
+          }
+          Write-Host "Resolved version: $version"
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          pwsh scripts/extract-changelog.ps1 -Version $version -OutputPath artifacts/release-notes.md
+          Write-Host "Release notes written to artifacts/release-notes.md"
+          if ($env:ACTIONS_STEP_DEBUG -eq 'true') {
+            Write-Host "Release notes content:"
+            Get-Content -Path artifacts/release-notes.md
+          }
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -36,13 +47,13 @@ jobs:
       - name: Test
         run: dotnet test --no-build --no-restore -c Release --verbosity normal --logger trx --results-directory TestResults
       - name: E2E Tests
-        run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx
+        run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx -PackageOutputDirectory artifacts/e2e
       - name: Pack
-        run: |
-          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts \
-            -p:PackageVersion="${{ steps.release.outputs.version }}" \
-            -p:PackageReleaseNotes="$(cat artifacts/release-notes.md)" \
-            -p:ContinuousIntegrationBuild=true
+        run: >
+          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts/release
+          -p:PackageVersion="${{ steps.release.outputs.version }}"
+          -p:PackageReleaseNotes="https://github.com/dmytroett/AttributedDI/blob/main/CHANGELOG.md"
+          -p:ContinuousIntegrationBuild=true
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
@@ -53,28 +64,28 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: artifacts/*.nupkg
+          path: artifacts/release/*.nupkg
       - name: Upload Symbol Packages
         uses: actions/upload-artifact@v4
         with:
           name: symbols
-          path: artifacts/*.snupkg
+          path: artifacts/release/*.snupkg
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body_path: artifacts/release-notes.md
           files: |
-            artifacts/*.nupkg
-            artifacts/*.snupkg
+            artifacts/release/*.nupkg
+            artifacts/release/*.snupkg
       - name: NuGet Login (Trusted Publishing)
         if: ${{ env.NUGET_USER != '' }}
         id: nuget_login
         uses: NuGet/login@v1
         with:
           user: ${{ env.NUGET_USER }}
-      # - name: Publish to NuGet
-      #   if: ${{ env.NUGET_USER != '' }}
-      #   run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
-      # - name: Publish symbols to NuGet
-      #   if: ${{ env.NUGET_USER != '' }}
-      #   run: dotnet nuget push "artifacts/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Publish to NuGet
+        if: ${{ env.NUGET_USER != '' }}
+        run: dotnet nuget push "artifacts/release/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Publish symbols to NuGet
+        if: ${{ env.NUGET_USER != '' }}
+        run: dotnet nuget push "artifacts/release/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

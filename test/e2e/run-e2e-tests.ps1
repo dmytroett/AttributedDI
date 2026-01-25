@@ -2,7 +2,8 @@
 param(
   [string]$ResultsDirectory,
   [string]$Logger = "trx",
-  [switch]$NoRestoreProps
+  [switch]$NoRestoreProps,
+  [string]$PackageOutputDirectory = "artifacts/e2e"
 )
 
 Set-StrictMode -Version Latest
@@ -10,7 +11,7 @@ $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Resolve-Path (Join-Path $scriptDir "..\..") | Select-Object -ExpandProperty Path
-$artifactsDir = Join-Path $repoRoot "artifacts"
+$artifactsDir = Join-Path $repoRoot $PackageOutputDirectory
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
 $packageVersion = "99.0.0-e2e.$timestamp"
 
