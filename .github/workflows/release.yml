@@ -47,10 +47,10 @@ jobs:
       - name: Test
         run: dotnet test --no-build --no-restore -c Release --verbosity normal --logger trx --results-directory TestResults
       - name: E2E Tests
-        run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx
+        run: pwsh test/e2e/run-e2e-tests.ps1 -ResultsDirectory TestResults/E2E -Logger trx -PackageOutputDirectory artifacts/e2e
       - name: Pack
         run: >
-          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts
+          dotnet pack src/AttributedDI/AttributedDI.csproj --no-build --no-restore -c Release -o artifacts/release
           -p:PackageVersion="${{ steps.release.outputs.version }}"
           -p:PackageReleaseNotes="https://github.com/dmytroett/AttributedDI/blob/main/CHANGELOG.md"
           -p:ContinuousIntegrationBuild=true
@@ -64,19 +64,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: artifacts/*.nupkg
+          path: artifacts/release/*.nupkg
       - name: Upload Symbol Packages
         uses: actions/upload-artifact@v4
         with:
           name: symbols
-          path: artifacts/*.snupkg
+          path: artifacts/release/*.snupkg
       # - name: Create GitHub Release
       #   uses: softprops/action-gh-release@v2
       #   with:
       #     body_path: artifacts/release-notes.md
       #     files: |
-      #       artifacts/*.nupkg
-      #       artifacts/*.snupkg
+      #       artifacts/release/*.nupkg
+      #       artifacts/release/*.snupkg
       - name: NuGet Login (Trusted Publishing)
         if: ${{ env.NUGET_USER != '' }}
         id: nuget_login
@@ -85,7 +85,7 @@ jobs:
           user: ${{ env.NUGET_USER }}
       # - name: Publish to NuGet
       #   if: ${{ env.NUGET_USER != '' }}
-      #   run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      #   run: dotnet nuget push "artifacts/release/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
       # - name: Publish symbols to NuGet
       #   if: ${{ env.NUGET_USER != '' }}
-      #   run: dotnet nuget push "artifacts/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      #   run: dotnet nuget push "artifacts/release/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
