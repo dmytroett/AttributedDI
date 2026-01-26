@@ -13,11 +13,10 @@ Update `src/AttributedDI.SourceGenerator/AnalyzerReleases.Unshipped.md` for ever
 - Preserve the dashed separator row style exactly.
 - Rule IDs must start with ATTDI (for example ATTDI001, ATTDI002).
 - New rule IDs must be monotonically increasing across shipped and unshipped analyzers.
-- Omit any section that has no rows.
-- New analyzer: add a row under “New Rules.”
-- Removed analyzer: add a row under “Removed Rules.” If a rule is removed, it must appear in that section.
-- Changed category/severity/notes: add a row under “Changed Rules,” filling both new and old columns.
-- Sort rows by Rule ID within each section (the correct section is more important than ordering).
+- Only include sections that have at least one row. Place each change under the correct section (New/Changed/Removed)
+- If the rule is removed, it must appear in “Removed Rules” section.
+- If category/severity/notes for the rule were changed, a row must be added to “Changed Rules” section. Both new and old columns should be filled with corresponding values.
+- Sort rows by Rule ID within each section.
 - Allowed severity values: Hidden, Info, Warning, Error.
 - Notes should be a short summary of the rule. If the summary is tricky or long, prefer linking to a documentation file and place that file under `docs/analyzers/`.
 - If multiple changes happen to the same rule while unshipped, keep a single row that reflects the final state. The last change wins; e.g., a changed-then-removed rule should appear only under “Removed Rules.”
@@ -25,6 +24,7 @@ Update `src/AttributedDI.SourceGenerator/AnalyzerReleases.Unshipped.md` for ever
 Template (format only; replace with real values). Include only the sections you need.
 
 New rule with a short summary note:
+
 ```text
 ### New Rules
 
@@ -35,6 +35,7 @@ ATTDI001 | Design | Warning | RegisterAsSelf is not allowed on structs
 ```
 
 New rule with a documentation link (in `docs/analyzers/`):
+
 ```text
 ### New Rules
 
@@ -45,6 +46,7 @@ ATTDI002 | Usage | Warning | [Documentation](docs/analyzers/ATTDI002.md)
 ```
 
 Changed rule:
+
 ```text
 ### Changed Rules
 
@@ -54,6 +56,7 @@ ATTDI003 | Security | Hidden | Security | Info | [Documentation](docs/analyzers/
 ```
 
 Removed rule:
+
 ```text
 ### Removed Rules
 
