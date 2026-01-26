@@ -98,10 +98,16 @@ if ($PSCmdlet.ShouldProcess($changelogPath, "Update changelog for version $versi
 }
 
 $unshippedText = Get-Content -Path $unshippedPath -Raw
+if ($null -eq $unshippedText) {
+    $unshippedText = ''
+}
 $unshippedTrimmed = $unshippedText.Trim()
 
 if (-not [string]::IsNullOrWhiteSpace($unshippedTrimmed)) {
     $shippedText = Get-Content -Path $shippedPath -Raw
+    if ($null -eq $shippedText) {
+        $shippedText = ''
+    }
     $shippedTrimmed = $shippedText.Trim()
 
     $releaseHeader = "## $versionValue - $releaseDate"
