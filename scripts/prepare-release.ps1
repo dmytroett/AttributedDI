@@ -28,7 +28,8 @@ if (-not (Test-Path $shippedPath)) {
 }
 
 $releaseDate = Get-Date -Format 'yyyy-MM-dd'
-$isPreviewVersion = $versionValue -match '-'
+$stableVersionPattern = '^\d+\.\d+\.\d+$'
+$isPreviewVersion = -not [regex]::IsMatch($versionValue, $stableVersionPattern)
 
 function Clear-EmptyLines {
     param([string[]]$InputLines)
