@@ -1,46 +1,35 @@
 ---
 name: snapshot-unit-testing
-description: Write or update unit (not integration) tests in this repo, use Verify snapshot testing for source generator output, and run/accept snapshots via the provided scripts.
+description: Write/update unit tests; use Verify snapshots for source generator output; accept snapshots via the provided scripts.
 ---
 
-# Scope
+# Snapshot Testing (Verify)
 
-Locate unit tests under `test/*UnitTests`. Use Verify snapshots when validating generated output; prefer normal assertions for non-generator logic.
+Follow these instructions when writing/updating **unit** tests in this repo, especially tests that validate source generator output via Verify snapshots.
 
-# Principles
+## Defaults
 
-Favor a small number of representative scenarios; combine related assertions to minimize snapshot files even if individual tests are larger.
+- Unit tests live under `test/*UnitTests`.
+- Use Verify snapshots for generated output; prefer normal assertions for non-generator logic.
 
-Avoid opening or reading `.received`/`.verified` files; rely on `dotnet test` output and VerifyException details only.
+## Do
 
-Treat `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot` and `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots` as black boxes; do not open or inspect them.
+- Prefer a small number of representative scenarios; combine related assertions to keep snapshot sprawl low.
+- Run targeted tests with `dotnet test --filter "FullyQualifiedName~<TestClass>.<TestMethod>"` (add `--no-build --no-restore` when appropriate).
+- If Verify fails, decide “test logic wrong” vs “snapshots need update” using `dotnet test` output only.
 
-# Workflow
+## Don't
 
-Write or update the test based on a concrete scenario.
+- Do not open `.received` / `.verified` files; rely on `dotnet test` output (including `VerifyException`) only.
+- Accept snapshots only when the behavior change is intended and understood.
+- Do not inspect or edit the accept scripts (treat them as black boxes).
 
-Run targeted tests with `dotnet test --filter` and add `--no-build`/`--no-restore` when appropriate.
+## Accept Snapshots
 
-Inspect `dotnet test` output to decide whether the test logic is wrong or snapshots need updating; do not open raw snapshot files.
+- One test: `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
+- All tests: `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots.ps1`
 
-Accept snapshots only when the behavior change is intended and clearly understood:
-
-- Use `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot <TestClassName> <TestMethodName>` for a single test.
-- Use `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots` for bulk updates.
-- Skip these scripts for non-snapshot tests.
-
-Re-run tests and iterate until they pass.
-
-# Commands
-
-- Run a single test:
-  - `dotnet test --filter "FullyQualifiedName~<TestClass>.<TestMethod>"`
-- Accept one snapshot:
-  - `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
-- Accept all snapshots:
-  - `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots.ps1`
-
-# Verify failure pattern
+## Recognizing a Verify Failure
 
 Use the failure output only; do not open the files listed.
 
