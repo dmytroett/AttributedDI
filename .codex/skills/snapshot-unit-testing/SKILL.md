@@ -24,6 +24,7 @@ Run targeted tests with `dotnet test --filter` and add `--no-build`/`--no-restor
 Inspect `dotnet test` output to decide whether the test logic is wrong or snapshots need updating; do not open raw snapshot files.
 
 Accept snapshots only when the behavior change is intended and clearly understood:
+
 - Use `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot <TestClassName> <TestMethodName>` for a single test.
 - Use `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots` for bulk updates.
 - Skip these scripts for non-snapshot tests.

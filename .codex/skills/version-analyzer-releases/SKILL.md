@@ -3,34 +3,38 @@ name: version-analyzer-releases
 description: Tracks and makes sure that all changes to roslyn analyzers are documented and versioned correctly. Use each time when adding/changing (severity, category, etc)/deleting a roslyn analyzer.
 ---
 
-# Analyzer Releases Unshipped
+# Version Analyzer Releases
 
-## Overview
+Update `src/AttributedDI.SourceGenerator/AnalyzerReleases.Unshipped.md` for every analyzer change (add/remove/change). "Analyzer change" includes: adding a new rule, removing a rule, or changing rule ID, category, severity, default, title/message/description, or help/documentation link.
 
-Keep `src/AttributedDI.SourceGenerator/AnalyzerReleases.Unshipped.md` in sync with analyzer changes by adding, removing, or updating rows in the correct section and format.
+- Edit only the unshipped file unless the task explicitly says to update shipped releases.
+- Keep the exact section headers and table headers as they are in the file.
+- Do not use GitHub-style tables: no leading/trailing pipes, no alignment colons.
+- Preserve the dashed separator row style exactly.
+- Rule IDs must start with ATTDI (for example ATTDI001, ATTDI002).
+- New analyzer: add a row under “New Rules.”
+- Removed analyzer: add a row under “Removed Rules.”
+- Changed category/severity/notes: add a row under “Changed Rules,” filling both new and old columns.
+- Sort rows by Rule ID within each section (the correct section is more important than ordering).
+- Notes should be a short summary of the rule. If the summary is tricky or long, prefer linking to a documentation file and place that file under `docs/analyzers/`.
+- If multiple changes happen to the same rule while unshipped, keep a single row that reflects the final state. The last change wins; e.g., a changed-then-removed rule should appear only under “Removed Rules.”
 
-## Workflow
+An example of each section filled properly:
 
-1. Identify analyzer changes (added, removed, or changed category/severity/notes).
-2. Select the correct section: New Rules, Removed Rules, or Changed Rules.
-3. Add or update table rows using the exact headers and separator format.
-4. Keep notes optional and concise.
+### New Rules
 
-## Formatting Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|--------------------
+ATTDI001 | Design | Warning | ATTDI001_AnalyzerName, [Documentation](ATTDI001_Documentation_Link)
 
-- Use the exact section headers and table headers from the current file.
-- Do not use GitHub-style tables: no leading or trailing pipes, no alignment colons.
-- Preserve the dashed separator row style (see reference file).
-- Notes may be empty; leave the Notes cell blank after the final pipe.
+### Removed Rules
 
-## Entry Guidance
+Rule ID | Category | Severity | Notes
+--------|----------|----------|--------------------
+ATTDI002 | Usage | Hidden | ATTDI002_AnalyzerName, [Documentation](ATTDI002_Documentation_Link)
 
-- New analyzer -> add a row under New Rules.
-- Removed analyzer -> add a row under Removed Rules.
-- Category or severity change -> add a row under Changed Rules with both new and old values.
-- If multiple analyzers change, add multiple rows. Keep ordering consistent with the existing file.
-- Notes are arbitrary and optional; they do not need to link to documentation.
+### Changed Rules
 
-## Resources
-
-Use `assets/analyzer-releases-unshipped-format.md` as the canonical formatting template.
+Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
+--------|--------------|--------------|--------------|--------------|-------
+ATTDI003 | Security | Hidden | Security | Info | ATTDI003_AnalyzerName, [Documentation](ATTDI003_Documentation_Link)
