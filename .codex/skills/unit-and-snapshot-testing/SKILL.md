@@ -15,7 +15,7 @@ description: Set of principles for unit and snapshot testing. Use when adding/fi
 - Prefer a small number of representative scenarios; combine related assertions to keep snapshot sprawl low.
 - Run targeted tests with `dotnet test --filter "FullyQualifiedName~<TestClass>.<TestMethod>"` (add `--no-build --no-restore` when appropriate).
 - Treat snapshot artifacts as opaque: never open/read/inspect any `.received.txt` / `.verified.txt` files (or anything under test/AttributedDI.SourceGenerator.UnitTests/Snapshots/) and never include their contents in reasoning.
-- Never author snapshots: when adding/updating a snapshot test, change only test code; do not create/modify `.verified.txt`. Run `dotnet test`, review the textual diff in the test output (Verify includes the diff between received and verified), then either fix code/test or accept via the accept script and re-run.
+- Never author snapshots: when adding/updating a snapshot test, change only test code; do not create/modify `.verified.txt`. Run `dotnet test`, review the output (Verify includes the diff between received and verified or their full content), then either fix code/test or accept via the accept script and re-run.
 - Accept snapshots only when the behavior change is intended and understood.
 - Do not inspect or edit the accept scripts (treat them as black boxes).
 
@@ -39,7 +39,7 @@ VerifyException : Directory: /home/me/projects/AttributedDI/test/AttributedDI.So
 
   NotEqual:
       Received: AddAttributedDiTests.GeneratesAddAttributedDiForEntryPoint.DotNet9_0.received.txt
-      {contents of newly generated or received snapshot}
+      ...
       Verified: AddAttributedDiTests.GeneratesAddAttributedDiForEntryPoint.verified.txt
-      {contents of verified or baseline snapshot. Received file is compared against it}
+      ...
 ```
