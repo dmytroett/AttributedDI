@@ -1,6 +1,6 @@
 ---
-name: version-analyzer-releases
-description: Tracks and makes sure that all changes to roslyn analyzers are documented and versioned correctly. Use each time when adding/changing (severity, category, etc)/deleting a roslyn analyzer.
+name: analyzer-rule-versioning
+description: Keeps AnalyzerReleases.Unshipped.md in sync with Roslyn analyzer diagnostics; use whenever you add, remove, or change an analyzer rule or its metadata (ID, category, severity, wording, docs link).
 ---
 
 # Version Analyzer Releases
@@ -12,6 +12,7 @@ Update `src/AttributedDI.SourceGenerator/AnalyzerReleases.Unshipped.md` for ever
 - Do not use GitHub-style tables: no leading/trailing pipes, no alignment colons.
 - Preserve the dashed separator row style exactly.
 - Rule IDs must start with ATTDI (for example ATTDI001, ATTDI002).
+- New rule IDs must be monotonically increasing across shipped and unshipped analyzers.
 - Omit any section that has no rows.
 - New analyzer: add a row under “New Rules.”
 - Removed analyzer: add a row under “Removed Rules.” If a rule is removed, it must appear in that section.
