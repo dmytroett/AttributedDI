@@ -28,6 +28,7 @@ if (-not (Test-Path $shippedPath)) {
 }
 
 $releaseDate = Get-Date -Format 'yyyy-MM-dd'
+$isPreviewVersion = $versionValue -match '-'
 
 function Clear-EmptyLines {
     param([string[]]$InputLines)
@@ -53,13 +54,6 @@ function Clear-EmptyLines {
 
     return $InputLines[$startIndex..$endIndex]
 }
-
-$unshippedTemplate = @(
-    '### New Rules',
-    '',
-    'Rule ID   | Category | Severity | Notes',
-    '----------|----------|----------|--------------------'
-) -join "`n"
 
 $changelogText = Get-Content -Path $changelogPath -Raw
 $unreleasedPattern = '(?ms)^##\s+\[?Unreleased\]?\s*$\s*(?<content>.*?)(?=^##\s+|\z)'
@@ -104,29 +98,34 @@ if ($null -eq $unshippedText) {
 $unshippedTrimmed = $unshippedText.Trim()
 
 if (-not [string]::IsNullOrWhiteSpace($unshippedTrimmed)) {
-    $shippedText = Get-Content -Path $shippedPath -Raw
-    if ($null -eq $shippedText) {
-        $shippedText = ''
-    }
-    $shippedTrimmed = $shippedText.Trim()
-
-    $releaseHeader = "## $versionValue - $releaseDate"
-
-    if ([string]::IsNullOrWhiteSpace($shippedTrimmed)) {
-        $newShippedText = "$releaseHeader`n`n$unshippedTrimmed`n"
+    if ($isPreviewVersion) {
+        Write-Host 'Preview version detected; skipping analyzer release move.'
     }
     else {
-        $newShippedText = "$shippedTrimmed`n`n$releaseHeader`n`n$unshippedTrimmed`n"
-    }
+        $shippedText = Get-Content -Path $shippedPath -Raw
+        if ($null -eq $shippedText) {
+            $shippedText = ''
+        }
+        $shippedTrimmed = $shippedText.Trim()
 
-    if ($PSCmdlet.ShouldProcess($shippedPath, "Append analyzer releases for version $versionValue")) {
-        Set-Content -Path $shippedPath -Value $newShippedText -Encoding utf8
-        Write-Host "Moved analyzer releases to AnalyzerReleases.Shipped.md."
-    }
+        $releaseHeader = "## Release $versionValue"
 
-    if ($PSCmdlet.ShouldProcess($unshippedPath, 'Reset unshipped analyzer releases')) {
-        Set-Content -Path $unshippedPath -Value $unshippedTemplate -Encoding utf8
-        Write-Host 'Reset AnalyzerReleases.Unshipped.md.'
+        if ([string]::IsNullOrWhiteSpace($shippedTrimmed)) {
+            $newShippedText = "$releaseHeader`n`n$unshippedTrimmed`n"
+        }
+        else {
+            $newShippedText = "$shippedTrimmed`n`n$releaseHeader`n`n$unshippedTrimmed`n"
+        }
+
+        if ($PSCmdlet.ShouldProcess($shippedPath, "Append analyzer releases for version $versionValue")) {
+            Set-Content -Path $shippedPath -Value $newShippedText -Encoding utf8
+            Write-Host "Moved analyzer releases to AnalyzerReleases.Shipped.md."
+        }
+
+        if ($PSCmdlet.ShouldProcess($unshippedPath, 'Reset unshipped analyzer releases')) {
+            Set-Content -Path $unshippedPath -Value '' -Encoding utf8
+            Write-Host 'Cleared AnalyzerReleases.Unshipped.md.'
+        }
     }
 }
 else {
