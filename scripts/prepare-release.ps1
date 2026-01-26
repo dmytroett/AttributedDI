@@ -81,7 +81,8 @@ $unreleasedReplacement = @(
     '',
     "## [$versionValue] - $releaseDate",
     '',
-    $unreleasedTrimmed
+    $unreleasedTrimmed,
+    "`n"
 ) -join "`n"
 
 $newChangelogText = [regex]::Replace($changelogText, $unreleasedPattern, $unreleasedReplacement, 1)
