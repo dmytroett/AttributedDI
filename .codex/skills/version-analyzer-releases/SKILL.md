@@ -17,6 +17,7 @@ Update `src/AttributedDI.SourceGenerator/AnalyzerReleases.Unshipped.md` for ever
 - Removed analyzer: add a row under “Removed Rules.” If a rule is removed, it must appear in that section.
 - Changed category/severity/notes: add a row under “Changed Rules,” filling both new and old columns.
 - Sort rows by Rule ID within each section (the correct section is more important than ordering).
+- Allowed severity values: Hidden, Info, Warning, Error.
 - Notes should be a short summary of the rule. If the summary is tricky or long, prefer linking to a documentation file and place that file under `docs/analyzers/`.
 - If multiple changes happen to the same rule while unshipped, keep a single row that reflects the final state. The last change wins; e.g., a changed-then-removed rule should appear only under “Removed Rules.”
 
