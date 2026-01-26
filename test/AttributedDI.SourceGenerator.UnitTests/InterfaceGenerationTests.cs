@@ -120,7 +120,7 @@ public class InterfaceGenerationTests
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -201,7 +201,7 @@ public class InterfaceGenerationTests
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -319,7 +319,7 @@ public class InterfaceGenerationTests
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -366,7 +366,7 @@ public class InterfaceGenerationTests
             .AddGenerator<AttributedDiSourceGenerator>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
 
         var output = GeneratedCodeExtractor.ExtractGeneratedCode(result);
 
@@ -537,7 +537,7 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -561,7 +561,7 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -700,7 +700,7 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -724,6 +724,6 @@ public class InterfaceGenerationTests
             .AddAnalyzer<InterfaceGenerationAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingInterfaceNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 }

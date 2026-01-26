@@ -53,7 +53,7 @@ public class AnalyzerTests
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingExtensionNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class AnalyzerTests
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingExtensionNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class AnalyzerTests
             .AddAnalyzer<ConflictingExtensionNamespaceAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingExtensionNamespace(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class AnalyzerTests
             .AddAnalyzer<ConflictinglifetimeAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainConflictingLifetime(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class AnalyzerTests
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainInvalidMsBuildProperty(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public class AnalyzerTests
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainInvalidMsBuildProperty(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -234,6 +234,6 @@ public class AnalyzerTests
             .AddAnalyzer<InvalidOptInMsbuildPropertyAnalyzer>()
             .BuildAndRun();
 
-        DiagnosticAssert.DoesNotContainInvalidMsBuildProperty(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
     }
 }
