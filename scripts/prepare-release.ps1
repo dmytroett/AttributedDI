@@ -70,14 +70,14 @@ if (-not $unreleasedMatch.Success) {
 }
 
 $escapedVersion = [regex]::Escape($versionValue)
-if ([regex]::IsMatch($changelogText, "(?m)^##\s+\[?$escapedVersion\]?")) {
+if ([regex]::IsMatch($changelogText, "(?m)^##\s+\[?$escapedVersion\]?(?:\s+-\s+.*)?$")) {
     throw "Version '$versionValue' already exists in CHANGELOG.md."
 }
 
 $unreleasedLines = $unreleasedMatch.Groups['content'].Value -split "`r?`n"
 $unreleasedTrimmedLines = Clear-EmptyLines -InputLines $unreleasedLines
 if ($unreleasedTrimmedLines.Count -eq 0) {
-    throw 'No unreleased entries found under [Unreleased].'
+    throw 'No unreleased entries found under [Unreleased]. An empty section means no pending changes.'
 }
 
 $unreleasedTrimmed = $unreleasedTrimmedLines -join "`n"
