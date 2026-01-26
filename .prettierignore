@@ -1,1 +1,3 @@
 **/*AnalyzerReleases*.md
+# was needed to prevent prettier from table formatting. No longer needed after analyzer rule tables were wrapped into ``` sections.
+# .codex/skills/analyzer-rule-versioning/SKILL.md
