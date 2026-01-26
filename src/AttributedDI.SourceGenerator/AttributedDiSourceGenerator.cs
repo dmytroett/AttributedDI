@@ -1,5 +1,5 @@
-using AttributedDI.SourceGenerator.InterfacesGeneration;
 using AttributedDI.SourceGenerator.AggregateServiceCollectionExtensionGeneration;
+using AttributedDI.SourceGenerator.InterfacesGeneration;
 using AttributedDI.SourceGenerator.ServiceCollectionExtensionGeneration;
 using Microsoft.CodeAnalysis;
 using System.Linq;
