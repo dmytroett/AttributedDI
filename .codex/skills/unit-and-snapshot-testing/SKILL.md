@@ -1,5 +1,5 @@
 ---
-name: snapshot-unit-testing
+name: unit-and-snapshot-testing
 description: Set of principles for unit and snapshot testing. Use when adding/fixing unit tests or when working with `Verify` snapshots. Do not load when working with integration or e2e tests.
 ---
 
@@ -20,8 +20,8 @@ description: Set of principles for unit and snapshot testing. Use when adding/fi
 
 ## Accepting Snapshots
 
-- One test: `.codex/skills/snapshot-unit-testing/scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
-- All tests: `.codex/skills/snapshot-unit-testing/scripts/accept-all-snapshots.ps1`
+- One test: `.codex/skills/unit-and-snapshot-testing/scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
+- All tests: `.codex/skills/unit-and-snapshot-testing/scripts/accept-all-snapshots.ps1`
 - Re-run corresponding tests after accepting snapshots to ensure they pass.
 
 ## Recognizing a Verify Failure
