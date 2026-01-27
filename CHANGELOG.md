@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-01-27
+
 - Updated the README to clarify that `[GenerateInterface]` and `[RegisterAsGeneratedInterface]` require non‑nested partial classes or structs.
 
 ## [1.0.0] - 2026-01-27
@@ -27,3 +29,4 @@ All notable changes to this project will be documented in this file.
 - Custom generated extension naming via `ServiceCollectionExtension`.
 - Aggregate `AddAttributedDi()` generation across referenced projects (opt-in MSBuild property).
 - Source-generated registration code (no runtime reflection scanning).
+
