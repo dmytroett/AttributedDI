@@ -76,7 +76,7 @@ AttributedDI can also generate an interface for you and register against it in o
 
 ```csharp
 [RegisterAsGeneratedInterface]
-public sealed class MetricsSink
+public sealed partial class MetricsSink
 {
     public void Write(string name, double value) { }
 
@@ -118,7 +118,7 @@ Generate an interface from a concrete type:
 
 ```csharp
 [GenerateInterface]
-public sealed class WeatherClient
+public sealed partial class WeatherClient
 {
     public Task<string> GetAsync(string city, CancellationToken ct) => Task.FromResult("ok");
 }
@@ -128,7 +128,7 @@ Generate an interface and register against it in one step:
 
 ```csharp
 [RegisterAsGeneratedInterface]
-public sealed class MetricsSink
+public sealed partial class MetricsSink
 {
     public void Write(string name, double value) { }
 
@@ -136,6 +136,8 @@ public sealed class MetricsSink
     public string DebugOnly => "local";
 }
 ```
+
+Both `[GenerateInterface]` and `[RegisterAsGeneratedInterface]` require a non-nested `partial` class or struct.
 
 For edge cases and exclusions, see `docs/interface-generation-exceptions.md`.
 

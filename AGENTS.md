@@ -2,29 +2,61 @@
 
 ## Overview
 
-This project is about building a library to simplify dependency registration in DI container. The general idea - mark components that need to be registered with an attribute, like `[RegisterAsSelf]`, and the library will generate the code like `services.AddTransient<MyService>()` to automatically register and wire all of the components. Heavily uses .NET source generators to avoid reflection scan at runtime.
+Library that uses .NET source generators to turn attributes (e.g. `[RegisterAsSelf]`) into DI registrations (e.g. `services.AddTransient<MyService>()`) without runtime reflection scanning.
 
 ## General Guidelines
 
-- For any Source Generator task, always consult Microsoft Docs via the Microsoft Learn MCP first and treat it as the source of truth before reasoning or coding.
-- For anything involving GitHub, always use the GitHub MCP (not web search) to interface with GitHub, and proactively use code search, issues, and PRs when helpful.
+- Source generators: consult Microsoft Learn MCP first (source of truth) any time working with source generators.
+- GitHub work: use the GitHub MCP (not web search).
+- Functional changes (new/changed/removed behavior or public API): add an entry to `CHANGELOG.md` under `[Unreleased]` using the template below. Breaking changes go under `### Breaking Changes`, start with `BREAKING:`, and include a brief migration note.
+
+### CHANGELOG.md Template
+
+Under `## [Unreleased]`, use this structure (omit empty sections):
+
+```md
+### Breaking Changes
+
+- BREAKING: <what changed>. Migration: <how to update>.
+
+### Added
+
+- <new functionality>.
+
+### Changed
+
+- <behavior change>.
+
+### Deprecated
+
+- <deprecated behavior/API>.
+
+### Removed
+
+- <removed functionality/API>.
+
+### Fixed
+
+- <bug fix>.
+
+### Security
+
+- <security-related change>.
+```
 
 ## Code Quality Guidelines
 
-- Make sure code is maintainable and easy to understand. Suggest refactoring when beneficial.
-- If refactoring is challenging, complicated, or the user explicitly declined, add strategic comments to improve maintainability instead.
-- Do not overuse comments; place them only where they add real value.
-- Minimize public surface area: Use `private` or `internal` access modifiers by default unless the API is intentionally designed to be public. A smaller public API is easier to maintain and reduces breaking change concerns in future versions.
+- Prefer maintainable, easy-to-read code; refactor when it helps.
+- If refactoring is too costly or declined, add small, high-value comments (don't over-comment).
+- Minimize public surface area: prefer `internal`/`private` unless intentionally public API.
 
 ## Public API Documentation
 
-This is a library. **All** public methods, properties, classes, and interfaces in library code **must** have XML documentation (///).
+Library projects require XML docs (`///`) on all public APIs:
 
-This requirement applies to library code only (`src/AttributedDI/`, `src/AttributedDI.SourceGenerator/`). Test projects are exempt.
-
-Document only public APIs in library projects
-
-Update documentation when signatures change
+- Applies to `src/AttributedDI/` and `src/AttributedDI.SourceGenerator/`.
+- Test projects are exempt.
+- Update docs when signatures change.
 
 ### Example
 
@@ -35,8 +67,3 @@ Update documentation when signatures change
 /// <exception cref="ArgumentNullException">Thrown when parameters are null.</exception>
 public void RegisterService(Type serviceType, Type implementationType)
 ```
-
-### Documentation Rules
-
-- Document only public APIs in library projects
-- Update documentation when signatures change

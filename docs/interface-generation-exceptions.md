@@ -6,6 +6,7 @@ expect.
 
 ## What is generated
 
+- Non-nested `partial` classes or structs are eligible for interface generation.
 - Public instance methods, properties, events, and indexers declared on the type.
 - Generic type parameters and constraints are preserved (including nullability).
 - Optional parameters with default values are preserved.

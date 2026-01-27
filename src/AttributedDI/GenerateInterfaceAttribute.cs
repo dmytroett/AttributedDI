@@ -8,6 +8,7 @@ namespace AttributedDI;
 /// <remarks>
 /// <para>Generation contract (supported):</para>
 /// <list type="bullet">
+/// <item><description>Non-nested partial classes or structs.</description></item>
 /// <item><description>Instance members only; no static members or operators are emitted.</description></item>
 /// <item><description>Public methods, properties, events, and indexers declared on the type.</description></item>
 /// <item><description>Declared members only; inherited members are ignored.</description></item>
