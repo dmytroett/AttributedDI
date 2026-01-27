@@ -85,7 +85,5 @@ jobs:
           user: ${{ env.NUGET_USER }}
       - name: Publish to NuGet
         if: ${{ env.NUGET_USER != '' }}
+        # dotnet nuget push will publish symbols automatically
         run: dotnet nuget push "artifacts/release/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
-      - name: Publish symbols to NuGet
-        if: ${{ env.NUGET_USER != '' }}
-        run: dotnet nuget push "artifacts/release/*.snupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
