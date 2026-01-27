@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Updated the README to clarify that `[GenerateInterface]` and `[RegisterAsGeneratedInterface]` require non‑nested partial classes or structs.
+
 ## [1.0.0] - 2026-01-27
 
 - Attribute-driven registrations (`RegisterAsSelf`, `RegisterAsImplementedInterfaces`, `RegisterAs<TService>`).
