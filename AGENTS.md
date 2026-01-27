@@ -8,6 +8,43 @@ This project is about building a library to simplify dependency registration in 
 
 - For any Source Generator task, always consult Microsoft Docs via the Microsoft Learn MCP first and treat it as the source of truth before reasoning or coding.
 - For anything involving GitHub, always use the GitHub MCP (not web search) to interface with GitHub, and proactively use code search, issues, and PRs when helpful.
+- Any time Codex adds new functionality or changes/removes existing functionality (behavior or public API), also add a corresponding entry to `CHANGELOG.md` under `[Unreleased]`. If the change is breaking, put it under `### Breaking Changes`, prefix the bullet with `BREAKING:`, and include a brief migration note.
+
+### CHANGELOG.md Template
+
+When adding entries under `## [Unreleased]`, use this structure (omit empty sections):
+
+```md
+## [Unreleased]
+
+### Breaking Changes
+
+- BREAKING: <what changed>. Migration: <how to update>.
+
+### Added
+
+- <new functionality>.
+
+### Changed
+
+- <behavior change>.
+
+### Deprecated
+
+- <deprecated behavior/API>.
+
+### Removed
+
+- <removed functionality/API>.
+
+### Fixed
+
+- <bug fix>.
+
+### Security
+
+- <security-related change>.
+```
 
 ## Code Quality Guidelines
 

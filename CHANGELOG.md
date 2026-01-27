@@ -25,4 +25,3 @@ All notable changes to this project will be documented in this file.
 - Custom generated extension naming via `ServiceCollectionExtension`.
 - Aggregate `AddAttributedDi()` generation across referenced projects (opt-in MSBuild property).
 - Source-generated registration code (no runtime reflection scanning).
-
