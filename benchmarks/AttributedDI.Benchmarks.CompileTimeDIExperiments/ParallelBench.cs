@@ -5,6 +5,7 @@ using AttributedDI.Benchmarks.CompileTimeDIExperiments.Services;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
@@ -17,7 +18,6 @@ public class ParallelBench
     private IServiceProvider? _dictionaryDelegatesProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _typedDelegatesProvider;
-    private ParallelOptions? _parallelOptions;
 
     [Params(4, 16)]
     public int DegreeOfParallelism { get; set; }
@@ -32,7 +32,6 @@ public class ParallelBench
         _dictionaryDelegatesProvider = DictionaryDelegatesServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
-        _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = DegreeOfParallelism };
     }
 
     [GlobalCleanup]
@@ -47,50 +46,65 @@ public class ParallelBench
         _dictionaryDelegatesProvider = null;
         _dictionaryFunctionPointersProvider = null;
         _typedDelegatesProvider = null;
-        _parallelOptions = null;
     }
 
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("Parallel")]
     public Task Medi()
     {
-        return ResolveTransientAcrossParallelScopes(_mediProvider!, GetParallelOptions());
+        return ResolveTransientAcrossParallelScopes(_mediProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]
     public Task DictionaryDelegates()
     {
-        return ResolveTransientAcrossParallelScopes(_dictionaryDelegatesProvider!, GetParallelOptions());
+        return ResolveTransientAcrossParallelScopes(_dictionaryDelegatesProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]
     public Task DictionaryFunctionPointers()
     {
-        return ResolveTransientAcrossParallelScopes(_dictionaryFunctionPointersProvider!, GetParallelOptions());
+        return ResolveTransientAcrossParallelScopes(_dictionaryFunctionPointersProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]
     public Task TypedDelegates()
     {
-        return ResolveTransientAcrossParallelScopes(_typedDelegatesProvider!, GetParallelOptions());
+        return ResolveTransientAcrossParallelScopes(_typedDelegatesProvider!);
     }
 
-    private async Task ResolveTransientAcrossParallelScopes(IServiceProvider provider, ParallelOptions parallelOptions)
+    private async Task ResolveTransientAcrossParallelScopes(IServiceProvider provider)
     {
         for (var i = 0; i < BatchCount; i++)
         {
-            await Parallel.ForAsync(0, ScopesPerBatch, parallelOptions, async (_, _) =>
+            var workers = new Task[DegreeOfParallelism];
+
+            for (var workerIndex = 0; workerIndex < workers.Length; workerIndex++)
             {
-                await using var scope = provider.CreateAsyncScope();
-                _ = scope.ServiceProvider.GetRequiredService<TransientService1>();
-            });
+                var capturedWorkerIndex = workerIndex;
+                workers[workerIndex] = Task.Run(() => RunWorker(provider, capturedWorkerIndex));
+            }
+
+            await Task.WhenAll(workers);
         }
     }
-    private ParallelOptions GetParallelOptions()
+
+    private void RunWorker(IServiceProvider provider, int workerIndex)
     {
-        return _parallelOptions ?? throw new InvalidOperationException("Parallel options are not initialized.");
+        for (var i = 0; i < GetScopeCountForWorker(workerIndex); i++)
+        {
+            using var scope = provider.CreateScope();
+            _ = scope.ServiceProvider.GetRequiredService<TransientService1>();
+        }
+    }
+
+    private int GetScopeCountForWorker(int workerIndex)
+    {
+        var scopesPerWorker = ScopesPerBatch / DegreeOfParallelism;
+        var remainder = ScopesPerBatch % DegreeOfParallelism;
+        return workerIndex < remainder ? scopesPerWorker + 1 : scopesPerWorker;
     }
 }
