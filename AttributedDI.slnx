@@ -14,6 +14,9 @@
     <File Path=".github/workflows/pr.yml" />
     <File Path=".github/workflows/release.yml" />
   </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/AttributedDI.Benchmarks.CompileTimeDIExperiments/AttributedDI.Benchmarks.CompileTimeDIExperiments.csproj" />
+  </Folder>
   <Folder Name="/scripts/">
     <File Path="scripts/extract-changelog.ps1" />
     <File Path="scripts/prepare-release.ps1" />
@@ -23,22 +26,17 @@
     <Project Path="src/AttributedDI/AttributedDI.csproj" />
   </Folder>
   <Folder Name="/test/">
-    <Project
-      Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
+    <Project Path="test/AttributedDI.SourceGenerator.UnitTests/AttributedDI.SourceGenerator.UnitTests.csproj" />
     <File Path="test/.editorconfig" />
   </Folder>
   <Folder Name="/test/integration/">
-    <Project
-      Path="test/integration/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
+    <Project Path="test/integration/AttributedDI.IntegrationTests/AttributedDI.IntegrationTests.csproj" />
     <File Path="test/integration/nuget.config" />
   </Folder>
   <Folder Name="/test/integration/assets/">
-    <Project
-      Path="test/integration/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
-    <Project
-      Path="test/integration/assets/AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
-    <Project
-      Path="test/integration/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
+    <Project Path="test/integration/assets/AllModulesRegistration.App/AllModulesRegistration.App.csproj" />
+    <Project Path="test/integration/assets/AllModulesRegistration.Core/AllModulesRegistration.Core.csproj" />
+    <Project Path="test/integration/assets/Company.TeamName.Project.API/Company.TeamName.Project.API.csproj" />
     <Project Path="test/integration/assets/CustomModuleName/CustomModuleName.csproj" />
     <Project Path="test/integration/assets/GeneratedInterfacesSut/GeneratedInterfacesSut.csproj" />
     <File Path="test/integration/assets/Directory.Build.props" />

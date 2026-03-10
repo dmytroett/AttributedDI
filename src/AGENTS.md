@@ -9,6 +9,11 @@ References:
 
 ## Core Principles
 
+### Public API
+
+- Minimize public surface area: prefer `internal`/`private` unless intentionally public API.
+- Add C# XML docs (`///`) on all public APIs, except tests. Update docs when signatures change.
+
 ### Pipeline Model Design
 
 Source generators must build value-equatable pipelines to enable incremental compilation caching.

@@ -1,10 +1,10 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
-[*.*]
+[*]
 # New line preferences
 end_of_line = lf
-insert_final_newline = false
+insert_final_newline = true
 indent_style = space
 
 [*.{csproj,props}]

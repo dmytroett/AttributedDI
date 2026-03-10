@@ -21,8 +21,8 @@ description: Set of principles for unit and snapshot testing. Use when adding/fi
 
 ## Accepting Snapshots
 
-- One test: `.codex/skills/unit-and-snapshot-testing/scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
-- All tests: `.codex/skills/unit-and-snapshot-testing/scripts/accept-all-snapshots.ps1`
+- One test: `scripts/accept-snapshot.ps1 <TestClassName> <TestMethodName>`
+- All tests: `scripts/accept-all-snapshots.ps1`
 - Re-run corresponding tests after accepting snapshots to ensure they pass.
 
 ## Recognizing a Verify Failure
