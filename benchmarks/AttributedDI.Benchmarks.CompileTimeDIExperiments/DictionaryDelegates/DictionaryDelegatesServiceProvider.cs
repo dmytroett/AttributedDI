@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using Microsoft.Extensions.DependencyInjection;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegates;
 
@@ -10,8 +11,8 @@ internal readonly record struct DictionaryDelegatesServiceExport(
 internal readonly record struct DictionaryDelegatesCompileTimeProviderContext(
     DictionaryDelegatesServiceProvider RootProvider,
     DictionaryDelegatesServiceScope? Scope,
-    DictionaryDelegatesServiceCache SingletonCache,
-    DictionaryDelegatesServiceCache ScopedCache)
+    IServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext> SingletonCache,
+    IServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext> ScopedCache)
 {
     public T ResolveRequired<T>() where T : class
     {
@@ -24,62 +25,18 @@ internal readonly record struct DictionaryDelegatesCompileTimeProviderContext(
     }
 }
 
-internal sealed class DictionaryDelegatesServiceCache(object? sync = null)
-{
-    private readonly Dictionary<Type, object> _instances = [];
-
-    public T GetOrCreate<T>(
-        Type serviceType,
-        DictionaryDelegatesCompileTimeProviderContext context,
-        Func<DictionaryDelegatesCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (sync is null)
-        {
-            return GetOrCreateCore(serviceType, context, factory);
-        }
-
-        lock (sync)
-        {
-            return GetOrCreateCore(serviceType, context, factory);
-        }
-    }
-
-    public void Clear()
-    {
-        _instances.Clear();
-    }
-
-    private T GetOrCreateCore<T>(
-        Type serviceType,
-        DictionaryDelegatesCompileTimeProviderContext context,
-        Func<DictionaryDelegatesCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (_instances.TryGetValue(serviceType, out var existing))
-        {
-            return (T)existing;
-        }
-
-        var created = factory(context);
-        _instances[serviceType] = created;
-        return created;
-    }
-}
-
 internal sealed class DictionaryDelegatesServiceProvider : IServiceProvider, IServiceScopeFactory, IDisposable
 {
     private readonly FrozenDictionary<Type, DictionaryDelegatesServiceExport> _exports;
-    private readonly object _sync = new();
-    private readonly DictionaryDelegatesServiceCache _singletonCache;
-    private readonly DictionaryDelegatesServiceCache _rootScopedCache;
+    private readonly ConcurrentRootServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext> _singletonCache;
+    private readonly ConcurrentRootServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext> _rootScopedCache;
     private bool _disposed;
 
     public DictionaryDelegatesServiceProvider(IEnumerable<DictionaryDelegatesServiceExport> exports)
     {
         _exports = exports.ToFrozenDictionary(static export => export.ServiceType);
-        _singletonCache = new DictionaryDelegatesServiceCache(_sync);
-        _rootScopedCache = new DictionaryDelegatesServiceCache(_sync);
+        _singletonCache = new ConcurrentRootServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext>();
+        _rootScopedCache = new ConcurrentRootServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext>();
     }
 
     public object? GetService(Type serviceType)
@@ -150,17 +107,9 @@ internal sealed class DictionaryDelegatesServiceProvider : IServiceProvider, ISe
             return;
         }
 
-        lock (_sync)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _singletonCache.Clear();
-            _rootScopedCache.Clear();
-            _disposed = true;
-        }
+        _singletonCache.Clear();
+        _rootScopedCache.Clear();
+        _disposed = true;
     }
 
     private void ThrowIfDisposed()
@@ -181,7 +130,8 @@ internal sealed class DictionaryDelegatesServiceScope : IServiceScope, IServiceP
 
     public IServiceProvider ServiceProvider => this;
 
-    internal DictionaryDelegatesServiceCache ScopedCache { get; } = new();
+    internal IServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext> ScopedCache { get; } =
+        new LocklessScopedServiceCache<Type, DictionaryDelegatesCompileTimeProviderContext>();
 
     public object? GetService(Type serviceType)
     {

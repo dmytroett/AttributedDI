@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>BenchmarkRun-joined-2026-03-10-18-25-31</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.3 LTS (Noble Numbat)
+11th Gen Intel Core i7-11800H 2.30GHz, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 10.0.103
+  [Host]     : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v4
+  DefaultJob : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v4
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Type    </th><th>Method                                   </th><th>DegreeOfParallelism</th><th>ScopesPerBatch</th><th>Mean    </th><th>Error   </th><th>StdDev  </th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Gen1</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>ParallelBench</td><td>Medi</td><td>4</td><td>64</td><td>133,618.379 ns</td><td>3,593.3410 ns</td><td>10,538.6480 ns</td><td>1.01</td><td>0.11</td><td>24.4141</td><td>-</td><td>305368 B</td><td>1.00</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegates</td><td>4</td><td>64</td><td>137,135.805 ns</td><td>2,458.9472 ns</td><td>2,300.1007 ns</td><td>1.03</td><td>0.09</td><td>23.4375</td><td>-</td><td>293080 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>4</td><td>64</td><td>131,171.398 ns</td><td>2,264.6337 ns</td><td>2,224.1731 ns</td><td>0.99</td><td>0.08</td><td>23.4375</td><td>-</td><td>293080 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointers</td><td>4</td><td>64</td><td>138,265.268 ns</td><td>2,609.3997 ns</td><td>5,560.8438 ns</td><td>1.04</td><td>0.09</td><td>23.4375</td><td>-</td><td>293080 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>4</td><td>64</td><td>136,568.325 ns</td><td>2,444.0350 ns</td><td>2,909.4501 ns</td><td>1.03</td><td>0.09</td><td>23.4375</td><td>-</td><td>293080 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>TypedDelegates</td><td>4</td><td>64</td><td>141,302.892 ns</td><td>2,318.2512 ns</td><td>2,168.4936 ns</td><td>1.06</td><td>0.09</td><td>23.4375</td><td>-</td><td>293080 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>Medi</td><td>4</td><td>256</td><td>417,656.815 ns</td><td>6,707.8247 ns</td><td>6,274.5034 ns</td><td>1.00</td><td>0.02</td><td>96.1914</td><td>0.4883</td><td>1202392 B</td><td>1.00</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegates</td><td>4</td><td>256</td><td>423,799.244 ns</td><td>6,797.6313 ns</td><td>6,358.5085 ns</td><td>1.01</td><td>0.02</td><td>91.7969</td><td>0.4883</td><td>1153240 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>4</td><td>256</td><td>390,074.082 ns</td><td>7,397.5981 ns</td><td>7,915.3471 ns</td><td>0.93</td><td>0.02</td><td>91.7969</td><td>0.4883</td><td>1153240 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointers</td><td>4</td><td>256</td><td>438,913.271 ns</td><td>8,695.9879 ns</td><td>8,134.2324 ns</td><td>1.05</td><td>0.02</td><td>91.7969</td><td>0.4883</td><td>1153240 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>4</td><td>256</td><td>411,100.290 ns</td><td>7,753.8003 ns</td><td>7,252.9096 ns</td><td>0.98</td><td>0.02</td><td>91.7969</td><td>0.4883</td><td>1153240 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>TypedDelegates</td><td>4</td><td>256</td><td>602,378.789 ns</td><td>11,686.4531 ns</td><td>14,779.6226 ns</td><td>1.44</td><td>0.04</td><td>91.7969</td><td>-</td><td>1153240 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>Medi</td><td>16</td><td>64</td><td>175,144.720 ns</td><td>2,277.5249 ns</td><td>2,236.8340 ns</td><td>1.00</td><td>0.02</td><td>25.6348</td><td>-</td><td>321496 B</td><td>1.00</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegates</td><td>16</td><td>64</td><td>289,248.986 ns</td><td>1,815.2132 ns</td><td>1,515.7852 ns</td><td>1.65</td><td>0.02</td><td>24.4141</td><td>-</td><td>309208 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>16</td><td>64</td><td>323,128.250 ns</td><td>1,563.6010 ns</td><td>1,386.0916 ns</td><td>1.85</td><td>0.02</td><td>24.4141</td><td>-</td><td>309208 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointers</td><td>16</td><td>64</td><td>327,706.756 ns</td><td>2,565.5829 ns</td><td>2,274.3224 ns</td><td>1.87</td><td>0.03</td><td>24.4141</td><td>-</td><td>309208 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>16</td><td>64</td><td>266,469.419 ns</td><td>2,673.7507 ns</td><td>2,370.2104 ns</td><td>1.52</td><td>0.02</td><td>24.4141</td><td>-</td><td>309208 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>TypedDelegates</td><td>16</td><td>64</td><td>326,115.995 ns</td><td>2,719.6789 ns</td><td>2,543.9893 ns</td><td>1.86</td><td>0.03</td><td>24.4141</td><td>-</td><td>309208 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>Medi</td><td>16</td><td>256</td><td>409,346.937 ns</td><td>2,676.0653 ns</td><td>2,234.6357 ns</td><td>1.00</td><td>0.01</td><td>97.1680</td><td>0.9766</td><td>1218520 B</td><td>1.00</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegates</td><td>16</td><td>256</td><td>683,261.674 ns</td><td>5,588.8777 ns</td><td>4,954.3946 ns</td><td>1.67</td><td>0.01</td><td>92.7734</td><td>0.9766</td><td>1169368 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>16</td><td>256</td><td>638,940.366 ns</td><td>3,382.0708 ns</td><td>2,998.1177 ns</td><td>1.56</td><td>0.01</td><td>93.7500</td><td>0.9766</td><td>1169368 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointers</td><td>16</td><td>256</td><td>839,816.563 ns</td><td>3,366.5756 ns</td><td>3,149.0969 ns</td><td>2.05</td><td>0.01</td><td>92.7734</td><td>0.9766</td><td>1169368 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>16</td><td>256</td><td>834,309.503 ns</td><td>2,867.4882 ns</td><td>2,541.9536 ns</td><td>2.04</td><td>0.01</td><td>92.7734</td><td>0.9766</td><td>1169368 B</td><td>0.96</td>
+</tr><tr><td>ParallelBench</td><td>TypedDelegates</td><td>16</td><td>256</td><td>649,558.797 ns</td><td>3,989.2291 ns</td><td>3,731.5274 ns</td><td>1.59</td><td>0.01</td><td>93.7500</td><td>0.9766</td><td>1169368 B</td><td>0.96</td>
+</tr><tr><td>ScopedBench</td><td>Medi</td><td>?</td><td>?</td><td>200.898 ns</td><td>3.1891 ns</td><td>2.9831 ns</td><td>1.00</td><td>0.02</td><td>0.0324</td><td>-</td><td>408 B</td><td>1.00</td>
+</tr><tr><td>ScopedBench</td><td>DictionaryDelegates</td><td>?</td><td>?</td><td>199.362 ns</td><td>3.9793 ns</td><td>5.7070 ns</td><td>0.99</td><td>0.03</td><td>0.0305</td><td>-</td><td>384 B</td><td>0.94</td>
+</tr><tr><td>ScopedBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>180.342 ns</td><td>3.1299 ns</td><td>2.9277 ns</td><td>0.90</td><td>0.02</td><td>0.0305</td><td>-</td><td>384 B</td><td>0.94</td>
+</tr><tr><td>ScopedBench</td><td>DictionaryFunctionPointers</td><td>?</td><td>?</td><td>208.675 ns</td><td>3.3387 ns</td><td>3.1231 ns</td><td>1.04</td><td>0.02</td><td>0.0305</td><td>-</td><td>384 B</td><td>0.94</td>
+</tr><tr><td>ScopedBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>182.955 ns</td><td>3.1403 ns</td><td>2.9374 ns</td><td>0.91</td><td>0.02</td><td>0.0305</td><td>-</td><td>384 B</td><td>0.94</td>
+</tr><tr><td>ScopedBench</td><td>TypedDelegates</td><td>?</td><td>?</td><td>212.575 ns</td><td>4.0052 ns</td><td>3.5505 ns</td><td>1.06</td><td>0.02</td><td>0.0305</td><td>-</td><td>384 B</td><td>0.94</td>
+</tr><tr><td>SingletonBench</td><td>Medi</td><td>?</td><td>?</td><td>5.197 ns</td><td>0.1709 ns</td><td>0.1828 ns</td><td>1.00</td><td>0.05</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SingletonBench</td><td>DictionaryDelegates</td><td>?</td><td>?</td><td>19.882 ns</td><td>0.2652 ns</td><td>0.2214 ns</td><td>3.83</td><td>0.14</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SingletonBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>16.648 ns</td><td>0.4000 ns</td><td>0.3741 ns</td><td>3.21</td><td>0.13</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SingletonBench</td><td>DictionaryFunctionPointers</td><td>?</td><td>?</td><td>22.810 ns</td><td>0.4229 ns</td><td>0.3749 ns</td><td>4.39</td><td>0.16</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SingletonBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>21.284 ns</td><td>0.2681 ns</td><td>0.2508 ns</td><td>4.10</td><td>0.15</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SingletonBench</td><td>TypedDelegates</td><td>?</td><td>?</td><td>19.406 ns</td><td>0.4419 ns</td><td>0.4133 ns</td><td>3.74</td><td>0.15</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>StartupBench</td><td>Medi</td><td>?</td><td>?</td><td>1,604.709 ns</td><td>20.9409 ns</td><td>18.5635 ns</td><td>1.00</td><td>0.02</td><td>0.6142</td><td>0.0134</td><td>7712 B</td><td>1.00</td>
+</tr><tr><td>StartupBench</td><td>DictionaryDelegates</td><td>?</td><td>?</td><td>757.675 ns</td><td>12.2722 ns</td><td>10.8790 ns</td><td>0.47</td><td>0.01</td><td>0.1783</td><td>0.0010</td><td>2240 B</td><td>0.29</td>
+</tr><tr><td>StartupBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>282.579 ns</td><td>4.5390 ns</td><td>4.0237 ns</td><td>0.18</td><td>0.00</td><td>0.0987</td><td>-</td><td>1240 B</td><td>0.16</td>
+</tr><tr><td>StartupBench</td><td>DictionaryFunctionPointers</td><td>?</td><td>?</td><td>709.010 ns</td><td>7.6962 ns</td><td>6.8225 ns</td><td>0.44</td><td>0.01</td><td>0.1783</td><td>0.0010</td><td>2240 B</td><td>0.29</td>
+</tr><tr><td>StartupBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>263.750 ns</td><td>3.9160 ns</td><td>3.4714 ns</td><td>0.16</td><td>0.00</td><td>0.0987</td><td>-</td><td>1240 B</td><td>0.16</td>
+</tr><tr><td>StartupBench</td><td>TypedDelegates</td><td>?</td><td>?</td><td>763.284 ns</td><td>12.6362 ns</td><td>11.8199 ns</td><td>0.48</td><td>0.01</td><td>0.1783</td><td>0.0010</td><td>2240 B</td><td>0.29</td>
+</tr><tr><td>TransientBench</td><td>Medi</td><td>?</td><td>?</td><td>553.795 ns</td><td>10.7638 ns</td><td>13.2189 ns</td><td>1.00</td><td>0.03</td><td>0.0715</td><td>-</td><td>904 B</td><td>1.00</td>
+</tr><tr><td>TransientBench</td><td>DictionaryDelegates</td><td>?</td><td>?</td><td>353.493 ns</td><td>5.4042 ns</td><td>5.0551 ns</td><td>0.64</td><td>0.02</td><td>0.0701</td><td>-</td><td>880 B</td><td>0.97</td>
+</tr><tr><td>TransientBench</td><td>DictionaryDelegatesWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>286.188 ns</td><td>2.6150 ns</td><td>2.3181 ns</td><td>0.52</td><td>0.01</td><td>0.0701</td><td>-</td><td>880 B</td><td>0.97</td>
+</tr><tr><td>TransientBench</td><td>DictionaryFunctionPointers</td><td>?</td><td>?</td><td>364.897 ns</td><td>5.2168 ns</td><td>4.3562 ns</td><td>0.66</td><td>0.02</td><td>0.0701</td><td>-</td><td>880 B</td><td>0.97</td>
+</tr><tr><td>TransientBench</td><td>DictionaryFunctionPointersWithRuntimeTypeHandle</td><td>?</td><td>?</td><td>301.533 ns</td><td>4.0323 ns</td><td>3.7719 ns</td><td>0.54</td><td>0.01</td><td>0.0701</td><td>-</td><td>880 B</td><td>0.97</td>
+</tr><tr><td>TransientBench</td><td>TypedDelegates</td><td>?</td><td>?</td><td>355.243 ns</td><td>5.5567 ns</td><td>4.9259 ns</td><td>0.64</td><td>0.02</td><td>0.0701</td><td>-</td><td>880 B</td><td>0.97</td>
+</tr></tbody></table>
+</body>
+</html>

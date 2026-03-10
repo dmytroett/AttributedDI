@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using Microsoft.Extensions.DependencyInjection;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
 
@@ -10,8 +11,8 @@ internal readonly record struct TypedDelegatesServiceExport(
 internal readonly record struct TypedDelegatesCompileTimeProviderContext(
     TypedDelegatesServiceProvider RootProvider,
     TypedDelegatesServiceScope? Scope,
-    TypedDelegatesServiceCache SingletonCache,
-    TypedDelegatesServiceCache ScopedCache)
+    IServiceCache<Type, TypedDelegatesCompileTimeProviderContext> SingletonCache,
+    IServiceCache<Type, TypedDelegatesCompileTimeProviderContext> ScopedCache)
 {
     public T ResolveRequired<T>() where T : class
     {
@@ -24,49 +25,6 @@ internal readonly record struct TypedDelegatesCompileTimeProviderContext(
     }
 }
 
-internal sealed class TypedDelegatesServiceCache(object? sync = null)
-{
-    private readonly Dictionary<Type, object> _instances = [];
-
-    public T GetOrCreate<T>(
-        Type serviceType,
-        TypedDelegatesCompileTimeProviderContext context,
-        Func<TypedDelegatesCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (sync is null)
-        {
-            return GetOrCreateCore(serviceType, context, factory);
-        }
-
-        lock (sync)
-        {
-            return GetOrCreateCore(serviceType, context, factory);
-        }
-    }
-
-    public void Clear()
-    {
-        _instances.Clear();
-    }
-
-    private T GetOrCreateCore<T>(
-        Type serviceType,
-        TypedDelegatesCompileTimeProviderContext context,
-        Func<TypedDelegatesCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (_instances.TryGetValue(serviceType, out var existing))
-        {
-            return (T)existing;
-        }
-
-        var created = factory(context);
-        _instances[serviceType] = created;
-        return created;
-    }
-}
-
 internal static class TypedDelegatesCompiledResolver<T> where T : class
 {
     public static Func<TypedDelegatesServiceProvider, TypedDelegatesCompileTimeProviderContext, T>? Resolve;
@@ -75,16 +33,15 @@ internal static class TypedDelegatesCompiledResolver<T> where T : class
 internal sealed class TypedDelegatesServiceProvider : IServiceProvider, IServiceScopeFactory, IDisposable
 {
     private readonly FrozenDictionary<Type, TypedDelegatesServiceExport> _exports;
-    private readonly object _sync = new();
-    private readonly TypedDelegatesServiceCache _singletonCache;
-    private readonly TypedDelegatesServiceCache _rootScopedCache;
+    private readonly ConcurrentRootServiceCache<Type, TypedDelegatesCompileTimeProviderContext> _singletonCache;
+    private readonly ConcurrentRootServiceCache<Type, TypedDelegatesCompileTimeProviderContext> _rootScopedCache;
     private bool _disposed;
 
     public TypedDelegatesServiceProvider(IEnumerable<TypedDelegatesServiceExport> exports)
     {
         _exports = exports.ToFrozenDictionary(static export => export.ServiceType);
-        _singletonCache = new TypedDelegatesServiceCache(_sync);
-        _rootScopedCache = new TypedDelegatesServiceCache(_sync);
+        _singletonCache = new ConcurrentRootServiceCache<Type, TypedDelegatesCompileTimeProviderContext>();
+        _rootScopedCache = new ConcurrentRootServiceCache<Type, TypedDelegatesCompileTimeProviderContext>();
     }
 
     public T GetRequiredService<T>() where T : class
@@ -186,17 +143,9 @@ internal sealed class TypedDelegatesServiceProvider : IServiceProvider, IService
             return;
         }
 
-        lock (_sync)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _singletonCache.Clear();
-            _rootScopedCache.Clear();
-            _disposed = true;
-        }
+        _singletonCache.Clear();
+        _rootScopedCache.Clear();
+        _disposed = true;
     }
 
     private void ThrowIfDisposed()
@@ -217,7 +166,8 @@ internal sealed class TypedDelegatesServiceScope : IServiceScope, IServiceProvid
 
     public IServiceProvider ServiceProvider => this;
 
-    internal TypedDelegatesServiceCache ScopedCache { get; } = new();
+    internal IServiceCache<Type, TypedDelegatesCompileTimeProviderContext> ScopedCache { get; } =
+        new LocklessScopedServiceCache<Type, TypedDelegatesCompileTimeProviderContext>();
 
     public T GetRequiredService<T>() where T : class
     {

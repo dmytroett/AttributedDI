@@ -1,0 +1,67 @@
+```
+
+BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.3 LTS (Noble Numbat)
+11th Gen Intel Core i7-11800H 2.30GHz, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 10.0.103
+  [Host]     : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v4
+  DefaultJob : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v4
+
+
+```
+| Type           | Method                                          | DegreeOfParallelism | ScopesPerBatch | Mean           | Error          | StdDev         | Ratio | RatioSD | Gen0    | Gen1   | Allocated | Alloc Ratio |
+|--------------- |------------------------------------------------ |-------------------- |--------------- |---------------:|---------------:|---------------:|------:|--------:|--------:|-------:|----------:|------------:|
+| **ParallelBench**  | **Medi**                                            | **4**                   | **64**             | **133,618.379 ns** |  **3,593.3410 ns** | **10,538.6480 ns** |  **1.01** |    **0.11** | **24.4141** |      **-** |  **305368 B** |        **1.00** |
+| ParallelBench  | DictionaryDelegates                             | 4                   | 64             | 137,135.805 ns |  2,458.9472 ns |  2,300.1007 ns |  1.03 |    0.09 | 23.4375 |      - |  293080 B |        0.96 |
+| ParallelBench  | DictionaryDelegatesWithRuntimeTypeHandle        | 4                   | 64             | 131,171.398 ns |  2,264.6337 ns |  2,224.1731 ns |  0.99 |    0.08 | 23.4375 |      - |  293080 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointers                      | 4                   | 64             | 138,265.268 ns |  2,609.3997 ns |  5,560.8438 ns |  1.04 |    0.09 | 23.4375 |      - |  293080 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointersWithRuntimeTypeHandle | 4                   | 64             | 136,568.325 ns |  2,444.0350 ns |  2,909.4501 ns |  1.03 |    0.09 | 23.4375 |      - |  293080 B |        0.96 |
+| ParallelBench  | TypedDelegates                                  | 4                   | 64             | 141,302.892 ns |  2,318.2512 ns |  2,168.4936 ns |  1.06 |    0.09 | 23.4375 |      - |  293080 B |        0.96 |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| **ParallelBench**  | **Medi**                                            | **4**                   | **256**            | **417,656.815 ns** |  **6,707.8247 ns** |  **6,274.5034 ns** |  **1.00** |    **0.02** | **96.1914** | **0.4883** | **1202392 B** |        **1.00** |
+| ParallelBench  | DictionaryDelegates                             | 4                   | 256            | 423,799.244 ns |  6,797.6313 ns |  6,358.5085 ns |  1.01 |    0.02 | 91.7969 | 0.4883 | 1153240 B |        0.96 |
+| ParallelBench  | DictionaryDelegatesWithRuntimeTypeHandle        | 4                   | 256            | 390,074.082 ns |  7,397.5981 ns |  7,915.3471 ns |  0.93 |    0.02 | 91.7969 | 0.4883 | 1153240 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointers                      | 4                   | 256            | 438,913.271 ns |  8,695.9879 ns |  8,134.2324 ns |  1.05 |    0.02 | 91.7969 | 0.4883 | 1153240 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointersWithRuntimeTypeHandle | 4                   | 256            | 411,100.290 ns |  7,753.8003 ns |  7,252.9096 ns |  0.98 |    0.02 | 91.7969 | 0.4883 | 1153240 B |        0.96 |
+| ParallelBench  | TypedDelegates                                  | 4                   | 256            | 602,378.789 ns | 11,686.4531 ns | 14,779.6226 ns |  1.44 |    0.04 | 91.7969 |      - | 1153240 B |        0.96 |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| **ParallelBench**  | **Medi**                                            | **16**                  | **64**             | **175,144.720 ns** |  **2,277.5249 ns** |  **2,236.8340 ns** |  **1.00** |    **0.02** | **25.6348** |      **-** |  **321496 B** |        **1.00** |
+| ParallelBench  | DictionaryDelegates                             | 16                  | 64             | 289,248.986 ns |  1,815.2132 ns |  1,515.7852 ns |  1.65 |    0.02 | 24.4141 |      - |  309208 B |        0.96 |
+| ParallelBench  | DictionaryDelegatesWithRuntimeTypeHandle        | 16                  | 64             | 323,128.250 ns |  1,563.6010 ns |  1,386.0916 ns |  1.85 |    0.02 | 24.4141 |      - |  309208 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointers                      | 16                  | 64             | 327,706.756 ns |  2,565.5829 ns |  2,274.3224 ns |  1.87 |    0.03 | 24.4141 |      - |  309208 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointersWithRuntimeTypeHandle | 16                  | 64             | 266,469.419 ns |  2,673.7507 ns |  2,370.2104 ns |  1.52 |    0.02 | 24.4141 |      - |  309208 B |        0.96 |
+| ParallelBench  | TypedDelegates                                  | 16                  | 64             | 326,115.995 ns |  2,719.6789 ns |  2,543.9893 ns |  1.86 |    0.03 | 24.4141 |      - |  309208 B |        0.96 |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| **ParallelBench**  | **Medi**                                            | **16**                  | **256**            | **409,346.937 ns** |  **2,676.0653 ns** |  **2,234.6357 ns** |  **1.00** |    **0.01** | **97.1680** | **0.9766** | **1218520 B** |        **1.00** |
+| ParallelBench  | DictionaryDelegates                             | 16                  | 256            | 683,261.674 ns |  5,588.8777 ns |  4,954.3946 ns |  1.67 |    0.01 | 92.7734 | 0.9766 | 1169368 B |        0.96 |
+| ParallelBench  | DictionaryDelegatesWithRuntimeTypeHandle        | 16                  | 256            | 638,940.366 ns |  3,382.0708 ns |  2,998.1177 ns |  1.56 |    0.01 | 93.7500 | 0.9766 | 1169368 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointers                      | 16                  | 256            | 839,816.563 ns |  3,366.5756 ns |  3,149.0969 ns |  2.05 |    0.01 | 92.7734 | 0.9766 | 1169368 B |        0.96 |
+| ParallelBench  | DictionaryFunctionPointersWithRuntimeTypeHandle | 16                  | 256            | 834,309.503 ns |  2,867.4882 ns |  2,541.9536 ns |  2.04 |    0.01 | 92.7734 | 0.9766 | 1169368 B |        0.96 |
+| ParallelBench  | TypedDelegates                                  | 16                  | 256            | 649,558.797 ns |  3,989.2291 ns |  3,731.5274 ns |  1.59 |    0.01 | 93.7500 | 0.9766 | 1169368 B |        0.96 |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| **ScopedBench**    | **Medi**                                            | **?**                   | **?**              |     **200.898 ns** |      **3.1891 ns** |      **2.9831 ns** |  **1.00** |    **0.02** |  **0.0324** |      **-** |     **408 B** |        **1.00** |
+| ScopedBench    | DictionaryDelegates                             | ?                   | ?              |     199.362 ns |      3.9793 ns |      5.7070 ns |  0.99 |    0.03 |  0.0305 |      - |     384 B |        0.94 |
+| ScopedBench    | DictionaryDelegatesWithRuntimeTypeHandle        | ?                   | ?              |     180.342 ns |      3.1299 ns |      2.9277 ns |  0.90 |    0.02 |  0.0305 |      - |     384 B |        0.94 |
+| ScopedBench    | DictionaryFunctionPointers                      | ?                   | ?              |     208.675 ns |      3.3387 ns |      3.1231 ns |  1.04 |    0.02 |  0.0305 |      - |     384 B |        0.94 |
+| ScopedBench    | DictionaryFunctionPointersWithRuntimeTypeHandle | ?                   | ?              |     182.955 ns |      3.1403 ns |      2.9374 ns |  0.91 |    0.02 |  0.0305 |      - |     384 B |        0.94 |
+| ScopedBench    | TypedDelegates                                  | ?                   | ?              |     212.575 ns |      4.0052 ns |      3.5505 ns |  1.06 |    0.02 |  0.0305 |      - |     384 B |        0.94 |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| SingletonBench | Medi                                            | ?                   | ?              |       5.197 ns |      0.1709 ns |      0.1828 ns |  1.00 |    0.05 |       - |      - |         - |          NA |
+| SingletonBench | DictionaryDelegates                             | ?                   | ?              |      19.882 ns |      0.2652 ns |      0.2214 ns |  3.83 |    0.14 |       - |      - |         - |          NA |
+| SingletonBench | DictionaryDelegatesWithRuntimeTypeHandle        | ?                   | ?              |      16.648 ns |      0.4000 ns |      0.3741 ns |  3.21 |    0.13 |       - |      - |         - |          NA |
+| SingletonBench | DictionaryFunctionPointers                      | ?                   | ?              |      22.810 ns |      0.4229 ns |      0.3749 ns |  4.39 |    0.16 |       - |      - |         - |          NA |
+| SingletonBench | DictionaryFunctionPointersWithRuntimeTypeHandle | ?                   | ?              |      21.284 ns |      0.2681 ns |      0.2508 ns |  4.10 |    0.15 |       - |      - |         - |          NA |
+| SingletonBench | TypedDelegates                                  | ?                   | ?              |      19.406 ns |      0.4419 ns |      0.4133 ns |  3.74 |    0.15 |       - |      - |         - |          NA |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| StartupBench   | Medi                                            | ?                   | ?              |   1,604.709 ns |     20.9409 ns |     18.5635 ns |  1.00 |    0.02 |  0.6142 | 0.0134 |    7712 B |        1.00 |
+| StartupBench   | DictionaryDelegates                             | ?                   | ?              |     757.675 ns |     12.2722 ns |     10.8790 ns |  0.47 |    0.01 |  0.1783 | 0.0010 |    2240 B |        0.29 |
+| StartupBench   | DictionaryDelegatesWithRuntimeTypeHandle        | ?                   | ?              |     282.579 ns |      4.5390 ns |      4.0237 ns |  0.18 |    0.00 |  0.0987 |      - |    1240 B |        0.16 |
+| StartupBench   | DictionaryFunctionPointers                      | ?                   | ?              |     709.010 ns |      7.6962 ns |      6.8225 ns |  0.44 |    0.01 |  0.1783 | 0.0010 |    2240 B |        0.29 |
+| StartupBench   | DictionaryFunctionPointersWithRuntimeTypeHandle | ?                   | ?              |     263.750 ns |      3.9160 ns |      3.4714 ns |  0.16 |    0.00 |  0.0987 |      - |    1240 B |        0.16 |
+| StartupBench   | TypedDelegates                                  | ?                   | ?              |     763.284 ns |     12.6362 ns |     11.8199 ns |  0.48 |    0.01 |  0.1783 | 0.0010 |    2240 B |        0.29 |
+|                |                                                 |                     |                |                |                |                |       |         |         |        |           |             |
+| TransientBench | Medi                                            | ?                   | ?              |     553.795 ns |     10.7638 ns |     13.2189 ns |  1.00 |    0.03 |  0.0715 |      - |     904 B |        1.00 |
+| TransientBench | DictionaryDelegates                             | ?                   | ?              |     353.493 ns |      5.4042 ns |      5.0551 ns |  0.64 |    0.02 |  0.0701 |      - |     880 B |        0.97 |
+| TransientBench | DictionaryDelegatesWithRuntimeTypeHandle        | ?                   | ?              |     286.188 ns |      2.6150 ns |      2.3181 ns |  0.52 |    0.01 |  0.0701 |      - |     880 B |        0.97 |
+| TransientBench | DictionaryFunctionPointers                      | ?                   | ?              |     364.897 ns |      5.2168 ns |      4.3562 ns |  0.66 |    0.02 |  0.0701 |      - |     880 B |        0.97 |
+| TransientBench | DictionaryFunctionPointersWithRuntimeTypeHandle | ?                   | ?              |     301.533 ns |      4.0323 ns |      3.7719 ns |  0.54 |    0.01 |  0.0701 |      - |     880 B |        0.97 |
+| TransientBench | TypedDelegates                                  | ?                   | ?              |     355.243 ns |      5.5567 ns |      4.9259 ns |  0.64 |    0.02 |  0.0701 |      - |     880 B |        0.97 |

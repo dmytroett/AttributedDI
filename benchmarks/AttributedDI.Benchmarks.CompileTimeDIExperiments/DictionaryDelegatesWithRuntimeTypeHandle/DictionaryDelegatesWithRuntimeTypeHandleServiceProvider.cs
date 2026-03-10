@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using Microsoft.Extensions.DependencyInjection;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandle;
 
@@ -10,8 +11,8 @@ internal readonly record struct DictionaryDelegatesWithRuntimeTypeHandleServiceE
 internal readonly record struct DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext(
     DictionaryDelegatesWithRuntimeTypeHandleServiceProvider RootProvider,
     DictionaryDelegatesWithRuntimeTypeHandleServiceScope? Scope,
-    DictionaryDelegatesWithRuntimeTypeHandleServiceCache SingletonCache,
-    DictionaryDelegatesWithRuntimeTypeHandleServiceCache ScopedCache)
+    IServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext> SingletonCache,
+    IServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext> ScopedCache)
 {
     public T ResolveRequired<T>() where T : class
     {
@@ -24,49 +25,6 @@ internal readonly record struct DictionaryDelegatesWithRuntimeTypeHandleCompileT
     }
 }
 
-internal sealed class DictionaryDelegatesWithRuntimeTypeHandleServiceCache(object? sync = null)
-{
-    private readonly Dictionary<RuntimeTypeHandle, object> _instances = [];
-
-    public T GetOrCreate<T>(
-        RuntimeTypeHandle serviceTypeHandle,
-        DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext context,
-        Func<DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (sync is null)
-        {
-            return GetOrCreateCore(serviceTypeHandle, context, factory);
-        }
-
-        lock (sync)
-        {
-            return GetOrCreateCore(serviceTypeHandle, context, factory);
-        }
-    }
-
-    public void Clear()
-    {
-        _instances.Clear();
-    }
-
-    private T GetOrCreateCore<T>(
-        RuntimeTypeHandle serviceTypeHandle,
-        DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext context,
-        Func<DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (_instances.TryGetValue(serviceTypeHandle, out var existing))
-        {
-            return (T)existing;
-        }
-
-        var created = factory(context);
-        _instances[serviceTypeHandle] = created;
-        return created;
-    }
-}
-
 internal sealed class DictionaryDelegatesWithRuntimeTypeHandleServiceProvider
     : IServiceProvider, IServiceScopeFactory, IDisposable
 {
@@ -74,17 +32,18 @@ internal sealed class DictionaryDelegatesWithRuntimeTypeHandleServiceProvider
     private static readonly RuntimeTypeHandle IServiceScopeFactoryTypeHandle = typeof(IServiceScopeFactory).TypeHandle;
 
     private readonly FrozenDictionary<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleServiceExport> _exports;
-    private readonly object _sync = new();
-    private readonly DictionaryDelegatesWithRuntimeTypeHandleServiceCache _singletonCache;
-    private readonly DictionaryDelegatesWithRuntimeTypeHandleServiceCache _rootScopedCache;
+    private readonly ConcurrentRootServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext> _singletonCache;
+    private readonly ConcurrentRootServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext> _rootScopedCache;
     private bool _disposed;
 
     public DictionaryDelegatesWithRuntimeTypeHandleServiceProvider(
         IEnumerable<DictionaryDelegatesWithRuntimeTypeHandleServiceExport> exports)
     {
         _exports = exports.ToFrozenDictionary(static export => export.ServiceTypeHandle);
-        _singletonCache = new DictionaryDelegatesWithRuntimeTypeHandleServiceCache(_sync);
-        _rootScopedCache = new DictionaryDelegatesWithRuntimeTypeHandleServiceCache(_sync);
+        _singletonCache =
+            new ConcurrentRootServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext>();
+        _rootScopedCache =
+            new ConcurrentRootServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext>();
     }
 
     public object? GetService(Type serviceType)
@@ -161,17 +120,9 @@ internal sealed class DictionaryDelegatesWithRuntimeTypeHandleServiceProvider
             return;
         }
 
-        lock (_sync)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _singletonCache.Clear();
-            _rootScopedCache.Clear();
-            _disposed = true;
-        }
+        _singletonCache.Clear();
+        _rootScopedCache.Clear();
+        _disposed = true;
     }
 
     private void ThrowIfDisposed()
@@ -193,7 +144,8 @@ internal sealed class DictionaryDelegatesWithRuntimeTypeHandleServiceScope : ISe
 
     public IServiceProvider ServiceProvider => this;
 
-    internal DictionaryDelegatesWithRuntimeTypeHandleServiceCache ScopedCache { get; } = new();
+    internal IServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext> ScopedCache { get; } =
+        new LocklessScopedServiceCache<RuntimeTypeHandle, DictionaryDelegatesWithRuntimeTypeHandleCompileTimeProviderContext>();
 
     public object? GetService(Type serviceType)
     {

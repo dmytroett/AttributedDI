@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using Microsoft.Extensions.DependencyInjection;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointers;
 
@@ -19,8 +20,8 @@ internal readonly struct DictionaryFunctionPointersServiceExport
 internal readonly record struct DictionaryFunctionPointersCompileTimeProviderContext(
     DictionaryFunctionPointersServiceProvider RootProvider,
     DictionaryFunctionPointersServiceScope? Scope,
-    DictionaryFunctionPointersServiceCache SingletonCache,
-    DictionaryFunctionPointersServiceCache ScopedCache)
+    IServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext> SingletonCache,
+    IServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext> ScopedCache)
 {
     public T ResolveRequired<T>() where T : class
     {
@@ -33,64 +34,20 @@ internal readonly record struct DictionaryFunctionPointersCompileTimeProviderCon
     }
 }
 
-internal sealed class DictionaryFunctionPointersServiceCache(object? sync = null)
-{
-    private readonly Dictionary<Type, object> _instances = [];
-
-    public T GetOrCreate<T>(
-        Type serviceType,
-        DictionaryFunctionPointersCompileTimeProviderContext context,
-        Func<DictionaryFunctionPointersCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (sync is null)
-        {
-            return GetOrCreateCore(serviceType, context, factory);
-        }
-
-        lock (sync)
-        {
-            return GetOrCreateCore(serviceType, context, factory);
-        }
-    }
-
-    public void Clear()
-    {
-        _instances.Clear();
-    }
-
-    private T GetOrCreateCore<T>(
-        Type serviceType,
-        DictionaryFunctionPointersCompileTimeProviderContext context,
-        Func<DictionaryFunctionPointersCompileTimeProviderContext, T> factory)
-        where T : class
-    {
-        if (_instances.TryGetValue(serviceType, out var existing))
-        {
-            return (T)existing;
-        }
-
-        var created = factory(context);
-        _instances[serviceType] = created;
-        return created;
-    }
-}
-
 internal sealed class DictionaryFunctionPointersServiceProvider
     : IServiceProvider, IServiceScopeFactory, IDisposable
 {
     private readonly FrozenDictionary<Type, DictionaryFunctionPointersServiceExport> _exports;
-    private readonly object _sync = new();
-    private readonly DictionaryFunctionPointersServiceCache _singletonCache;
-    private readonly DictionaryFunctionPointersServiceCache _rootScopedCache;
+    private readonly ConcurrentRootServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext> _singletonCache;
+    private readonly ConcurrentRootServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext> _rootScopedCache;
     private bool _disposed;
 
     public DictionaryFunctionPointersServiceProvider(
         IEnumerable<DictionaryFunctionPointersServiceExport> exports)
     {
         _exports = exports.ToFrozenDictionary(static export => export.ServiceType);
-        _singletonCache = new DictionaryFunctionPointersServiceCache(_sync);
-        _rootScopedCache = new DictionaryFunctionPointersServiceCache(_sync);
+        _singletonCache = new ConcurrentRootServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext>();
+        _rootScopedCache = new ConcurrentRootServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext>();
     }
 
     public object? GetService(Type serviceType)
@@ -163,17 +120,9 @@ internal sealed class DictionaryFunctionPointersServiceProvider
             return;
         }
 
-        lock (_sync)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _singletonCache.Clear();
-            _rootScopedCache.Clear();
-            _disposed = true;
-        }
+        _singletonCache.Clear();
+        _rootScopedCache.Clear();
+        _disposed = true;
     }
 
     private void ThrowIfDisposed()
@@ -194,7 +143,8 @@ internal sealed class DictionaryFunctionPointersServiceScope : IServiceScope, IS
 
     public IServiceProvider ServiceProvider => this;
 
-    internal DictionaryFunctionPointersServiceCache ScopedCache { get; } = new();
+    internal IServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext> ScopedCache { get; } =
+        new LocklessScopedServiceCache<Type, DictionaryFunctionPointersCompileTimeProviderContext>();
 
     public object? GetService(Type serviceType)
     {
