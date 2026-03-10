@@ -18,7 +18,7 @@ public class TransientBench
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
-    private IServiceProvider? _typedDelegatesProvider;
+    private TypedDelegatesServiceProvider? _typedDelegatesProvider;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -30,7 +30,7 @@ public class TransientBench
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
             DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
-        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
+        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildTypedServiceProvider();
     }
 
     [GlobalCleanup]
@@ -53,50 +53,64 @@ public class TransientBench
 
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("Transient")]
-    public Task<TransientService1> Medi()
+    public TransientService1 Medi()
     {
         return ResolveTransientTwice(_mediProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Transient")]
-    public Task<TransientService1> DictionaryDelegates()
+    public TransientService1 DictionaryDelegates()
     {
         return ResolveTransientTwice(_dictionaryDelegatesProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Transient")]
-    public Task<TransientService1> DictionaryDelegatesWithRuntimeTypeHandle()
+    public TransientService1 DictionaryDelegatesWithRuntimeTypeHandle()
     {
         return ResolveTransientTwice(_dictionaryDelegatesWithRuntimeTypeHandleProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Transient")]
-    public Task<TransientService1> DictionaryFunctionPointers()
+    public TransientService1 DictionaryFunctionPointers()
     {
         return ResolveTransientTwice(_dictionaryFunctionPointersProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Transient")]
-    public Task<TransientService1> DictionaryFunctionPointersWithRuntimeTypeHandle()
+    public TransientService1 DictionaryFunctionPointersWithRuntimeTypeHandle()
     {
         return ResolveTransientTwice(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider!);
     }
 
     [Benchmark]
     [BenchmarkCategory("Transient")]
-    public Task<TransientService1> TypedDelegates()
+    public TransientService1 TypedDelegates()
+    {
+        return ResolveTransientTwice((IServiceProvider)_typedDelegatesProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Transient")]
+    public TransientService1 TypedDelegatesDirect()
     {
         return ResolveTransientTwice(_typedDelegatesProvider!);
     }
 
-    private static async Task<TransientService1> ResolveTransientTwice(IServiceProvider provider)
+    private static TransientService1 ResolveTransientTwice(IServiceProvider provider)
     {
-        await using var scope = provider.CreateAsyncScope();
+        using var scope = provider.CreateScope();
         _ = scope.ServiceProvider.GetRequiredService<TransientService1>();
         return scope.ServiceProvider.GetRequiredService<TransientService1>();
+    }
+
+    private static TransientService1 ResolveTransientTwice(TypedDelegatesServiceProvider provider)
+    {
+        using var scope = provider.CreateScope();
+        _ = scope.GetRequiredService<TransientService1>();
+        return scope.GetRequiredService<TransientService1>();
     }
 }

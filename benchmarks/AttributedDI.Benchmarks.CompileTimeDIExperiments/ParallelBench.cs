@@ -21,7 +21,7 @@ public class ParallelBench
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
-    private IServiceProvider? _typedDelegatesProvider;
+    private TypedDelegatesServiceProvider? _typedDelegatesProvider;
 
     [Params(4, 16)]
     public int DegreeOfParallelism { get; set; }
@@ -39,7 +39,7 @@ public class ParallelBench
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
             DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
-        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
+        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildTypedServiceProvider();
     }
 
     [GlobalCleanup]
@@ -99,10 +99,33 @@ public class ParallelBench
     [BenchmarkCategory("Parallel")]
     public Task TypedDelegates()
     {
+        return ResolveTransientAcrossParallelScopes((IServiceProvider)_typedDelegatesProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Parallel")]
+    public Task TypedDelegatesDirect()
+    {
         return ResolveTransientAcrossParallelScopes(_typedDelegatesProvider!);
     }
 
     private async Task ResolveTransientAcrossParallelScopes(IServiceProvider provider)
+    {
+        for (var i = 0; i < BatchCount; i++)
+        {
+            var workers = new Task[DegreeOfParallelism];
+
+            for (var workerIndex = 0; workerIndex < workers.Length; workerIndex++)
+            {
+                var capturedWorkerIndex = workerIndex;
+                workers[workerIndex] = Task.Run(() => RunWorker(provider, capturedWorkerIndex));
+            }
+
+            await Task.WhenAll(workers);
+        }
+    }
+
+    private async Task ResolveTransientAcrossParallelScopes(TypedDelegatesServiceProvider provider)
     {
         for (var i = 0; i < BatchCount; i++)
         {
@@ -124,6 +147,15 @@ public class ParallelBench
         {
             using var scope = provider.CreateScope();
             _ = scope.ServiceProvider.GetRequiredService<TransientService1>();
+        }
+    }
+
+    private void RunWorker(TypedDelegatesServiceProvider provider, int workerIndex)
+    {
+        for (var i = 0; i < GetScopeCountForWorker(workerIndex); i++)
+        {
+            using var scope = provider.CreateScope();
+            _ = scope.GetRequiredService<TransientService1>();
         }
     }
 

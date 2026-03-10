@@ -18,7 +18,7 @@ public class SingletonBench
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
-    private IServiceProvider? _typedDelegatesProvider;
+    private TypedDelegatesServiceProvider? _typedDelegatesProvider;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -30,7 +30,7 @@ public class SingletonBench
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
             DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
-        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
+        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildTypedServiceProvider();
     }
 
     [GlobalCleanup]
@@ -89,6 +89,13 @@ public class SingletonBench
     [Benchmark]
     [BenchmarkCategory("Singleton")]
     public SingletonService3 TypedDelegates()
+    {
+        return ((IServiceProvider)_typedDelegatesProvider!).GetRequiredService<SingletonService3>();
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Singleton")]
+    public SingletonService3 TypedDelegatesDirect()
     {
         return _typedDelegatesProvider!.GetRequiredService<SingletonService3>();
     }

@@ -18,7 +18,7 @@ public class ScopedBench
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
-    private IServiceProvider? _typedDelegatesProvider;
+    private TypedDelegatesServiceProvider? _typedDelegatesProvider;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -30,7 +30,7 @@ public class ScopedBench
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
             DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
-        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
+        _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildTypedServiceProvider();
     }
 
     [GlobalCleanup]
@@ -97,5 +97,13 @@ public class ScopedBench
     {
         using var scope = _typedDelegatesProvider!.CreateScope();
         return scope.ServiceProvider.GetRequiredService<ScopedService1>();
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Scoped")]
+    public ScopedService1 TypedDelegatesDirect()
+    {
+        using var scope = _typedDelegatesProvider!.CreateScope();
+        return scope.GetRequiredService<ScopedService1>();
     }
 }
