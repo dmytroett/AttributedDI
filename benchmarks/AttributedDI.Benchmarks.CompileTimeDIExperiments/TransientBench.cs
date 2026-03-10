@@ -1,5 +1,7 @@
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegates;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointers;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointersWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.MEDI;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.Services;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
@@ -13,7 +15,9 @@ public class TransientBench
 {
     private IServiceProvider? _mediProvider;
     private IServiceProvider? _dictionaryDelegatesProvider;
+    private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
+    private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
     private IServiceProvider? _typedDelegatesProvider;
 
     [GlobalSetup]
@@ -21,7 +25,11 @@ public class TransientBench
     {
         _mediProvider = MediServiceProviderBuilder.BuildServiceProvider();
         _dictionaryDelegatesProvider = DictionaryDelegatesServiceProviderBuilder.BuildServiceProvider();
+        _dictionaryDelegatesWithRuntimeTypeHandleProvider =
+            DictionaryDelegatesWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
+        _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
+            DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
         _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
     }
 
@@ -30,12 +38,16 @@ public class TransientBench
     {
         BenchmarkDisposer.DisposeProvider(_mediProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesProvider);
+        BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesWithRuntimeTypeHandleProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryFunctionPointersProvider);
+        BenchmarkDisposer.DisposeProvider(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider);
         BenchmarkDisposer.DisposeProvider(_typedDelegatesProvider);
 
         _mediProvider = null;
         _dictionaryDelegatesProvider = null;
+        _dictionaryDelegatesWithRuntimeTypeHandleProvider = null;
         _dictionaryFunctionPointersProvider = null;
+        _dictionaryFunctionPointersWithRuntimeTypeHandleProvider = null;
         _typedDelegatesProvider = null;
     }
 
@@ -55,9 +67,23 @@ public class TransientBench
 
     [Benchmark]
     [BenchmarkCategory("Transient")]
+    public Task<TransientService1> DictionaryDelegatesWithRuntimeTypeHandle()
+    {
+        return ResolveTransientTwice(_dictionaryDelegatesWithRuntimeTypeHandleProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Transient")]
     public Task<TransientService1> DictionaryFunctionPointers()
     {
         return ResolveTransientTwice(_dictionaryFunctionPointersProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Transient")]
+    public Task<TransientService1> DictionaryFunctionPointersWithRuntimeTypeHandle()
+    {
+        return ResolveTransientTwice(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider!);
     }
 
     [Benchmark]
