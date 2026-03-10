@@ -1,5 +1,6 @@
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegates;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandle;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointers;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointersWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.MEDI;
@@ -32,6 +33,15 @@ public class StartupBench
     public void DictionaryDelegatesWithRuntimeTypeHandle()
     {
         var provider = DictionaryDelegatesWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
+        BenchmarkDisposer.DisposeProvider(provider);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Startup")]
+    public void DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots()
+    {
+        var provider =
+            DictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsServiceProviderBuilder.BuildServiceProvider();
         BenchmarkDisposer.DisposeProvider(provider);
     }
 

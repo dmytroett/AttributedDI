@@ -1,5 +1,6 @@
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegates;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandle;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointers;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointersWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.MEDI;
@@ -18,6 +19,7 @@ public class ParallelBench
     private IServiceProvider? _mediProvider;
     private IServiceProvider? _dictionaryDelegatesProvider;
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
+    private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
     private TypedDelegatesServiceProvider? _typedDelegatesProvider;
@@ -35,6 +37,8 @@ public class ParallelBench
         _dictionaryDelegatesProvider = DictionaryDelegatesServiceProviderBuilder.BuildServiceProvider();
         _dictionaryDelegatesWithRuntimeTypeHandleProvider =
             DictionaryDelegatesWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
+        _dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider =
+            DictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
             DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
@@ -47,6 +51,7 @@ public class ParallelBench
         BenchmarkDisposer.DisposeProvider(_mediProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesWithRuntimeTypeHandleProvider);
+        BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryFunctionPointersProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider);
         BenchmarkDisposer.DisposeProvider(_typedDelegatesProvider);
@@ -54,6 +59,7 @@ public class ParallelBench
         _mediProvider = null;
         _dictionaryDelegatesProvider = null;
         _dictionaryDelegatesWithRuntimeTypeHandleProvider = null;
+        _dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider = null;
         _dictionaryFunctionPointersProvider = null;
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider = null;
         _typedDelegatesProvider = null;
@@ -78,6 +84,13 @@ public class ParallelBench
     public Task DictionaryDelegatesWithRuntimeTypeHandle()
     {
         return ResolveTransientAcrossParallelScopes(_dictionaryDelegatesWithRuntimeTypeHandleProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Parallel")]
+    public Task DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots()
+    {
+        return ResolveTransientAcrossParallelScopes(_dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider!);
     }
 
     [Benchmark]
