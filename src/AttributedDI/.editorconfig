@@ -1,0 +1,3 @@
+[*.cs]
+# Require .ConfigureAwait(false) for all async methods
+dotnet_diagnostic.CA2007.severity = error
