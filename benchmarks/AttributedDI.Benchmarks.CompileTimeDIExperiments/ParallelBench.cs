@@ -7,7 +7,6 @@ using AttributedDI.Benchmarks.CompileTimeDIExperiments.Services;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
