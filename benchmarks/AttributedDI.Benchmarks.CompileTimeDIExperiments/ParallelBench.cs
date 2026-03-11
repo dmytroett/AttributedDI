@@ -8,6 +8,7 @@ using AttributedDI.Benchmarks.CompileTimeDIExperiments.Services;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.CompilerServices;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments;
 
@@ -153,6 +154,7 @@ public class ParallelBench
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunWorker(IServiceProvider provider, int workerIndex)
     {
         for (var i = 0; i < GetScopeCountForWorker(workerIndex); i++)
@@ -162,6 +164,7 @@ public class ParallelBench
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunWorker(TypedDelegatesServiceProvider provider, int workerIndex)
     {
         for (var i = 0; i < GetScopeCountForWorker(workerIndex); i++)
