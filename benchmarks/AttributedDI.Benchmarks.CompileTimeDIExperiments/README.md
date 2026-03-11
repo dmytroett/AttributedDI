@@ -1,41 +1,71 @@
-To run the benchmark:
+# Compile-Time DI Experiments
+
+This project is a benchmark playground for service-provider shapes that may later influence AttributedDI runtime code generation. The focus here is narrow: compare lookup keys, factory dispatch strategies, and cache layouts against the default `Microsoft.Extensions.DependencyInjection` container.
+
+## Benchmark coverage
+
+- `StartupBench`: build and dispose a provider.
+- `SingletonBench`: resolve `SingletonService3` from the root provider.
+- `ScopedBench`: create a scope and resolve `ScopedService1`.
+- `TransientBench`: create a scope and resolve `TransientService1` twice.
+- `ParallelBench`: resolve transients across many short-lived scopes in parallel.
+
+## Provider variants
+
+- `Medi`: baseline `Microsoft.Extensions.DependencyInjection` provider.
+- `DictionaryDelegates`: `FrozenDictionary<Type, Func<...>>` plus dictionary-based singleton and scoped caches.
+- `DictionaryDelegatesWithRuntimeTypeHandle`: same delegate-based shape, but keyed by `RuntimeTypeHandle`.
+- `DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots`: `RuntimeTypeHandle` lookup plus slot-based arrays for singleton and root-scoped caches.
+- `DictionaryFunctionPointers`: replaces delegate factories with function pointers while keeping `Type` lookup.
+- `DictionaryFunctionPointersWithRuntimeTypeHandle`: combines function pointers with `RuntimeTypeHandle` lookup.
+- `TypedDelegates`: keeps a general provider surface, but adds a generated typed fast path for `GetRequiredService<T>()`.
+- `TypedDelegatesDirect`: measures the same typed provider through its direct API to isolate `IServiceProvider` overhead.
+
+## Running the benchmarks
+
+Run everything:
 
 ```sh
-sudo dotnet run -c Release -- --filter "*ParallelBench*" "*ScopedBench*" "*SingletonBench*" "*TransientBench*" -m -p EP -d --disasmDepth 10
+dotnet run -c Release --project benchmarks/AttributedDI.Benchmarks.CompileTimeDIExperiments -- --filter "*StartupBench*" "*SingletonBench*" "*ScopedBench*" "*TransientBench*" "*ParallelBench*"
 ```
 
-Options:
+Useful BenchmarkDotNet options:
 
-- `-m` - optional, enables memory diagnoser. All of the benchmarks already have it enabled via attribute by default, so redundand in most of the cases.
-- `-p EP` - optional, enables `EventPipeProfiler`. The benchmark will also produce a trace file. Useful to review and analyze for potential improvements.
-- `-d` enables DisassemblyDiagnoser and exports diassembly of benchmarked code.
-  - `--disasmDepth` - Sets the recursive depth for the disassembler.
-  - `--disasmDiff` - Generates diff reports for the disassembler.
+- `-m`: enables the memory diagnoser. This is usually redundant because the benchmark classes already use `[MemoryDiagnoser]`.
+- `-p EP`: enables the `EventPipeProfiler` and produces a trace file for profiling.
+- `-d`: enables the disassembly diagnoser.
+- `--disasmDepth <n>`: controls recursive disassembly depth.
+- `--disasmDiff`: emits disassembly diffs.
 
-By default the benchmark is configured to aggregate results by category into a single report. So no extra flags necessary.
+The benchmark config already groups results by category and parameter set, so no extra grouping flags are needed.
 
-# Summary
+## Current design direction
 
-The perfect shape (for now) looks like this:
+The most promising shape from these experiments is still:
 
-- slow path with `FrozenDictionary<RuntimeTypeHandle, Func<Ctx, object>>`.
-- fast path with `TypedResolver<T>.Resolve`.
-- `object?[]` based root scope cache for singleton/scoped services with volatile slot based lookup and double-check-locking (this is magnitudes faster).
-- Cache per provider I guess. One potential problem could be with interface implementation of the CTX. However I think dynamic PGO will be able to devirtualize the call to make sure that it is performant.
-- Use same cache shape for scoped serivces. This could cause extra unnecessary allocation in case if scoped services are allocated sparsly, however Dictionary brings much more overhead that this is not that bad. Potential heuristic here could be:
-  - Take sparse factor
-  - if it is bigger than certain threshold - Dictionary with initial capacity = f(TotalCount, SparsityFactor) is better.
-  - Alternative would be to have chunking. E.g. if we have more than 500 serices, have 2 chunks one for < 500 other for > 500. This makes the lookup slower but consumes less memory.
-  - The problem with chunking however is that we can be unlucky and the user can resolve services from each chunk, completely destroying any memory gains, and also getting the worst performance. The alternative to this could only be a tree based structure balanced according to statistics of how services are resolved.
+- `FrozenDictionary<RuntimeTypeHandle, Func<TContext, object>>` for the general resolution path.
+- A generated typed fast path, similar to `TypedDelegatesCompiledResolver<T>`, for calls known at compile time.
+- `object?[]` slot caches for singleton and root-scoped services, using volatile reads and double-check locking.
 
-Alternative shape could be a design 4 with following improvements:
+The remaining unresolved part is scoped caching. The current `DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots` experiment keeps per-scope instances in a dictionary, which is simple but still shows up on the hot path. The next layout worth validating is a provider-partitioned `object?[][]`, where the first dimension represents the provider part and the second dimension represents the slot.
 
-- Slow path with `FrozenDictionary<RuntimeTypeHandle, Func<Ctx, object>>`. This to be static does something like `((MySpecificProvider)ctx.Parts[ProviderId]).ResolveIClock()`. I can come up with a way to generate a cheap closure to capture ProviderId, so it should be equivalent to above.
-- Similar fast path with TypedResolver. Again, with correct closure, should have the same perf.
-- Per part cache option. For example based on the number of services we can do either sparse cache with Dictionary, or object?[] slot based lookup.
+## Alternative design direction
 
-So this option is much easier to implement, as it is much easier to isolate parts that have to be source generated vs static. As a downside - a lot of repetitive code. Not sure it is not going to cause issues with instruction cache explosion. To make the matter worse - it is hard to benchmark this option, as it depends on so many factors, like size of dependency graph, number of providers, etc.
+Another viable direction is a provider composed from generated "parts". In that model, each part owns the logic for resolving its services and maintaining the right cache shape for those services.
 
-Looks like the benchmark is dominated by how slow singleton resolution is, considering that each service directly or indirectly depend on a singleton service. Maybe I need to check benchmarks and figure out potential perf improvements in that area. Also check profiles in general, maybe there is something interesting.
+This could still reuse the same low-level techniques that currently look promising:
 
-Ok so that was not the case. The benchmark was dominated by slow scoped service resolution. I think for v1 I need to commit to object?[][] shape where first dimension is providerId, second dimension is slot id. The difference between option 1 shape and option 4 shape is actually minimal, however I think shape 1 will perform better because more code will be shared, so there is less instruction cache pressure. However this can be benchmarked???
+- `FrozenDictionary<RuntimeTypeHandle, Func<TContext, object>>` or a comparable generated dispatch table for the slow path.
+- Generated typed fast paths for compile-time-known resolutions.
+- Slot-based arrays, dictionaries, or mixed cache layouts chosen per part instead of once for the whole provider.
+
+The main advantage is locality of responsibility. Each generated part can tailor its cache layout to the project and to the services it owns, which may be a better fit than forcing one global cache strategy across the entire provider graph.
+
+The main downside is code duplication. If every part carries its own cache and resolution machinery, the provider loses shared cache implementations, which can increase generated code size and may create instruction-cache pressure. That tradeoff is not obviously bad enough to dismiss yet, so it is worth preserving as an explicit design branch in these notes.
+
+## Tradeoffs still worth measuring
+
+- Sparse scoped graphs may waste memory with slot arrays, while dictionaries pay a much higher lookup cost.
+- Chunked arrays could reduce wasted space, but they make lookups slower and risk losing the memory benefit if resolutions span multiple chunks.
+- A more adaptive cache shape may help for very large graphs, but the added complexity needs to justify itself with clear wins in the benchmarks.
+- Part-based providers may improve cache locality and project-specific tuning, but they need measurement against code size growth and instruction-cache behavior.
