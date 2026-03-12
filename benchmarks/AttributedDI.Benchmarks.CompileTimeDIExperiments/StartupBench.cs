@@ -1,10 +1,12 @@
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegates;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandleAndSlots;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointers;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointersWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.MEDI;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegatesWithRuntimeTypeHandleAndSlots;
 using BenchmarkDotNet.Attributes;
 
 namespace AttributedDI.Benchmarks.CompileTimeDIExperiments;
@@ -20,6 +22,7 @@ public class StartupBench
         BenchmarkDisposer.DisposeProvider(provider);
     }
 
+    /*
     [Benchmark]
     [BenchmarkCategory("Startup")]
     public void DictionaryDelegates()
@@ -27,6 +30,7 @@ public class StartupBench
         var provider = DictionaryDelegatesServiceProviderBuilder.BuildServiceProvider();
         BenchmarkDisposer.DisposeProvider(provider);
     }
+    */
 
     [Benchmark]
     [BenchmarkCategory("Startup")]
@@ -47,11 +51,22 @@ public class StartupBench
 
     [Benchmark]
     [BenchmarkCategory("Startup")]
+    public void DictionaryDelegatesWithRuntimeTypeHandleAndSlots()
+    {
+        var provider =
+            DictionaryDelegatesWithRuntimeTypeHandleAndSlotsServiceProviderBuilder.BuildServiceProvider();
+        BenchmarkDisposer.DisposeProvider(provider);
+    }
+
+    /*
+    [Benchmark]
+    [BenchmarkCategory("Startup")]
     public void DictionaryFunctionPointers()
     {
         var provider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         BenchmarkDisposer.DisposeProvider(provider);
     }
+    */
 
     [Benchmark]
     [BenchmarkCategory("Startup")]
@@ -66,6 +81,14 @@ public class StartupBench
     public void TypedDelegates()
     {
         var provider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
+        BenchmarkDisposer.DisposeProvider(provider);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Startup")]
+    public void TypedDelegatesWithRuntimeTypeHandleAndSlots()
+    {
+        var provider = TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProviderBuilder.BuildServiceProvider();
         BenchmarkDisposer.DisposeProvider(provider);
     }
 }

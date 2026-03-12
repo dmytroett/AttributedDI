@@ -1,11 +1,13 @@
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegates;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandleAndRootSlots;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryDelegatesWithRuntimeTypeHandleAndSlots;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointers;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.DictionaryFunctionPointersWithRuntimeTypeHandle;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.MEDI;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.Services;
 using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegates;
+using AttributedDI.Benchmarks.CompileTimeDIExperiments.TypedDelegatesWithRuntimeTypeHandleAndSlots;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.CompilerServices;
@@ -21,15 +23,17 @@ public class ParallelBench
     private IServiceProvider? _dictionaryDelegatesProvider;
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleProvider;
     private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider;
+    private IServiceProvider? _dictionaryDelegatesWithRuntimeTypeHandleAndSlotsProvider;
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
     private TypedDelegatesServiceProvider? _typedDelegatesProvider;
 
-    [Params(4, 16)]
-    public int DegreeOfParallelism { get; set; }
+    private TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProvider?
+        _typedDelegatesWithRuntimeTypeHandleAndSlotsProvider;
 
-    [Params(64, 256)]
-    public int ScopesPerBatch { get; set; }
+    [Params(4, 16)] public int DegreeOfParallelism { get; set; }
+
+    [Params(64, 256)] public int ScopesPerBatch { get; set; }
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -40,10 +44,14 @@ public class ParallelBench
             DictionaryDelegatesWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
         _dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider =
             DictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsServiceProviderBuilder.BuildServiceProvider();
+        _dictionaryDelegatesWithRuntimeTypeHandleAndSlotsProvider =
+            DictionaryDelegatesWithRuntimeTypeHandleAndSlotsServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersProvider = DictionaryFunctionPointersServiceProviderBuilder.BuildServiceProvider();
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider =
             DictionaryFunctionPointersWithRuntimeTypeHandleServiceProviderBuilder.BuildServiceProvider();
         _typedDelegatesProvider = TypedDelegatesServiceProviderBuilder.BuildTypedServiceProvider();
+        _typedDelegatesWithRuntimeTypeHandleAndSlotsProvider =
+            TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProviderBuilder.BuildTypedServiceProvider();
     }
 
     [GlobalCleanup]
@@ -53,17 +61,21 @@ public class ParallelBench
         BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesWithRuntimeTypeHandleProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider);
+        BenchmarkDisposer.DisposeProvider(_dictionaryDelegatesWithRuntimeTypeHandleAndSlotsProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryFunctionPointersProvider);
         BenchmarkDisposer.DisposeProvider(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider);
         BenchmarkDisposer.DisposeProvider(_typedDelegatesProvider);
+        BenchmarkDisposer.DisposeProvider(_typedDelegatesWithRuntimeTypeHandleAndSlotsProvider);
 
         _mediProvider = null;
         _dictionaryDelegatesProvider = null;
         _dictionaryDelegatesWithRuntimeTypeHandleProvider = null;
         _dictionaryDelegatesWithRuntimeTypeHandleAndRootSlotsProvider = null;
+        _dictionaryDelegatesWithRuntimeTypeHandleAndSlotsProvider = null;
         _dictionaryFunctionPointersProvider = null;
         _dictionaryFunctionPointersWithRuntimeTypeHandleProvider = null;
         _typedDelegatesProvider = null;
+        _typedDelegatesWithRuntimeTypeHandleAndSlotsProvider = null;
     }
 
     [Benchmark(Baseline = true)]
@@ -73,12 +85,14 @@ public class ParallelBench
         return ResolveTransientAcrossParallelScopes(_mediProvider!);
     }
 
+    /*
     [Benchmark]
     [BenchmarkCategory("Parallel")]
     public Task DictionaryDelegates()
     {
         return ResolveTransientAcrossParallelScopes(_dictionaryDelegatesProvider!);
     }
+    */
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]
@@ -96,10 +110,19 @@ public class ParallelBench
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]
+    public Task DictionaryDelegatesWithRuntimeTypeHandleAndSlots()
+    {
+        return ResolveTransientAcrossParallelScopes(_dictionaryDelegatesWithRuntimeTypeHandleAndSlotsProvider!);
+    }
+
+    /*
+    [Benchmark]
+    [BenchmarkCategory("Parallel")]
     public Task DictionaryFunctionPointers()
     {
         return ResolveTransientAcrossParallelScopes(_dictionaryFunctionPointersProvider!);
     }
+    */
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]
@@ -120,6 +143,21 @@ public class ParallelBench
     public Task TypedDelegatesDirect()
     {
         return ResolveTransientAcrossParallelScopes(_typedDelegatesProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Parallel")]
+    public Task TypedDelegatesWithRuntimeTypeHandleAndSlots()
+    {
+        return ResolveTransientAcrossParallelScopes(
+            (IServiceProvider)_typedDelegatesWithRuntimeTypeHandleAndSlotsProvider!);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Parallel")]
+    public Task TypedDelegatesWithRuntimeTypeHandleAndSlotsDirect()
+    {
+        return ResolveTransientAcrossParallelScopes(_typedDelegatesWithRuntimeTypeHandleAndSlotsProvider!);
     }
 
     private async Task ResolveTransientAcrossParallelScopes(IServiceProvider provider)
@@ -154,6 +192,23 @@ public class ParallelBench
         }
     }
 
+    private async Task ResolveTransientAcrossParallelScopes(
+        TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProvider provider)
+    {
+        for (var i = 0; i < BatchCount; i++)
+        {
+            var workers = new Task[DegreeOfParallelism];
+
+            for (var workerIndex = 0; workerIndex < workers.Length; workerIndex++)
+            {
+                var capturedWorkerIndex = workerIndex;
+                workers[workerIndex] = Task.Run(() => RunWorker(provider, capturedWorkerIndex));
+            }
+
+            await Task.WhenAll(workers);
+        }
+    }
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunWorker(IServiceProvider provider, int workerIndex)
     {
@@ -171,6 +226,18 @@ public class ParallelBench
         {
             using var scope = provider.CreateScope();
             _ = scope.GetRequiredService<TransientService1>();
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void RunWorker(
+        TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProvider provider,
+        int workerIndex)
+    {
+        for (var i = 0; i < GetScopeCountForWorker(workerIndex); i++)
+        {
+            using var scope = provider.CreateScope();
+            _ = scope.GetService<TransientService1>();
         }
     }
 
