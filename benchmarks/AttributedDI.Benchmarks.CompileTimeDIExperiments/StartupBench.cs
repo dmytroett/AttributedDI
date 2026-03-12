@@ -76,13 +76,13 @@ public class StartupBench
         BenchmarkDisposer.DisposeProvider(provider);
     }
 
-    [Benchmark]
-    [BenchmarkCategory("Startup")]
-    public void TypedDelegates()
-    {
-        var provider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
-        BenchmarkDisposer.DisposeProvider(provider);
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Startup")]
+    // public void TypedDelegates()
+    // {
+    //     var provider = TypedDelegatesServiceProviderBuilder.BuildServiceProvider();
+    //     BenchmarkDisposer.DisposeProvider(provider);
+    // }
 
     [Benchmark]
     [BenchmarkCategory("Startup")]

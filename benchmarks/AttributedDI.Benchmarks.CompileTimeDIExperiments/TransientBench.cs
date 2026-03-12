@@ -24,6 +24,7 @@ public class TransientBench
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
     private TypedDelegatesServiceProvider? _typedDelegatesProvider;
+
     private TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProvider?
         _typedDelegatesWithRuntimeTypeHandleAndSlotsProvider;
 
@@ -123,19 +124,19 @@ public class TransientBench
         return ResolveTransientTwice(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider!);
     }
 
-    [Benchmark]
-    [BenchmarkCategory("Transient")]
-    public TransientService1 TypedDelegates()
-    {
-        return ResolveTransientTwice((IServiceProvider)_typedDelegatesProvider!);
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Transient")]
+    // public TransientService1 TypedDelegates()
+    // {
+    //     return ResolveTransientTwice((IServiceProvider)_typedDelegatesProvider!);
+    // }
 
-    [Benchmark]
-    [BenchmarkCategory("Transient")]
-    public TransientService1 TypedDelegatesDirect()
-    {
-        return ResolveTransientTwice(_typedDelegatesProvider!);
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Transient")]
+    // public TransientService1 TypedDelegatesDirect()
+    // {
+    //     return ResolveTransientTwice(_typedDelegatesProvider!);
+    // }
 
     [Benchmark]
     [BenchmarkCategory("Transient")]

@@ -131,19 +131,19 @@ public class ParallelBench
         return ResolveTransientAcrossParallelScopes(_dictionaryFunctionPointersWithRuntimeTypeHandleProvider!);
     }
 
-    [Benchmark]
-    [BenchmarkCategory("Parallel")]
-    public Task TypedDelegates()
-    {
-        return ResolveTransientAcrossParallelScopes((IServiceProvider)_typedDelegatesProvider!);
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Parallel")]
+    // public Task TypedDelegates()
+    // {
+    //     return ResolveTransientAcrossParallelScopes((IServiceProvider)_typedDelegatesProvider!);
+    // }
 
-    [Benchmark]
-    [BenchmarkCategory("Parallel")]
-    public Task TypedDelegatesDirect()
-    {
-        return ResolveTransientAcrossParallelScopes(_typedDelegatesProvider!);
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Parallel")]
+    // public Task TypedDelegatesDirect()
+    // {
+    //     return ResolveTransientAcrossParallelScopes(_typedDelegatesProvider!);
+    // }
 
     [Benchmark]
     [BenchmarkCategory("Parallel")]

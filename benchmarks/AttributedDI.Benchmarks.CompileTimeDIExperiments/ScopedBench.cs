@@ -24,6 +24,7 @@ public class ScopedBench
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
     private TypedDelegatesServiceProvider? _typedDelegatesProvider;
+
     private TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProvider?
         _typedDelegatesWithRuntimeTypeHandleAndSlotsProvider;
 
@@ -130,21 +131,21 @@ public class ScopedBench
         return scope.ServiceProvider.GetRequiredService<ScopedService1>();
     }
 
-    [Benchmark]
-    [BenchmarkCategory("Scoped")]
-    public ScopedService1 TypedDelegates()
-    {
-        using var scope = _typedDelegatesProvider!.CreateScope();
-        return scope.ServiceProvider.GetRequiredService<ScopedService1>();
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Scoped")]
+    // public ScopedService1 TypedDelegates()
+    // {
+    //     using var scope = _typedDelegatesProvider!.CreateScope();
+    //     return scope.ServiceProvider.GetRequiredService<ScopedService1>();
+    // }
 
-    [Benchmark]
-    [BenchmarkCategory("Scoped")]
-    public ScopedService1 TypedDelegatesDirect()
-    {
-        using var scope = _typedDelegatesProvider!.CreateScope();
-        return scope.GetRequiredService<ScopedService1>();
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Scoped")]
+    // public ScopedService1 TypedDelegatesDirect()
+    // {
+    //     using var scope = _typedDelegatesProvider!.CreateScope();
+    //     return scope.GetRequiredService<ScopedService1>();
+    // }
 
     [Benchmark]
     [BenchmarkCategory("Scoped")]

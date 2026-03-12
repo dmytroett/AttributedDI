@@ -24,6 +24,7 @@ public class SingletonBench
     private IServiceProvider? _dictionaryFunctionPointersProvider;
     private IServiceProvider? _dictionaryFunctionPointersWithRuntimeTypeHandleProvider;
     private TypedDelegatesServiceProvider? _typedDelegatesProvider;
+
     private TypedDelegatesWithRuntimeTypeHandleAndSlotsServiceProvider?
         _typedDelegatesWithRuntimeTypeHandleAndSlotsProvider;
 
@@ -125,19 +126,19 @@ public class SingletonBench
         return _dictionaryFunctionPointersWithRuntimeTypeHandleProvider!.GetRequiredService<SingletonService3>();
     }
 
-    [Benchmark]
-    [BenchmarkCategory("Singleton")]
-    public SingletonService3 TypedDelegates()
-    {
-        return ((IServiceProvider)_typedDelegatesProvider!).GetRequiredService<SingletonService3>();
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Singleton")]
+    // public SingletonService3 TypedDelegates()
+    // {
+    //     return ((IServiceProvider)_typedDelegatesProvider!).GetRequiredService<SingletonService3>();
+    // }
 
-    [Benchmark]
-    [BenchmarkCategory("Singleton")]
-    public SingletonService3 TypedDelegatesDirect()
-    {
-        return _typedDelegatesProvider!.GetRequiredService<SingletonService3>();
-    }
+    // [Benchmark]
+    // [BenchmarkCategory("Singleton")]
+    // public SingletonService3 TypedDelegatesDirect()
+    // {
+    //     return _typedDelegatesProvider!.GetRequiredService<SingletonService3>();
+    // }
 
     [Benchmark]
     [BenchmarkCategory("Singleton")]
